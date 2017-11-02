@@ -1,0 +1,77 @@
+********@*****@*********************@**************************
+        AORG  >6000
+*--------------------------------------------------------------
+* Cartridge header
+*--------------------------------------------------------------
+GRMHDR  BYTE  >AA,1,1,0,0,0
+        DATA  PROG
+        BYTE  0,0,0,0,0,0,0,0
+PROG    DATA  0
+        DATA  RUNLIB
+MSG0    BYTE  14
+        TEXT  'RANDOM NUMBERS'
+*--------------------------------------------------------------
+* Include required files
+*--------------------------------------------------------------
+        COPY  "D:\Projekte\spectra2\tms9900\runlib.a99"        
+*--------------------------------------------------------------
+* SPECTRA2 startup options
+*--------------------------------------------------------------
+SPVMOD  EQU   GRAPH1                ; Video mode.   See VIDTAB for details.
+SPFONT  EQU   FNOPT2                ; Font to load. See LDFNT  for details.
+SPFCLR  EQU   >30                   ; Foreground/Background color for font.
+SPFBCK  EQU   >01                   ; Screen background color.
+*--------------------------------------------------------------
+* Variables
+*--------------------------------------------------------------
+BUFFER  EQU   >8340                 ; Buffer for PUTNUM       (5 bytes)
+TIMERS  EQU   >8370                 ; Address of timer table (12 bytes)
+***************************************************************
+* Main 
+********@*****@*********************@**************************
+MAIN    BL    @PUTAT
+        DATA  >000A,MSG0            ; Show "RANDOM NUMBERS" on row 0, column 10
+        BL    @PUTAT
+        DATA  >0302,MSG1            ; Show "RANGE 0-65536...:" on row 3, column 2 
+        BL    @PUTAT
+        DATA  >0502,MSG2            ; Show "RANGE 0-100.....:" on row 5, column 2
+***************************************************************
+* Prepare threads
+********@*****@*********************@**************************        
+        MOV   @ZTITAB,@WTITAB       ; Setup timer table
+        MOVB  @BD2,@BTIHI           ; Set highes slot in use
+        BL    @MKSLOT               ; Allocate 3 timers
+        DATA  >0001,SLOT0           ; Slot 0, run every tick
+        DATA  >0120,SLOT1           ; Slot 1, run every 32 ticks
+        DATA  >0201,SLOT2,EOL       ; Slot 2, run every tick
+        B     @TMGR                 ; Handle FCTN-QUIT key, etc.
+ZTITAB  DATA  TIMERS                ; Address of timer table
+***************************************************************
+* Thread 0 - Display random number on row 3, column 21
+********@*****@*********************@**************************        
+SLOT0   BL    @RND
+        DATA  >FFFF                 ; Random number in range 0-65536, returned in TMP0
+        BL    @PUTNUM
+        DATA  >0315,TMP0HB,BUFFER,>3030
+        B     @SLOTOK               ; Exit thread
+***************************************************************
+* Thread 1 - Display random number on row 5, column 21
+********@*****@*********************@**************************         
+SLOT1   BL    @RND
+        DATA  100                   ; Random number in range 0-100, returned in TMP0
+        BL    @PUTNUM
+        DATA  >0515,TMP0HB,BUFFER,>3020
+        B     @SLOTOK               ; Exit thread
+***************************************************************
+* Thread 2 - Display random characters on lower part of screen
+********@*****@*********************@**************************         
+SLOT2   BL    @RND
+        DATA  544
+        AI    TMP0,7*32
+        BL    @XVPUTB               ; Put character on screen
+        B     @SLOTOK               ; Exit thread
+MSG1    BYTE  17
+        TEXT  'RANGE 0-65536...:'
+MSG2    BYTE  17
+        TEXT  'RANGE 0-100.....:'        
+        END  

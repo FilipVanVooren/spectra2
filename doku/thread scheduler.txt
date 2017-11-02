@@ -1,0 +1,79 @@
+                   (A)                +--------------------------+            (B)
+    ................................> | Read VDP status register | <.......................
+    .                                 +-------------.------------+                        .
+    .                                               |                                     .
+    .                                       VDP int flag set?                             .
+    .                                               |                                     .
+    .                             __________________|____________________                 .
+    .                          Y |                                       | N              .
+    .                            |                                       |                .
+    .              +-------------.------------+                 Speech player on?         .
+    .              | Do internal housekeeping |                          |                .  F
+    .              |                          |                +---------.---------+      .  A
+    .              | * Unblock kernel thread  |                | Run speech player |      .  S
+    .              | * Unblock user hook      |                +---------.---------+ (*)  .  T
+    .              | * Update tick counter    |                          |                .
+    .              +-------------.------------+         Kernel thread unblocked/enabled?  .
+    .                            |                                       |                .
+    .                  +---------.--------+                     +--------.--------+       .
+    .                  | Update slot data | <............       | Set block flag  |       .
+    .                  |   counter, etc.  |             .       |     and run     |       .
+    .                  +---------.--------+             .       | kernel thread   |       .
+    .                            |                      .       +--------.--------+  (*)  .
+    .         Internal counter = target count in slot?  .                |                .
+    .                            |                      .   User hook unblocked/enabled?  .
+    .                      +-----.-----+                .                |                .
+    .                      |  Run slot |                .        +-------.-------+        .
+    .                      +-----.-----+  (*)           .        | Run user hook |        .
+    .                            |                      .        +-------.-------|   (*)  .
+    .                    Last slot done?                .                .                .
+    .          __________________|___________           .                ........>.........
+    .       Y |                              | N        .
+    .         |                              |          .
+    .   +-----.------+                +------.------+   .
+    .   | Reset tick |                | Prepare for |   .
+    .   |   counter  |                |  next slot  |   .
+    .   +-----.------+                +------.------+   .
+    .         .                              .          .
+    ....<......                              ......>.....
+
+
+    (A) = Executed once per frame (1/60th for NTSC, 1/50th for PAL)
+    (B) = User hook repeats until blocked from user hook code.
+          Kernel thread (sound player, keyboard scan) runs once per frame.
+    (*) = Skipped depending on result of check
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

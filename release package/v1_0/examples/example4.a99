@@ -1,0 +1,101 @@
+********@*****@*********************@**************************
+        AORG  >6000
+*--------------------------------------------------------------
+* Cartridge header
+*--------------------------------------------------------------
+GRMHDR  BYTE  >AA,1,1,0,0,0
+        DATA  PROG
+        BYTE  0,0,0,0,0,0,0,0
+PROG    DATA  0
+        DATA  RUNLIB
+MSG0    BYTE  11
+        TEXT  'LEAVE TRAIL'
+*--------------------------------------------------------------
+* Include required files
+*--------------------------------------------------------------
+        COPY  "D:\Projekte\spectra2\tms9900\runlib.a99"        
+*--------------------------------------------------------------
+* SPECTRA2 startup options
+*--------------------------------------------------------------
+SPVMOD  EQU   GRAPH1                ; Video mode.   See VIDTAB for details.
+SPFONT  EQU   FNOPT7                ; Font to load. See LDFNT  for details.
+SPFCLR  EQU   >60                   ; Foreground/Background color for font.
+SPFBCK  EQU   >01                   ; Screen background color.
+*--------------------------------------------------------------
+* Variables
+*--------------------------------------------------------------
+BUFFER  EQU   >8340                 ; Buffer for PUTNUM       (5 bytes)
+RAMTAB  EQU   >8346
+RAMSAT  EQU   >8370
+***************************************************************
+* Main 
+********@*****@*********************@**************************
+MAIN    BL    @PUTBOX
+        DATA  >0003,>1A02,INFO,EOL  ; Show text in box on row >00, col >03 with width >1A, height >02.
+        LI    R0,>0709
+        MOV   R0,@WYX
+        BL    @CPYM2M
+        DATA  SPRITE,RAMSAT,6       ; Copy 6 bytes from ROM into scratchpad RAM
+        BL    @CPYM2V
+        DATA  >1000,PAT1,8          ; Dump sprite pattern
+        MOV   R0,TMP0
+        BL    @YX2PXX
+        MOV   TMP0,@RAMSAT          ; Update RAMSAT
+		
+        MOV   @MYTAB,@WTITAB        ; Setup timer table
+        BL    @MKSLOT               ; Allocate slot 0
+        DATA  >0004,MVBOX,EOL
+        B     @TMGR
+***************************************************************
+* Move sprite: This routine is called as timer slot from TMGR
+********@*****@*********************@**************************
+MVBOX   MOV   R11,R2                ; Save R11
+        COC   @WBIT11,CONFIG        ; ANY key pressed ?
+        JNE   MVBOX5                ; No, so exit
+        MOV   @WVRTKB,R1            ; Get keyboard flags        
+MVBOX1  COC   @KEY1,R1              ; Left ?
+        JNE   MVBOX2
+        SB    @BD1,@BX
+MVBOX2  COC   @KEY2,R1              ; Right ?
+        JNE   MVBOX3
+        AB    @BD1,@BX
+MVBOX3  COC   @KEY3,R1              ; Up ?
+        JNE   MVBOX4
+        SB    @BD1,@BY        
+MVBOX4  COC   @KEY4,R1              ; Down ?
+        JNE   MVBOX5
+        AB    @BD1,@BY
+MVBOX5  MOV   @WYX,R0               
+        BL    @YX2PX                ; YX tile position to sprite pixel position
+        MOV   TMP0,@RAMSAT          ; Update YX in SAT copy
+        BL    @CPYM2V               ; Dump SAT copy to VDP SAT
+        DATA  >0300,RAMSAT,6        ; ... R11 is overwritten 
+        BL    @YX2PNT               ; Get VDP destination address
+        LI    TMP1,65
+        BL    @XVPUTB               ; Write character
+		
+		MOV   R0,TMP0
+		SRL   TMP0,8                ; Right align Y            
+		BL    @PUTNUM
+		DATA  >0500,TMP0HB,BUFFER,NUM2
+		
+		MOV   R0,TMP0
+		ANDI  TMP0,>00FF            ; Only keep X
+		BL    @PUTNUM
+		DATA  >050A,TMP0HB,BUFFER,NUM2
+        MOV   R0,@WYX		
+        B     *R2                   ; ... so return using copy in R2
+KEY1    DATA  K1LF                  ; Left
+KEY2    DATA  K1RG                  ; Right
+KEY3    DATA  K1UP                  ; Up
+KEY4    DATA  K1DN                  ; Down        
+***************************************************************
+* Our constants
+********@*****@*********************@**************************
+MYTAB   DATA  RAMTAB                ; Location of timer table in scratchpad memory
+SPRITE  DATA  >0000,>000F           ; Row >00, Col >00, pattern >00, color white
+        DATA  >0D00                 ; No more sprites
+PAT1    DATA  >FF81,>8181,>8181,>81FF
+INFO    BYTE  52
+        TEXT  'Use joystick 1 or keys    E,S,D,X for moving sprite'        
+        END                   

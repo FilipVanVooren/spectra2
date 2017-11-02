@@ -1,0 +1,39 @@
+v1.0 * Initial release
+
+v1.1   Bug-fix      by TREV2005. Fixed YX2PYX register issue
+       Change       Introduced memory location @WCOLMN and rewrote YX2PNT for using MPY instruction.
+                    Adjusted format of video mode table to include number of columns per row.
+                    VIDTAB subroutine adjusted as well.
+       Change       Removed subroutine GTCLMN. The functionality is replaced by the @WCOLMN memory location.
+       New          Added subroutine SCRDIM for setting base and width of a virtual screen.
+       Change       Introduced memory locations WAUX1,WAUX2,WAUX3.
+       Change       PUTBOX completely rewritten, now supports repeating vertically and/or horizontally.
+                    This is how its supposed to work from day one..
+                    --> WARNING PUTBOX is not compatible with V1.  width & height swapped in P1.
+       Change       Removed memory location WSEED. On startup the value is in WAUX1. 
+                    Added parameter P1 to RND subroutine (address of random seed)
+       Change       Modified FILBOX subroutine. Width and height swapped in P1 so that it's the same as for
+                    the PUTBOX subroutine
+       New          Added VIEW subroutine. This is a viewport into a virtual screen. Use this to build a scroller.
+       New          Added RLE2V subroutine. Decompress RLE (Run Length Encoded data) to VRAM.
+       
+
+*--------------------------------------------------------------
+* TODO
+* Specify equates for color table and font address
+* because they are still hard coded in RUNLIB !!!!
+*
+* - Check VCHAR subroutine. Some bytes can be saved by calling VDWA
+* - Add equates for colors 0-15
+* - Add subroutine CPYV2V (Copy VRAM to VRAM) using configurable buffer size in CPU memory
+* - Add RLE2M subroutine. Decompress RLE (Run Length Encode data) to RAM.
+* - Add reconfigurable slot for long running tasks
+* 
+*
+* Replace constants with equates pointing to ROM0 console
+* -> Benefits
+*    Save approximately 50 bytes.
+*    Faster because 16-bit memory access
+* -> Disadvantage
+*    What if there are multiple ROM revisions ?
+*--------------------------------------------------------------

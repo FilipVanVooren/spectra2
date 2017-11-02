@@ -1,0 +1,51 @@
+********@*****@*********************@**************************
+        AORG  >6000
+*--------------------------------------------------------------
+* Cartridge header
+*--------------------------------------------------------------
+GRMHDR  BYTE  >AA,1,1,0,0,0
+        DATA  PROG
+        BYTE  0,0,0,0,0,0,0,0
+PROG    DATA  0
+        DATA  RUNLIB
+HW      BYTE  13
+        TEXT  'KEYBOARD SCAN'
+*--------------------------------------------------------------
+* Include required files
+*--------------------------------------------------------------
+        COPY  "D:\Projekte\spectra2\tms9900\runlib.a99"        
+*--------------------------------------------------------------
+* SPECTRA2 startup options
+*--------------------------------------------------------------
+SPVMOD  EQU   GRAPH1                ; Video mode.   See VIDTAB for details.
+SPFONT  EQU   FNOPT7                ; Font to load. See LDFONT for details.
+SPFCLR  EQU   >F0                   ; Foreground/Background color for font.
+SPFBCK  EQU   >08                   ; Screen background color.
+TIMERS  EQU   >8340 
+***************************************************************
+* Main 
+********@*****@*********************@**************************
+MAIN    BL    @PUTAT
+        DATA  >0B0A,HW              ; Show message on row >0B, column >0A
+        LI    R0,>8340
+        MOV   R0,@WTITAB
+        SOC   @WBIT12,CONFIG
+        BL    @MKSLOT
+        DATA  >0001,T1,EOL
+        CLR   @WYX
+        B     @TMGR                 ; Handle FCTN-QUIT key, etc.
+        
+T1      MOVB  @DEF,@>8342
+        COC   @WBIT11,CONFIG
+        JNE   T2
+        BL    @GETKEY
+        MOV   TMP0,TMP1
+        BL    @YX2PNT        
+        BL    @XVPUTB
+        INC   @WYX
+        MOVB  @ABC,@>8342
+T2      B     @SLOTOK
+ABC     BYTE  >08
+DEF     BYTE  >01
+        
+        END  

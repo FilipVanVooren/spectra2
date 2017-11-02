@@ -1,0 +1,98 @@
+***************************************************************
+* Honeycomb Rapture - (c) 2010 by Owen Brand
+*
+* Cartridge conversion by Retroclouds
+*
+* This file: hc_source3.a99
+***************************************************************
+* Game over
+********@*****@*********************@**************************
+
+       
+**************************************************************
+* Thread GOGAME - Resume or game over
+********@*****@*********************@************************** 
+GOGAME  DEC   @LIVES                ; Lives = Lives - 1
+        JEQ   GOGAM1                ; GAME OVER ?
+        MOV   @SPRSAT+4,@RAMSAT+4   ; Restore bee start position        
+        BL    @PUTAT
+        DATA  >060A,GO              ; Here we go ....        
+        SZC   @WBIT0,@GASTAT        ; Reset "bee killed" flag
+        SOC   @WBIT13,CONFIG        ; Resume sound player
+        BL    @PUTVR
+        DATA  >070A                 ; VDP#7 - Set background color  
+        B     @GAME1                ; Update stats & resume game              
+*--------------------------------------------------------------
+*  Game over
+*--------------------------------------------------------------        
+GOGAM1  BL    @SCROFF               ; Screen off
+        BL    @VPUTB
+        DATA  >0300,>D0             ; End of sprite processing
+        BL    @FILV
+        DATA  >0000,00,768          ; Fill screen        
+        BL    @FILV
+        DATA  >0380,>16,16          ; Set colors black/red
+        BL    @SCRON                ; Screen on
+        BL    @MKSLOT
+        DATA  >0020,SHOW1,EOL       ; Display msg with 0.5 seconds interval 
+        CLR   R10                   ; Set highest slot to 0  
+        B     @SLOTOK               ; Back to Thread Scheduler
+        
+        
+***************************************************************
+* Thread SHOW. - Display "game over" messages
+********@*****@*********************@************************** 
+SHOW1   BL    @PUTAT
+        DATA  >0505,MSG1            ; Line 1                         
+        BL    @SDPREP
+        DATA  SOUND2,SDOPT2         ; Start "game over" tune
+        MOV   @TMP50,@TIMERS        ; Update slot 0 thread address
+        JMP   SHOWZ
+SHOW2   BL    @PUTAT
+        DATA  >0703,MSG2            ; Line 2
+        JMP   SHOWY
+SHOW3   BL    @PUTAT
+        DATA  >0905,MSG3            ; Line 3
+        JMP   SHOWY
+SHOW4   BL    @PUTAT
+        DATA  >0B09,MSG4            ; Line 4
+        JMP   SHOWY
+SHOW5   BL    @PUTAT
+        DATA  >0F07,MSG5            ; Line 5       
+        BL    @PUTNUM
+        DATA  >0F15,SCORE,BUFFER,>3030
+        BL    @MKHOOK
+        DATA  WAIKEY                ; User hook - restart game when key pressed        
+        BL    @MKSLOT
+        DATA  >000A,BLKMSG,EOL      ; Blink text "PRESS ANY KEY TO PLAY AGAIN"
+        SETO  R0                    ; Use R0 as toggle for BLKMSG
+        JMP   SHOWZ
+*--------------------------------------------------------------
+*  Update subroutine address in slot 0
+*--------------------------------------------------------------            
+SHOWY   A     @ADD10,@TIMERS        ; Update slot 0 thread address
+SHOWZ   B     @SLOTOK               ; Back to Thread Scheduler
+TMP50   DATA  SHOW2
+ADD10   DATA  10                    ; Offset between SHOW1 -> SHOW2 -> SHOW3 -> ... is fixed !!!
+
+
+
+***************************************************************
+* User hook TSTKEY - Restart game upon keypress
+********@*****@*********************@************************** 
+WAIKEY  COC   @ANYKEY,R12
+        JNE   WAIKE1
+        B     @RUNLIB               ; Restart game
+WAIKE1  B     @HOOKOK
+
+***************************************************************
+* THREAD - Blink message "PRESS ANY KEY TO PLAY AGAIN"
+********@*****@*********************@************************** 
+BLKMSG  INV   R0
+        JEQ   BLKMS1
+        BL    @PUTAT
+        DATA  >1303,MSG6            ; Show messsage        
+        JMP   BLKMS2
+BLKMS1  BL    @HCHAR
+        DATA  >1303,>001C,EOL       ; Erase line 6        
+BLKMS2  B     @SLOTOK               ; Exit

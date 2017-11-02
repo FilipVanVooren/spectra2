@@ -1,0 +1,207 @@
+***************************************************************
+*                           SPECTRA2 
+*                      Arcade Game Library 
+*                             for
+*               the Texas Instruments TI-99/4A  
+*                   2010 by Filip Van Vooren
+***************************************************************
+* This file: editasm.a99
+***************************************************************
+* v0.1  -   2010/06/16       Initial version
+***************************************************************
+
+
+*//////////////////////////////////////////////////////////////
+*                        VDP FUNCTIONS
+*//////////////////////////////////////////////////////////////
+
+* VMBR   (R0,R1,R2) ..:
+***************************************************************
+* VMBR - VDP multiple byte read
+* Same function as in Editor Assembler module
+***************************************************************
+*  BL @VMBR
+*--------------------------------------------------------------
+*  INPUT
+*  R0 = VDP source address
+*  R1 = RAM target address
+*  R2 = Number of bytes to read
+********@*****@*********************@**************************
+VMBR    DECT  SUBSTK
+        MOV   R11,*SUBSTK           ; Push RT
+        DECT  DATSTK
+        MOV   R0,*DATSTK
+        DECT  DATSTK
+        MOV   R1,*DATSTK
+        DECT  DATSTK
+        MOV   R2,*DATSTK
+        SWPB  R0
+        MOVB  R0,@VDPA
+        SWPB  R0
+        MOVB  R0,@VDPA
+VMBR1   MOVB  @VDPR,*R1+
+        DEC   R2
+        JNE   VMBR1
+        B     @POPR2
+*:..
+
+* VMBW   (R0,R1,R2) ..:
+***************************************************************
+* VMBW - VDP multiple byte write
+* Same function as in Editor Assembler module
+***************************************************************
+*  BL @VMBW
+*--------------------------------------------------------------
+*  INPUT
+*  R0 = VDP target address
+*  R1 = RAM/ROM source address
+*  R2 = Number of bytes to write
+********@*****@*********************@**************************
+VMBW    DECT  SUBSTK
+        MOV   R11,*SUBSTK           ; Push RT
+        DECT  DATSTK
+        MOV   R0,*DATSTK
+        DECT  DATSTK
+        MOV   R1,*DATSTK
+        DECT  DATSTK
+        MOV   R2,*DATSTK
+        ORI   R0,>4000
+        SWPB  R0
+        MOVB  R0,@VDPA
+        SWPB  R0
+        MOVB  R0,@VDPA
+VMBW1   MOVB  *R1+,*R15
+        DEC   R2
+        JNE   VMBW1
+        B     @POPR2
+*:..
+
+* VWTR   (R0) ..:
+***************************************************************
+* VWTR - VDP write to register
+* Same function as in Editor Assembler module
+***************************************************************
+*  BL @VWTR
+*--------------------------------------------------------------
+*  INPUT
+*  R0 = MSB is the VDP target register
+*       LSB is the value to write
+********@*****@*********************@**************************
+VWTR    DECT  SUBSTK
+        MOV   R11,*SUBSTK           ; Push RT
+        DECT  DATSTK
+        MOV   R0,*DATSTK
+        ORI   R0,>8000
+        SWPB  R0
+        MOVB  R0,@VDPA
+        SWPB  R0
+        MOVB  R0,@VDPA
+        B     @POPR0
+*:..
+
+
+*//////////////////////////////////////////////////////////////
+*                            GPLLNK
+*//////////////////////////////////////////////////////////////
+
+***************************************************************
+* GPL workspace and register equates
+********@*****@*********************@**************************
+GPLWS   EQU   >83E0                 ; GPL Workspace
+GPLR0   EQU   GPLWS                 ; R0  in GPL WS
+GPLR1   EQU   GPLWS+2               ; R1  in GPL WS
+GPLR2   EQU   GPLWS+4               ; R2  in GPL WS
+GPLR3   EQU   GPLWS+6               ; R3  in GPL WS
+GPLR4   EQU   GPLWS+8               ; R4  in GPL WS
+GPLR5   EQU   GPLWS+10              ; R5  in GPL WS
+GPLR6   EQU   GPLWS+12              ; R6  in GPL WS
+GPLR7   EQU   GPLWS+14              ; R7  in GPL WS
+GPLR8   EQU   GPLWS+16              ; R8  in GPL WS
+GPLR9   EQU   GPLWS+18              ; R9  in GPL WS
+GPLR10  EQU   GPLWS+20              ; R10 in GPL WS
+GPLR11  EQU   GPLWS+22              ; R11 in GPL WS
+GPLR12  EQU   GPLWS+24              ; R12 in GPL WS
+GPLR13  EQU   GPLWS+26              ; R13 in GPL WS. GROM write address
+GPLR14  EQU   GPLWS+28              ; R14 in GPL WS. GPL system flags
+GPLR15  EQU   GPLWS+30              ; R15 in GPL WS. VDP write address
+GPLVEC  EQU   >0016                 ; Vector for GPL interpreter without interrupts       
+                                    ; and R9HB has GPL opcode                              
+***************************************************************
+* GPLLNK - Gate into the GPL interpreter
+***************************************************************
+* BL   @GPLLNK
+* DATA P0
+*
+* P0 = GROM address of GPL routine to call
+*--------------------------------------------------------------
+* Remarks
+* This routine is based on a GPLLNK subroutine as published by
+* Thierry Nouspikel on the website http://www.nouspikel.com/ti99
+*
+* It's important to know, that R0 in the main workspace (>8300)
+* must contain the CPU RAM address to jump to when returning 
+* from GPL. Reason is that we push the GROM address of a memory 
+* location having byte sequence ">0F,>F0" on the GPL 
+* subroutine stack. 
+*
+* For returning from GPL, the GPL interpreter will branch to that 
+* address and execute GPL opcode >0F (aka the XML instruction)
+* The high nibble "F" of operand ">F0" means XML table 16 which 
+* is located in scratch-pad memory. 
+* The low nibble "0" indicates the first entry in the XML table
+* which is a vector to memory location >8300.
+*
+* Execution flow
+* 1) GPL interpreter is started and executes the opcode fetched
+*    from the high nibble of GPL workspace register R9.
+*    In our case this is >00 which is handled as a RTN opcode.
+* 2) GPL interpreter executes "return" statement, pops address
+*    of subroutine stack and branches to that GROM address; this 
+*    is the address of the routine we want to execute.
+* 3) After returning from (2) the GPL interpreter branches to
+*    the GROM address containing the byte sequence ">F0,>0F".
+* 4) As a result an XML with vector at >8300 (our R0 in the main workspace)
+*    is used and the GPL interpreter branches to our XMLRTN
+*    routine and we're back in our assembly language program.
+*
+* BE AWARE!
+* Due to multiple GROM revisions the byte sequence >0FF0 may
+* be located at another GROM address.
+********@*****@*********************@************************** 
+GPLLNK  LI    R0,XMLRTN             ; Return address for GPL
+        COC   @WBIT13,CONFIG        ; GPL memory setup required ?
+        JNE   GPLLN1                ; No, skip 
+*--------------------------------------------------------------
+* Prepare memory for GPL interpreter
+*--------------------------------------------------------------
+        MOV   @GPLDAT,@>8370        ; Set highest available VDP address
+        MOV   @GPLDAT+2,@>8372      ; Set pointers for data- and subroutine stack      
+*--------------------------------------------------------------
+* Push GROM address with opcode for XML on GPL suprogram stack
+*--------------------------------------------------------------        
+GPLLN1  LI    TMP0,>8373            ; GPL subroutine stack pointer
+        MOVB  *TMP0,@TMP0LB         ; Replace byte ">73" with top of stack
+        MOV   @DUMXML,*TMP0+        ; Push "dummy XML" on stack
+        MOV   *R11+,*TMP0           ; Push address of GPL routine to call
+        MOVB  @TMP0LB,@>8373        ; Update stack pointer
+*--------------------------------------------------------------
+* Execute GPL routine and prepare for return
+*--------------------------------------------------------------            
+GPLLN2  MOVB  @BDIG0,@>837C         ; Clear GPL status-byte
+        MOV   R11,TMP1                
+        BL    @PUTVR
+        DATA  >01C2                 ; VDP#1 - Turn of VDP interrupt
+        MOV   TMP1,R11
+        LWPI  GPLWS                 ; Load GPL workspace
+        LI    R13,>9800             ; GROM base (GROM0 in console)
+        LI    R15,VDPW              ; Set VDP write address   
+        S     R9,R9                 ; R9MSB contains GPL opcode >00 (RTN)
+        B     @GPLVEC               ; Run GPL interpreter (vector is at ROM @>0016)
+XMLRTN  LWPI  WS1                   ; Load our workspace again
+        B     *R11                  ; All done - return to caller
+GPLDAT  DATA  >3FFF,>9F7E
+*--------------------------------------------------------------
+* GROM address of dummy XML opcode. Depends on console version
+*--------------------------------------------------------------  
+DUMXML  DATA  >0379                 ; Value of GROM @>0379 is >0FF0
+* :..

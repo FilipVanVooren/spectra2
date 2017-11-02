@@ -1,0 +1,339 @@
+********@*****@*********************@**************************
+        AORG  >6000
+*--------------------------------------------------------------
+* Cartridge header
+*--------------------------------------------------------------
+GRMHDR  BYTE  >AA,1,1,0,0,0
+        DATA  PROG
+        BYTE  0,0,0,0,0,0,0,0
+PROG    DATA  0
+        DATA  RUNLIB
+        BYTE  10
+        TEXT  'SKULL DEMO'
+*--------------------------------------------------------------
+* Include required files
+*--------------------------------------------------------------
+        COPY  "D:\retro\Projekte\spectra2\tms9900\runlib.a99"
+*--------------------------------------------------------------
+* Equates for the demo
+*--------------------------------------------------------------
+TOGGLE  EQU   >8342                 ;  2 - Toggle for SATs
+RAMSAT  EQU   >8344                 ; 68 - Copy of SAT in RAM
+TIMERS  EQU   >8388                 ; 12 - Space for 3 timers
+TMPBUF  EQU   >8394
+*--------------------------------------------------------------
+* SPECTRA2 startup options
+*--------------------------------------------------------------
+SPVMOD  EQU   GRAPH1                ; Video mode.   See VIDTAB for details.
+SPFONT  EQU   NOFONT                ; Font to load. See LDFONT for details.
+SPFCLR  EQU   >01                   ; Foreground/Background color for font.
+SPFBCK  EQU   >0B                   ; Screen background color.
+***************************************************************
+* Main 
+********@*****@*********************@**************************
+MAIN    CLR   @TOGGLE
+        BL    @PUTVR
+        DATA  >01E3                 ; Sprite magnify 2x + 16x16 size
+        BL    @FILV
+        DATA  >0000,>00,16000       ; Clear VDP memory
+        BL    @FILV
+        DATA  >0380,>10,16
+        BL    @CPYM2V
+        DATA  >1000,SKULPT,68*8     ; Load skull sprite patterns into VDP memory
+        BL    @CPYM2V
+        DATA  >0300,SPRITE,12*4     ; Load overlay sprites into VDP memory
+        BL    @CPYM2M
+        DATA  SPRITE+48,RAMSAT,17*4 ; Copy skull sprites from ROM to RAM      
+        BL    @CPYM2V
+        DATA  >0808,LETTRS,13*8     ; Load character patterns into VDP memory       
+        LI    TMP0,TIMERS           ; Address of timer table
+        MOV   TMP0,@WTITAB          ; Set timer table
+        BL    @MKSLOT
+        DATA  >0001,SKULL,EOL
+        B     @TMGR        
+***************************************************************
+* Controller - Scroll skull
+***************************************************************
+SKULL   BL    @CPYM2V
+        DATA  >0330,RAMSAT,68       ; Dump RAMSAT to VDP                
+***************************************************************
+* Calculate sprite positions for next frame
+***************************************************************        
+        LI    TMP0,RAMSAT
+        CLR   TMP1
+        LI    TMP2,16
+SKULLA  MOVB  *TMP0,TMP1               
+        AI    TMP1,->0200           ; Y=Y-2
+        CI    TMP1,>D000            ; Skip Y position >D0
+        JNE   SKULLB
+        AI    TMP1,->0100           
+SKULLB  CI    TMP1,>1900            ; Y position >19 reached ?
+        JEQ   SKULLD                ; Yes, remove overlay sprites
+        CI    TMP1,>0800            ; Y position >08 reached ?
+        JLE   SKULLE                ; Yes, stop scrolling skull
+SKULLC  MOVB  TMP1,*TMP0
+        AI    TMP0,4
+        DEC   TMP2
+        JNE   SKULLA
+        B     @SLOTOK               ; Exit thread
+***************************************************************
+* Remove overlay sprites
+***************************************************************         
+SKULLD  MOV   @TOGGLE,@TOGGLE       ; Already removed overlay ?
+        JNE   SKULLC                ; Yes, so skip
+        MOV   TMP0,@TMPBUF
+        MOV   TMP1,@TMPBUF+2
+        MOV   TMP2,@TMPBUF+4
+        BL    @FILV
+        DATA  >0300,>E0,12*4        ; Put overlay sprites off-screen
+        MOV   @TMPBUF,TMP0
+        MOV   @TMPBUF+2,TMP1
+        MOV   @TMPBUF+4,TMP2
+        SETO  @TOGGLE
+        JMP   SKULLC
+***************************************************************
+* Stop scrolling skull and prepare shadow image
+***************************************************************           
+SKULLE  BL    @CPYM2V
+        DATA  >0264,TEXT,24         ; Put text 'A RETROCLOUDS PRODUCTION'       
+        LI    TMP0,RAMSAT
+        LI    TMP1,>0202
+        LI    TMP2,16
+SKULLF  A     TMP1,*TMP0            ; Prepare RAMSAT for flicker shadow image
+        AI    TMP0,4
+        DEC   TMP2
+        JNE   SKULLF        
+        BL    @CPYM2V
+        DATA  >0400,RAMSAT,17*4     ; Dump RAMSAT again        
+        BL    @MKSLOT
+        DATA  >0020,WKDELY,EOL      ; Replace slot
+        B     @SLOTOK               ; Exit thread
+***************************************************************
+* Controller - Small delay
+***************************************************************
+WKDELY  BL    @MKSLOT
+        DATA  >0001,WKTOG           ; Toggle SAT pointers
+        DATA  >017F,FREEZE,EOL      ; Freeze after 1 second
+        BL    @SPPREP              
+        DATA  THUNDR,SPOPT1         ; Speech player on / Speak external
+        MOVB  @BD1,@BTIHI           ; Set highest slot in use to 1
+        B     @SLOTOK               ; Exit thread
+***************************************************************
+* Controller - Toggle SAT pointer for shadow image
+***************************************************************        
+WKTOG   DEC   @TOGGLE
+        JEQ   WKTGB
+WKTGA   BL    @PUTVR
+        DATA  >0506                 ; SAT at >0300
+        ABS   @TOGGLE
+        B     @SLOTOK               ; Exit thread
+WKTGB   BL    @PUTVR
+        DATA  >0508                 ; SAT at >0400
+        B     @SLOTOK               ; Exit thread
+***************************************************************
+* Controller - Random delay and restart of animation
+*************************************************************** 
+FREEZE  MOVB  @BD0,@BTIHI           ; Set highest slot in use to 0
+        BL    @MKSLOT
+        DATA  >0060,FREEZ1,EOL
+        BL    @RND                  ; \ Generate random number between 0-7
+        DATA  7,WAUX1               ; / Seed is stored in WAUX1 upon startup
+        AI    TMP0,3                ;         
+        MOV   TMP0,@WAUX2           ; Save as delay 3-10 seconds
+        JMP   FREEZ2
+FREEZ1  DEC   @WAUX2     
+        MOV   @WAUX2,TMP0
+        JNE   FREEZ2
+        JMP   WKDELY                ; Delay reached, restart animation
+FREEZ2  B     @SLOTOK
+
+        
+***************************************************************
+* Skull sprite layout
+***************************************************************
+*  159D
+*  26AE
+*  37BF
+*  48CG   
+***************************************************************
+* Skull sprites
+********@*****@*********************@**************************        
+SPRITE  DATA  >9040,>400B           ; Overlay 1
+        DATA  >9060,>400B           ; Overlay 2
+        DATA  >9080,>400B           ; Overlay 3
+        DATA  >90A0,>400B           ; Overlay 4
+        DATA  >B040,>400B           ; Overlay 5
+        DATA  >B060,>400B           ; Overlay 6
+        DATA  >B080,>400B           ; Overlay 7
+        DATA  >B0A0,>400B           ; Overlay 8
+        DATA  >FE40,>400B           ; Overlay 9
+        DATA  >FE60,>400B           ; Overlay A
+        DATA  >FE80,>400B           ; Overlay B     
+        DATA  >FEA0,>400B           ; Overlay C                                     
+        DATA  >9140,>0001           ; Sprite 1
+        DATA  >B140,>0401           ; Sprite 2
+        DATA  >D140,>0801           ; Sprite 3
+        DATA  >F140,>0C01           ; Sprite 4
+        DATA  >9160,>1001           ; Sprite 5
+        DATA  >B160,>1401           ; Sprite 6
+        DATA  >D160,>1801           ; Sprite 7
+        DATA  >F160,>1C01           ; Sprite 8
+        DATA  >9180,>2001           ; Sprite 9
+        DATA  >B180,>2401           ; Sprite A
+        DATA  >D180,>2801           ; Sprite B
+        DATA  >F180,>2C01           ; Sprite C
+        DATA  >91A0,>3001           ; Sprite D
+        DATA  >B1A0,>3401           ; Sprite E
+        DATA  >D1A0,>3801           ; Sprite F
+        DATA  >F1A0,>3C01           ; Sprite G        
+        DATA  >D000
+***************************************************************
+* Skull sprite patterns
+********@*****@*********************@**************************         
+*-- Sprite 1
+SKULPT  DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FEFC,>F8F0,>E0E0
+*-- Sprite 2
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FEFE,>FEFE
+        DATA  >C0C0,>8080,>8080,>0000
+        DATA  >0000,>0000,>0000,>0000
+*-- Sprite 3
+        DATA  >FEFC,>FCFC,>FCFC,>F8F8
+        DATA  >F8F8,>F8F8,>F8F8,>FCFC
+        DATA  >0001,>0307,>0F0F,>1F1F
+        DATA  >3F3F,>0000,>0000,>0000
+*-- Sprite 4
+        DATA  >FEFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >0387,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+*-- Sprite 5
+        DATA  >FFFF,>FFFE,>FCF8,>F0C0
+        DATA  >8000,>0000,>0000,>0000
+        DATA  >FFFF,>0000,>0000,>0000
+        DATA  >0000,>0000,>0000,>0000
+*-- Sprite 6
+        DATA  >0000,>0000,>0000,>0000
+        DATA  >0000,>0000,>0000,>0000
+        DATA  >0001,>0303,>0303,>0303
+        DATA  >0303,>0301,>0101,>0100
+*-- Sprite 7
+        DATA  >FCFE,>FFFF,>FFFF,>FEFC
+        DATA  >F8C0,>0000,>0000,>3CFF
+        DATA  >0000,>0000,>0103,>0707
+        DATA  >0F0F,>1F1F,>1E08,>0000
+*-- Sprite 8
+        DATA  >FFFE,>FCF0,>E1F3,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >0000,>0040,>8000,>0084
+        DATA  >C4FC,>FCFC,>FEFF,>FFFF
+*-- Sprite 9
+        DATA  >FFFF,>0000,>0000,>0000
+        DATA  >0000,>0000,>000F,>3F7F
+        DATA  >FFFF,>FF3F,>0F03,>0000
+        DATA  >0000,>0000,>00F0,>FCFF
+*-- Sprite A
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFF8
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFE
+*-- Sprite B
+        DATA  >0000,>0000,>80E0,>F0F8
+        DATA  >FC7E,>3E02,>0000,>0000
+        DATA  >7C00,>0000,>0000,>0000
+        DATA  >0101,>0101,>0100,>0000
+*-- Sprite C
+        DATA  >0000,>0000,>0000,>0000
+        DATA  >0808,>0C0F,>1FFF,>FFFF
+        DATA  >0000,>0C07,>0301,>0123
+        DATA  >131F,>3FFF,>FFFF,>FFFF
+*-- Sprite D
+        DATA  >FFFF,>FFFF,>FFFF,>FF7F
+        DATA  >1F0F,>0703,>0301,>0000
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FF7F
+*-- Sprite E
+        DATA  >8080,>C0C0,>E0E0,>E0E0
+        DATA  >C0C0,>C080,>8080,>0000
+        DATA  >7F3F,>1F1F,>0F0F,>0707
+        DATA  >0303,>0307,>070F,>0F1F
+*-- Sprite F
+        DATA  >0000,>000F,>1F3F,>7FFF
+        DATA  >FFFF,>FFFF,>FF7F,>1F1F
+        DATA  >3F3F,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+*-- Sprite G
+        DATA  >1F3F,>3F7F,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF        
+*-- Sprite H
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF        
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF
+        DATA  >FFFF,>FFFF,>FFFF,>FFFF                
+***************************************************************
+* Pattern definitions for text
+********@*****@*********************@**************************        
+LETTRS  DATA  >0008,>1C14,>223E,>4200   ; A (1)
+        DATA  >007E,>2226,>7C28,>2600   ; R (2)
+        DATA  >003C,>4078,>404C,>7000   ; E (3)
+        DATA  >007E,>1010,>1010,>1000   ; T (4)
+        DATA  >001E,>3262,>4266,>3C00   ; O (5)
+        DATA  >001E,>3260,>4066,>3C00   ; C (6)
+        DATA  >0010,>1030,>2020,>3C00   ; L (7)
+        DATA  >0012,>3222,>624E,>7A00   ; U (8)
+        DATA  >007C,>2222,>263C,>7800   ; D (9)
+        DATA  >001E,>2240,>3C04,>3800   ; S (10)
+        DATA  >007E,>2224,>3820,>2000   ; P (11)
+        DATA  >0038,>0010,>1010,>1000   ; I (12)
+        DATA  >0002,>4262,>725E,>4600   ; N (13)
+***************************************************************
+* Text 'A RETROCLOUDS PRODUCTION'
+********@*****@*********************@**************************           
+TEXT    BYTE  1,0,2,3,4,2,5,6,7,5,8,9,10,0,11,2,5,9,8,6,4,12,5,13
+***************************************************************
+* Speech sample
+* http://atariage.com/forums/topic/203069-transylvania-a-new-version-using-tms5220-synthetizer/?p=2609444
+********@*****@*********************@**************************   
+THUNDR  BYTE TALKON
+        BYTE >28,>68,>CA,>4C,>4D,>2D,>93,>60,>58,>0F,>73,>B3,>4D,>00,>EF,>BD
+        BYTE >03,>E0,>93,>CE,>00,>A2,>F7,>18,>40,>F2,>9E,>03,>C8,>D6,>6A,>00
+        BYTE >D9,>58,>0F,>20,>1B,>CD,>01,>44,>AD,>31,>00,>6F,>2C,>17,>60,>8C
+        BYTE >E7,>01,>BC,>89,>38,>40,>66,>6E,>07,>88,>32,>FC,>00,>5E,>87,>1F
+        BYTE >20,>A8,>F0,>03,>44,>11,>76,>80,>68,>2D,>16,>10,>AC,>D9,>01,>92
+        BYTE >51,>5B,>80,>B7,>1E,>03,>E0,>C6,>6C,>00,>D6,>9B,>2E,>C0,>39,>B7
+        BYTE >05,>78,>A3,>BE,>80,>A8,>D4,>17,>E0,>5C,>C4,>00,>8C,>31,>6B,>80
+        BYTE >B3,>E6,>0D,>30,>4E,>63,>00,>CE,>5A,>34,>20,>38,>89,>01,>78,>EF
+        BYTE >D1,>80,>10,>34,>1A,>10,>2C,>7B,>03,>92,>97,>28,>80,>0F,>9A,>09
+        BYTE >30,>5E,>BC,>01,>26,>58,>36,>C0,>04,>CB,>02,>C8,>A0,>59,>80,>E0
+        BYTE >25,>1A,>10,>BC,>46,>03,>9C,>D3,>28,>80,>B5,>12,>05,>08,>46,>63
+        BYTE >00,>C9,>69,>34,>C0,>44,>CB,>02,>28,>AF,>D1,>00,>E1,>34,>1B,>E0
+        BYTE >BD,>44,>03,>A2,>93,>2C,>80,>2C,>96,>0D,>D0,>D9,>B2,>00,>3E,>6A
+        BYTE >14,>20,>06,>C9,>02,>78,>AF,>51,>00,>13,>35,>12,>E0,>1D,>47,>02
+        BYTE >AC,>D7,>28,>80,>F1,>E2,>09,>F0,>41,>22,>01,>21,>68,>14,>C0,>39
+        BYTE >A9,>04,>78,>27,>99,>00,>1F,>34,>0B,>E0,>A3,>65,>01,>4C,>F2,>6C
+        BYTE >80,>F3,>9A,>05,>F0,>9E,>B3,>00,>26,>59,>36,>40,>47,>AD,>06,>44
+        BYTE >2F,>D9,>80,>EC,>25,>0A,>90,>9C,>44,>01,>A2,>93,>28,>40,>F0,>92
+        BYTE >05,>F0,>5E,>B3,>00,>D1,>4B,>14,>20,>7A,>C9,>04,>A4,>28,>99,>80
+        BYTE >14,>39,>13,>10,>03,>47,>02,>52,>90,>4A,>40,>0C,>12,>01,>08,>41
+        BYTE >22,>01,>C1,>4B,>04,>20,>06,>89,>00,>04,>CF,>19,>80,>E0,>24,>03
+        BYTE >E0,>83,>66,>02,>42,>90,>08,>40,>08,>92,>0E,>88,>89,>D3,>00,>3E
+        BYTE >48,>1A,>C0,>26,>49,>05,>E8,>28,>61,>80,>90,>39,>0D,>10,>B3,>B8
+        BYTE >01,>42,>E3,>30,>40,>AC,>1C,>06,>D0,>91,>53,>01,>36,>71,>28,>C0
+        BYTE >67,>09,>05,>90,>28,>A1,>00,>15,>39,>14,>60,>93,>84,>03,>5C,>E1
+        BYTE >34,>80,>CD,>5C,>0A,>70,>89,>43,>01,>3A,>4A,>2A,>C0,>47,>4E,>03
+        BYTE >98,>C8,>A9,>00,>1B,>24,>15,>60,>93,>84,>02,>7C,>92,>10,>80,>F6
+        BYTE >12,>02,>10,>5E,>42,>01,>2A,>88,>09,>C0,>45,>09,>01,>F0,>A8,>29
+        BYTE >00,>95,>24,>05,>60,>A3,>86,>00,>B4,>37,>67,>80,>F7,>66,>0C,>70
+        BYTE >D6,>9C,>01,>C1,>A9,>31,>C0,>1B,>37,>06,>78,>6F,>C1,>00,>1B,>3C
+        BYTE >18,>60,>83,>19,>03,>42,>30,>67,>40,>08,>16,>0C,>88,>DE,>9C,>01
+        BYTE >2E,>5A,>30,>20,>04,>75,>06,>38,>6F,>CE,>00,>17,>CC,>08,>E0,>A2
+        BYTE >3B,>01,>82,>77,>23,>00,>34,>66,>FF
+        BYTE TALKOF            
+        END
+        
+        

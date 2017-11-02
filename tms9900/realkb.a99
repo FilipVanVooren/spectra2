@@ -1,0 +1,130 @@
+*WASCKB  EQU   >833E                 ; 02 - Real keyboard: ASCII value of key
+
+* REALKB () ..:
+***************************************************************
+* REALKB - Scan keyboard in real mode
+***************************************************************
+*  BL @REALKB
+*--------------------------------------------------------------
+*  Taken from the book "TMS9900 assembler auf dem TI-99/4A".
+*  Based on work done by Simon Koppelmann.
+********@*****@*********************@**************************
+REALKB  MOV   R12,TMP0              ; Save R12 (CONFIG) in TMP0
+        ANDI  TMP0,>7FFF            ; Reset bit 0 in saved CONFIG register
+        LI    R12,>0024
+        LI    R15,KBSMAL            ; Default is KBSMAL table
+        CLR   TMP2              
+        LDCR  TMP2,>0003            ; Lower case by default        
+*--------------------------------------------------------------
+* SHIFT key pressed ?
+*--------------------------------------------------------------         
+        CLR   R12
+        TB    >0008                 ; Shift-key ?
+        JEQ   REALK1                ; No
+        LI    R15,KBSHFT            ; Yes, use KBSHIFT table
+*--------------------------------------------------------------
+* FCTN key pressed ?
+*--------------------------------------------------------------                  
+REALK1  TB    >0007                 ; FNCTN-key ?
+        JEQ   REALK2                ; No
+        LI    R15,KBFCTN            ; Yes, use KBFCTN table
+*--------------------------------------------------------------
+* CTRL key pressed ?
+*-------------------------------------------------------------- 
+REALK2  TB    >0009                 ; CTRL-key ?
+        JEQ   REALK3                ; No
+        LI    R15,KBCTRL            ; Yes, use KBCTRL table
+*--------------------------------------------------------------
+* ALPHA LOCK key down ?
+*-------------------------------------------------------------- 
+REALK3  SBZ   >0015                 ; Set P5
+        TB    >0007                 ; ALPHA-Lock key ?
+        JNE   REALK4                ; No,  saved CONFIG register bit 0 = 0
+        ORI   TMP0,>8000            ; Yes, saved CONFIG register bit 0 = 1       
+*--------------------------------------------------------------
+* Scan keyboard column
+*-------------------------------------------------------------- 
+REALK4  SBO   >0015                 ; Reset P5
+        LI    TMP2,6                ; Bitcombination for CRU, column counter
+REALK5  DEC   TMP2
+        LI    R12,>24               ; CRU address for P2-P4
+        SWPB  TMP2
+        LDCR  TMP2,3                ; Transfer bit combination
+        SWPB  TMP2
+        LI    R12,6                 ; CRU read address
+        STCR  TMP3,8                ; Transfer 8 bits into R2HB
+        INV   TMP3                  ;
+        ANDI  TMP3,>FF00            ; Clear TMP3LB
+*--------------------------------------------------------------
+* Scan keyboard row
+*--------------------------------------------------------------         
+        CLR   TMP1                  ; Use TMP1 as row counter from now on
+REALK6  SLA   TMP3,1                ; R2 bitcombinations scanned by shifting left.
+        JOC   REALK8                ; If no carry after 8 loops, then it means no key
+REALK7  INC   TMP1                  ; was pressed on that line.
+        CI    TMP1,8
+        JL    REALK6
+        MOV   TMP2,TMP2             ; All 6 columns processed ?
+        JH    REALK5                ; No, next column
+        JMP   REALKZ                ; Yes, exit
+*--------------------------------------------------------------
+* Check for match in data table
+*--------------------------------------------------------------         
+REALK8  MOV   TMP2,TMP4
+        SLA   TMP4,3                ; TMP4 = TMP2 * 8
+        A     TMP1,TMP4             ; TMP4 = TMP4 + TMP1
+        A     R15,TMP4              ; TMP4 = TMP4 + base address of data table (R15)
+        MOVB  *TMP4,*TMP4           ; Is the byte on that address = >00 ?
+        JEQ   REALK7                ; Yes, then discard and continue scanning (FCTN, SHIFT, CTRL)
+*--------------------------------------------------------------
+* Determine ASCII value of key
+*-------------------------------------------------------------- 
+REALK9  MOVB  *TMP4,TMP2            ; Real keypress. It's safe to reuse TMP2 now
+        COC   @WBIT0,TMP0           ; ALPHA-Lock key pressed ?
+        JNE   REALKA                ; No, continue with KBCONT4
+        CB    TMP2,@KBSMAL+42       ; Is ASCII of key pressed < 97 ('a') ?
+        JL    REALKA
+        CB    TMP2,@KBSMAL+40       ; and ASCII of key pressed > 122 ('z') ?
+        JH    REALKA                ; No, continue with REALKA
+        AI    TMP2,->2000           ; ASCII = ASCII - 32 (lowercase to uppercase!)             
+REALKA  SRL   TMP2,8                ; Right justify
+        MOV   TMP2,@WASCKB          ; Store ASCII value of key pressed
+        SOC   @WBIT11,TMP0          ; Set ANYKEY flag in saved CONFIG register 
+REALKZ  MOV   TMP0,R12              ; Restore CONFIG register
+        LI    R15,VDPW              ; Setup VDP write address again after using R15 as temp storage
+        B     *R11                  ; Exit        
+********@*****@*********************@**************************
+KBSMAL  DATA  >FF00,>0000,>FF0D,>203D
+        TEXT  'xws29ol.'
+        TEXT  'ced38ik,'
+        TEXT  'vrf47ujm'
+        TEXT  'btg56yhn'
+        TEXT  'zqa10p;/'
+KBSHFT  DATA  >FF00,>0000,>FF0D,>202B
+        TEXT  'XWS@(OL>'
+        TEXT  'CED#*IK<'
+        TEXT  'VRF$&UJM'
+        TEXT  'BTG%^YHN'
+        TEXT  'ZQA!)P:-'        
+KBFCTN  DATA  >FF00,>0000,>FF0D,>2005
+        DATA  >0A7E,>0804,>0F27,>C2B9
+        DATA  >600B,>0907,>063F,>C1B8
+        DATA  >7F5B,>7B02,>015F,>C0C3
+        DATA  >BE5D,>7D0E,>0CC6,>BFC4
+        DATA  >5CB9,>7C03,>BC22,>BDBA        
+KBCTRL  DATA  >FF00,>0000,>FF0D,>209D
+        DATA  >9897,>93B2,>9F8F,>8C9B
+        DATA  >8385,>84B3,>9E89,>8B80
+        DATA  >9692,>86B4,>B795,>8A8D
+        DATA  >8294,>87B5,>B698,>888E
+        DATA  >9A91,>81B1,>B090,>9CBB
+* :..        
+
+
+ 
+GETKEY  COC   @WBIT11,CONFIG        ; ANYKEY pressed ?
+        JNE   GETKEZ                ; No, exit
+        SZC   @WBIT11,CONFIG        ; Reset ANYKEY flag in CONFIG register 
+        MOV   @WASCKB,TMP0          ; Get ASCII of key pressed
+CLRKEY  CLR   @WASCKB               ; Reset ASCII buffer
+GETKEZ  BL    *R11                  ; And exit

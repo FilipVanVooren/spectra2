@@ -1,0 +1,40 @@
+***************************************************************
+* Honeycomb Rapture - (c) 2010 by Owen Brand
+*
+* Cartridge conversion by Retroclouds
+*
+* This file: hc_source1.a99
+***************************************************************
+* Title Screen
+********@*****@*********************@**************************
+        BL    @PUTAT                 
+        DATA  >0200,TITLE1          ; Y=2  X=0 - Honeycomb
+        BL    @PUTAT
+        DATA  >0A00,TITLE2          ; Y=10 X=0 - Rapture        
+        BL    @PUTAT
+        DATA  >1308,TXT1            ; Y=19 X=8  'PRESS ANY KEY TO'
+        BL    @PUTAT
+        DATA  >140C,TXT2            ; Y=20 X=12 'CONTINUE'
+        BL    @CPYM2M
+        DATA  SPRSAT,RAMSAT,4       ; Copy SAT from ROM to RAM                
+*--------------------------------------------------------------
+*    Prepare tune & timers
+*--------------------------------------------------------------
+        BL    @SDPREP
+        DATA  SOUND1,SDOPT1         ; Prepare tune for playing
+        MOV   @TIMTAB,@WTITAB       ; Set pointer to timer table        
+        BL    @MKSLOT               ; Create slots
+        DATA  >0001,DMPSAT          ; Slot 0 = Dump to VDP
+        DATA  >0101,MVPLAN          ; Slot 1 = Move plane
+        DATA  >0201,START,EOL       ; Slot 2 = Wait for game start
+        MOVB  @BD2,R10              ; Set highest slot in use
+        B     @TMGR                 ; Start timer manager
+
+***************************************************************
+* Thread START - Wait for game start
+***************************************************************        
+START   COC   @WBIT11,R12           ; ANY key pressed ?
+        JEQ   START1                ; Start game
+        B     *R11                  ; Exit                
+START1  B     @GAME
+
