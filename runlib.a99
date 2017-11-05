@@ -1,30 +1,35 @@
-***************************************************************
-*        ___  ____  ____  ___  ____  ____    __    ___  
-*       / __)(  _ \( ___)/ __)(_  _)(  _ \  /__\  (__ \ 
-*       \__ \ )___/ )__)( (__   )(   )   / /(__)\  / _/ 
-*       (___/(__)  (____)\___) (__) (_)\_)(__)(__)(____)
+*******************************************************************************
+*              ___  ____  ____  ___  ____  ____    __    ___  
+*             / __)(  _ \( ___)/ __)(_  _)(  _ \  /__\  (__ \ 
+*             \__ \ )___/ )__)( (__   )(   )   / /(__)\  / _/ 
+*             (___/(__)  (____)\___) (__) (_)\_)(__)(__)(____)
 *
-*             TMS9900 Monitor & Arcade Game Library
-*                             for
-*               the Texas Instruments TI-99/4A  
+*                 TMS9900 Monitor & Arcade Game Library
+*                                for
+*                   the Texas Instruments TI-99/4A  
 *
-*                2010-2017 by Filip Van Vooren
+*                    2010-2017 by Filip Van Vooren
 * 
-*        https://github.com/FilipVanVooren/spectra2.git
-***************************************************************
+*              https://github.com/FilipVanVooren/spectra2.git
+*******************************************************************************
 * Credits
 * Special thanks to Mark Wills, Mathew Hagerty & sometimes99er.
 *
 *     1) Speech code based on version of Mark Wills 
 *     2) Number conversion based on work of Mathew Hagerty 
 *     3) Bold font style based on work of sometimes99er 
-***************************************************************
+*******************************************************************************
 * This file: runlib.a99 
-***************************************************************
-* v1.3    2017/11   Work-in-Progress
+*******************************************************************************
+* v1.2    2017/11   Work-in-Progress
 *         New       F18A support routines (detect, 80 cols, ...)
-*
-* v1.1    2011/05   See release_notes.txt for details
+*         Bug-fix   Removed 6 years-old bug! 
+*                   Overflow in calculation of X in YX2PNT routine
+*                   resulted in wrong VDP target address. 
+*------------------------------------------------------------------------------
+* v1.1    2011/05   This version was never officially released
+*                   but contains many changes and some new functions.
+*------------------------------------------------------------------------------
 *         Bug-fix   by TREV2005. Fixed YX2PYX register issue
 *         Change    Introduced memory location @WCOLMN and rewrote YX2PNT 
 *                   for using MPY instruction.
@@ -50,9 +55,9 @@
 *                   a virtual screen. 
 *         New       Added RLE2V subroutine.
 *                   Decompress RLE (Run Length Encoded data) to VRAM.
-*
+*------------------------------------------------------------------------------
 * v1.0    2011/02   Initial version
-***************************************************************
+*******************************************************************************
 
 
 *//////////////////////////////////////////////////////////////
@@ -437,7 +442,7 @@ TXTM40  BYTE  >00,>F2,>00,>0E,>01,>06,>00,SPFCLR,0,40
 ***************************************************************
 * Textmode (80 columns) - F18A/9938
 *--------------------------------------------------------------
-TXTM80  BYTE  >04,>F0,>00,>0E,>01,>06,>00,SPFCLR,0,80
+TXTM80  BYTE  >04,>F0,>00,>1E,>01,>30,>02,SPFCLR,0,80
 * ; VDP#0 Control bits
 * ;      bit 6=0: M3 | Graphics 1 mode
 * ;      bit 7=0: Disable external VDP input
@@ -448,13 +453,13 @@ TXTM80  BYTE  >04,>F0,>00,>0E,>01,>06,>00,SPFCLR,0,80
 * ;      bit 3=1: M1 \ TEXT MODE
 * ;      bit 4=0: M2 /
 * ;      bit 5=0: reserved
-* ;      bit 6=1: 16x16 sprites
+* ;      bit 6=0: 8x8 sprites
 * ;      bit 7=0: Sprite magnification (1x)
 * ; VDP#2 PNT (Pattern name table)       at >0000  (>00 * >400)
-* ; VDP#3 PCT (Pattern color table)      at >0380  (>0E * >040)
+* ; VDP#3 PCT (Pattern color table)      at >0780  (>1E * >040)
 * ; VDP#4 PDT (Pattern descriptor table) at >0800  (>01 * >800)
-* ; VDP#5 SAT (sprite attribute list)    at >0300  (>06 * >080)
-* ; VDP#6 SPT (Sprite pattern table)     at >0000  (>00 * >800)
+* ; VDP#5 SAT (sprite attribute list)    at >1800  (>30 * >080)
+* ; VDP#6 SPT (Sprite pattern table)     at >1000  (>02 * >800)
 * ; VDP#7 Set foreground/background color
 ***************************************************************
 
@@ -1055,21 +1060,23 @@ S16X16  SOC   @WBIT12,R14           ; VDP#R1 bit 6=1 (Sprite size 16x16)
 *  TMP0, R14, R15
 ********@*****@*********************@**************************
 YX2PNT  MOV   R14,TMP0              ; Save VDP#0 & VDP#1
-        MOV   @WYX,R14              ; Get Y
-        SRL   R14,8                 ; Right justify
+        MOV   @WYX,R14              ; Get YX
+        SRL   R14,8                 ; Right justify (remove X)
         MPY   @WCOLMN,R14           ; pos = Y * (columns per row)
 *--------------------------------------------------------------
-* Do rest of calculation with R15
+* Do rest of calculation with R15 (16 bit part is there)
+* Re-use R14 
 *--------------------------------------------------------------        
-        AB    @BX,@R15LB            ; pos = pos + X
+        MOV   @WYX,R14              ; Get YX
+        ANDI  R14,>00FF             ; Remove Y   
+        A     R14,R15               ; pos = pos + X
         A     @WBASE,R15            ; pos = pos + (PNT base address)        
- 
 *--------------------------------------------------------------
 * Clean up before exit
 *--------------------------------------------------------------         
         MOV   TMP0,R14              ; Restore VDP#0 & VDP#1
         MOV   R15,TMP0              ; Return pos in TMP0
-        LI    R15,VDPW              ; Set VDP write address
+        LI    R15,VDPW              ; VDP write address
         B     *R11
         
 ***************************************************************
@@ -1304,6 +1311,8 @@ XUTSTR  MOV   R11,TMP3
         MOV   TMP3,R11        
         SRL   TMP2,8                ; Right justify length byte        
         B     @XPYM2V               ; Display string
+
+
 ***************************************************************
 * Put length-byte prefixed string at YX
 ***************************************************************
