@@ -1,0 +1,295 @@
+********@*****@*********************@**************************
+        aorg  >6000
+
+*--------------------------------------------------------------
+* Cartridge header
+*--------------------------------------------------------------
+grmhdr  byte  >aa,1,1,0,0,0
+        data  prog1
+        byte  0,0,0,0,0,0,0,0
+prog1   data  prog0                 ; Address of next menu item
+        data  runini
+title1  byte  21
+        text  'ATTACH LOAD INTERRUPT'
+prog0   data  0                     ; No more items following
+        data  runlib
+ .ifdef f18a
+title0  byte  18
+        text  'MEMORY VIEWER F18A'
+ .else
+title0  byte  13
+        text  'MEMORY VIEWER'
+ .endif
+*--------------------------------------------------------------
+* Include required files
+*--------------------------------------------------------------
+        copy  "../runlib.a99"
+*--------------------------------------------------------------
+* SPECTRA2 startup options
+*--------------------------------------------------------------
+spfclr  equ   >a0                   ; Foreground/Background color for font.
+spfbck  equ   >01                   ; Screen background color.
+*--------------------------------------------------------------
+* Variables
+*--------------------------------------------------------------
+timers  equ   >8342                 ; Address of timer table (8 bytes)
+memory  equ   >8350                 ; Current memory address
+memold  equ   >8352                 ; Backup of memory address
+rambuf  equ   >8354                 ; Work buffer
+*--------------------------------------------------------------
+* Memory Viewer Configuration
+*--------------------------------------------------------------
+ .ifdef f18a
+   ;-----------------------------------------------------------
+   ; f18a configuration (80x24)
+   ;-----------------------------------------------------------
+spvmod  equ   tx8024                ; Video mode.   See VIDTAB for details.
+spfont  equ   fnopt3                ; Font to load. See LDFONT for details.
+colrow  equ   80                    ; Columns per row
+rwspag  equ   23                    ; Data rows on screen
+celrow  equ   10                    ; Cells in data row
+ .else
+   ;-----------------------------------------------------------
+   ; graphics mode 1 configuration (32x24)
+   ;-----------------------------------------------------------
+spvmod  equ   graph1                ; Video mode.   See VIDTAB for details.
+spfont  equ   fnopt7                ; Font to load. See LDFONT for details.
+colrow  equ   32                    ; Columns per row
+rwspag  equ   23                    ; Data rows on screen
+celrow  equ   4                     ; Cells in data row
+ .endif
+***************************************************************
+* Execute this before RUNLIB
+********@*****@*********************@**************************
+runini  li    r0,>1234              ; Set flag for attaching to load interrupt
+        mov   r0,@>8300             ; R0 in SPECTRA2 workspace, not GPL workspace
+        b     @runlib               ; Initialize SPECTRA2 library
+***************************************************************
+* Main
+********@*****@*********************@**************************
+main    bl    @setup                ; Load fonts, etc.
+        ci    r0,>1234              ; Was flag set ?
+        jeq   attach                ; Yes, attach to interrupt
+        b     @mview                ; No, so start memory viewer
+
+
+
+***************************************************************
+*      GENERAL SETUP -- GENERAL SETUP -- GENERAL SETUP
+***************************************************************
+
+***************************************************************
+* SETUP - Set up CPU memory and VRAM
+********@*****@*********************@**************************
+setup   mov   r11,r3                ; Save R11
+        bl    @scroff               ; Turn off screen
+        bl    @f18unl               ; Unlock F18A if present
+        bl    @cpyv2m
+        data  >0980,rambuf,10*8     ; Copy patterns of digit 0-9 from VRAM to RAM
+        bl    @cpyv2m
+        data  >0a08,rambuf+80,6*8   ; Copy patterns of letters A-F from VRAM to RAM
+        bl    @cpym2v
+        data  >0800,rambuf,16*8     ; Copy patterns of 0-9,A-F to VRAM => set 1
+        bl    @cpym2v
+        data  >0880,rambuf,16*8     ; Copy patterns of 0-9,A-F to VRAM => set 2
+        bl    @cpym2v
+        data  >0f80,rambuf,16*8     ; Copy patterns of 0-9,A-F to VRAM => set 16
+        bl    @cpym2v
+        data  >0380,coltab,32       ; Load color table
+        bl    @filv
+        data  >0000,32,colrow*24    ; Clear screen
+        mov   @start,@memory        ; Source address in memory
+        bl    @scron                ; Turn on screen
+*--------------------------------------------------------------
+*  Prepare for timer table
+*--------------------------------------------------------------
+        li    tmp0,timers
+        mov   tmp0,@wtitab
+        li    r10,>0100             ; Set highest slot in use
+        b     *r3                   ; Return
+*--------------------------------------------------------------
+*  Data setup
+*--------------------------------------------------------------
+coltab  byte  >c0,>c0,>f0,>f0,>50,>50,>50,>50,>50,>50,>50,>50,>50,>50,>50,>50
+        byte  >50,>50,>f0,>f0,>c0,>C0,>C0,>C0,>C0,>C0,>C0,>C0,>C0,>C0,>04,>04
+msg0f   byte  celrow*2
+        byte  >f0,>f1,>f2,>f3,>f4,>F5,>F6,>F7
+        byte  >f8,>f9,>fa,>fb,>fc,>FD,>FE,>FF
+        byte  >ff,>f0,>f1,>f2,>f3
+start   data  >6000                 ; View CPU memory starting >6000
+
+
+***************************************************************
+*     LOAD INTERRUPT -- LOAD INTERRUPT -- LOAD INTERRUPT
+***************************************************************
+
+***************************************************************
+* ATTACH - Attach to load interrupt
+********@*****@*********************@**************************
+attach  bl    @vidtab
+        data  graph1                ; Turn on Graphics Mode 1
+        li    tmp0,ws1              ; spectra workspace at >8300
+        mov   tmp0,@>fffc           ; Set vector
+attac0  li    tmp0,runlib           ; Entry point in spectra library
+        mov   tmp0,@>fffe           ; Set vector
+*--------------------------------------------------------------
+*  Check if successfully attached
+*--------------------------------------------------------------
+        mov   @>fffc,tmp0
+        ci    tmp0,>8300            ; @>FFFC = >8300 ?
+        jne   attac1
+        mov   @>fffe,tmp0
+        ci    tmp0,runlib           ; @>FFFE = RUNLIB ?
+        jne   attac1
+        bl    @putat
+        data  >0503,msg0            ; Successfully attached
+        jmp   attac2
+attac1  bl    @putat
+        data  >0508,msg1            ; Failed to attach ...
+attac2  bl    @putat
+        data  >0805,msg2            ; Press space bar to exit ...
+attac3  bl    @mkslot
+        data  >0001,exit,eol        ; Exit to title screen when key pressed
+attac4  b     @tmgr                 ; Start thread scheduler
+*--------------------------------------------------------------
+*  Background task
+*--------------------------------------------------------------
+exit    coc   @anykey,config        ; Any key pressed ?
+        jne   attac4                ; No, check again
+        blwp  @0                    ; Exit
+msg0    byte  26
+        text  'ATTACHED TO LOAD INTERRUPT'
+msg1    byte  16
+        text  'FAILED TO ATTACH'
+msg2    byte  23
+        text  'PRESS SPACE BAR TO EXIT'
+
+***************************************************************
+*      MEMORY VIEWER -- MEMORY VIEWER -- MEMORY VIEWER
+***************************************************************
+
+***************************************************************
+* MVIEW - Start memory viewer
+********@*****@*********************@**************************
+mview
+        bl    @putat
+        data  >0000,title0          ; Display title at Y0 and X=0
+ .ifdef f18a
+        bl    @putat
+        data  >003c,msg0f           ; Display 0..F at Y=0 and X=60
+ .else
+        bl    @putat
+        data  >0018,msg0f           ; Display 0..F at Y=0 and X=24
+ .endif
+        bl    @mkslot
+        data  >0002,navi            ; Start navigator task
+        data  >0103,dump,eol        ; Start memory dump task
+        b     @tmgr                 ; Run kernel task
+
+
+***************************************************************
+* NAVI - Navigate through memory
+********@*****@*********************@**************************
+navi    li    tmp1,rwspag*celrow    ; Data rows * Cells in row
+        mov   @wvrtkb,tmp0          ; Get keyboard flags
+        coc   @key1,tmp0
+        jeq   navia
+        coc   @key2,tmp0
+        jeq   navib
+        li    tmp1,8
+        coc   @key3,tmp0
+        jeq   navia
+        coc   @key4,tmp0
+        jeq   navib
+        jmp   naviz
+navia   s     tmp1,@memory
+        jmp   naviz
+navib   a     tmp1,@memory
+naviz   b     @slotok               ; Exit
+key1    data  k1up                  ; Up
+key2    data  k1dn                  ; Down
+key3    data  k1lf                  ; Left
+key4    data  k1rg                  ; Right
+
+
+***************************************************************
+* DUMP - Take CPU memory dump
+********@*****@*********************@**************************
+dump    mov   @memory,@memold       ; Take copy
+        li    r2,rwspag             ; Data rows on screen
+*--------------------------------------------------------------
+*  Show starting memory address in header line
+*--------------------------------------------------------------
+        mov   @memory,r0
+        bl    @putat
+        data  >000e,marker          ; Show ">" before address
+        bl    @puthex               ; Display memory address
+        data  >000f,memory,rambuf,16
+        mov   @addryx,@wyx          ; Set cursor start position
+*--------------------------------------------------------------
+*  New row. Display memory address at row begin
+*--------------------------------------------------------------
+dump1   li    r1,celrow             ; Data cells in row
+        ori   config,>8000          ; Set display bit
+        bl    @mkhex
+        data  memory,rambuf,>f0     ; Show memory address
+  .ifdef f18a
+        ab    @bd7,@bx              ; X=7
+  .else
+        ab    @bd4,@bx              ; X=4
+  .endif
+*--------------------------------------------------------------
+*  New column. Dump memory word (data cell)
+*--------------------------------------------------------------
+dump2   mov   @memory,r0
+        mov   *r0,r0                ; Display address
+        ori   config,>c000          ; Set bits 0-1 (display+next charset)
+        bl    @mkhex
+        data  r0hb,rambuf,0         ; Dump word
+        ab    @bd5,@bx
+        inct  @memory               ; Next word
+        dec   r1
+        jne   dump2                 ; All data cells in row done ?
+*--------------------------------------------------------------
+*  Display string representation
+*--------------------------------------------------------------
+ .ifdef f18a
+        ab    @bd3,@bx              ; X position >48
+ .endif
+        li    r1,celrow*2           ; Bytes to process
+        mov   @memory,r0
+        s     r1,r0
+        li    tmp1,rambuf
+        li    tmp2,celrow*2         ; Determine String length
+        swpb  tmp2
+        movb  tmp2,*tmp1+           ; Set string length
+dump3   movb  *r0+,tmp2
+        srl   tmp2,8
+        ci    tmp2,33
+        jlt   dump4
+        ci    tmp2,127
+        jgt   dump4
+        swpb  tmp2
+        jmp   dump5
+dump4   li    tmp2,>2e00            ; Display '.' character
+dump5   movb  tmp2,*tmp1+           ; Write byte
+        dec   r1                    ;
+        jne   dump3                 ; Repeat until all bytes processed
+        bl    @putstr               ; Display string
+        data  rambuf
+*--------------------------------------------------------------
+*  Update position counters
+*--------------------------------------------------------------
+        ab    @bd1,@by              ; Y=Y+1
+        movb  @bd0,@bx              ; X=0
+        dec   r2
+        jne   dump1
+        mov   @memold,@memory       ; Restore current memory address
+dumpz   b     @slotok               ; Exit
+*--------------------------------------------------------------
+*  Some data used by subroutine
+*--------------------------------------------------------------
+addryx  data  >0100                 ; Display position Y=1, X=0
+marker  data  >013e                 ; String length=1 byte, character ">"
+        end
+

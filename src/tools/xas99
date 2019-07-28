@@ -1,0 +1,226 @@
+#!/bin/bash
+
+###############################################################################
+# Poor man's xas99.py wrapper
+#
+# This script is a wrapper for the excellent xas99.py TMS9900 cross-assembler
+# included in the xdt99 package (TI 99 Cross-Development Tools) by endlos99.
+# 
+# You get the xdt99 package here: https://endlos99.github.io/xdt99/
+###############################################################################
+# Author: Filip van Vooren
+###############################################################################
+# 14.01.2018    v.0.1     Alpha release
+# 30.01.2018    v.0.2     Handle modules
+# 04.04.2019    v.0.3     Multiple changes
+#                          - Some bugfixes
+#                          - Show assembly errors/info in vi instead of shell
+###############################################################################
+
+#------------------------------------------------------------------------------
+# Setup global variables
+#------------------------------------------------------------------------------
+
+# Source File
+g_source=${1:-test1}                          # Source File
+g_basename=${g_source%.*}                     # Source File basename
+g_suffix=${g_source##*.}                      # Source File extension
+g_prepdir=".${g_basename}/${g_basename}.$$"   # Preprocessor directory
+g_preproc="$g_prepdir/$g_source.$$"           # Preprocessor source file
+
+# Defaults
+g_asmrc=99                                    # xas99 return code
+g_binary="bin/${g_basename}c.bin"             # Flag as 8k ROM in classic99
+g_date="$(date '+%y%m%d')-$$"                 # Current date & PID
+g_now="$(date '+%y-%m-%d %H:%M:%S')"          # Current date & time
+g_prog="$g_prog ($g_date)"                    # Cartridge title
+g_list="${g_basename}.lst"                    # Always create list file
+g_spectra2='\/2TBHDD\/tifun\/asm\/spectra2'   # Ugly, fix later! 
+g_xas99="${BASH_SOURCE[0]}"                   # This wrapper
+g_xas99hdr="${g_prepdir}/xas99run.hdr"        # Header of xas99 assembly run
+g_xas99run="${g_prepdir}/xas99run.out"        # Output of xas99 assembly run
+
+
+
+#------------------------------------------------------------------------------
+# Function: Assert source file
+#------------------------------------------------------------------------------
+function assert() {
+
+  if [[ "$g_suffix" == "$g_basename" ]]; then
+     g_source="${g_source}.asm"
+     g_suffix="asm"
+     g_preproc="$g_prepdir/$g_source.$$"      # Preprocessor source file
+  fi
+
+  if [[ ! "$g_suffix" =~ a99|asm ]]; then
+     echo "Aborting! Unknown source file extension '$g_suffix'"
+     exit 99
+  fi
+  
+  if [ ! -e $g_source ]; then
+     echo "Aborting! Source file '$g_source' not found/specified."
+     exit 99
+  fi
+
+  if [[ ${PWD##*/} =~ equates|modules ]]; then
+     echo "Aborting! Assembly not supported in project subdirectory."    
+     exit 99
+  fi
+
+  if [ !  -d "bin" ]; then
+     mkdir bin
+  fi
+}
+
+
+#------------------------------------------------------------------------------
+# Preprocess source code
+#------------------------------------------------------------------------------ 
+function preproc_source() {
+  #------
+  # Preprocess source file. PASS 1
+  #------
+  echo "Preprocessing source file.... PASS 1" >>$g_xas99hdr
+
+  sed -i -e "s/%%build_date%%/${g_date}/"                     \
+         -e "s/%%build_date.length%%/${#g_date}/"             \
+         -e "s/%%spectra2%%/${g_spectra2}/"                   \
+         $g_preproc
+
+
+  #------
+  # Preprocess source file. PASS 2
+  #------
+  echo "Preprocessing source file.... PASS 2" >>$g_xas99hdr
+  awk -f ${g_xas99}.awk -i inplace $g_preproc
+  # view $g_preproc                                           # DEBUG
+}
+
+
+#------------------------------------------------------------------------------
+# Function: Preprocess
+#------------------------------------------------------------------------------
+function preprocess() {
+
+
+  #------
+  # Create preprocessing directory
+  #------
+  mkdir -p $g_prepdir
+
+  if [[ $? > 0 ]]; then
+     echo "Aborting! Could not create preprocessing directory $g_prepdir"
+     exit 99
+  fi 
+
+
+  #------
+  # Create bin directory if it doesn't exist
+  #------
+  if [ !  -d "bin" ]; then
+     mkdir bin
+  fi
+
+
+  #-------
+  # Copy all sources to preprocessing directory
+  #-------
+  cp $g_source               ${g_prepdir}/$g_source.$$
+  cp ${g_spectra2}/equates/* ${g_prepdir}/ 
+  cp ${g_spectra2}/modules/* ${g_prepdir}/ 
+  cp ./modules/*             ${g_prepdir}/ 
+
+
+  #-------
+  # Preprocess source code
+  #-------
+  preproc_source
+}
+
+#------------------------------------------------------------------------------
+# Function: Assemble source file
+#------------------------------------------------------------------------------
+function assemble() {
+
+  echo "************************************************" >>$g_xas99hdr
+  echo "Assembly started ........ $g_now"                 >>$g_xas99hdr
+  echo "Source file ............. $g_source"              >>$g_xas99hdr 
+  echo "Assembly run ............ $g_xas99run"            >>$g_xas99hdr
+  echo "Preprocessed source ..... $g_preproc"             >>$g_xas99hdr
+  echo "ROM cart binary ......... $g_binary"              >>$g_xas99hdr
+  echo "List file ............... $g_list"                >>$g_xas99hdr
+  echo "Run suffix .............. $g_date"                >>$g_xas99hdr
+  echo "************************************************" >>$g_xas99hdr
+
+  xas99.py -b $g_preproc \
+           -o $g_binary  \
+           -L $g_list    \
+           -D build_date=$g_date   1>${g_xas99run}    2>&1
+
+  g_asmrc=$?
+
+  if [[ g_asmrc -eq 0 ]]; then
+     l_high=$(tail -n1 ${g_list} | cut -f2 -d' ')
+      echo "Highest ROM address...... $l_high" >>$g_xas99hdr
+  fi
+
+
+  return 0
+}
+
+
+
+#------------------------------------------------------------------------------
+# Function: Do Postprocessing
+#------------------------------------------------------------------------------
+function postprocess() {
+
+  #-----------
+  # Remove _<6000> file suffix from resulting binary
+  #-----------
+  g_file=$(ls -1 $g_binary\_* 2>/dev/null)
+  if [ "${#g_file}" -gt "0" ] && [ -e "$g_file" ]; then
+     mv  $g_file $g_binary
+     rm -f $g_file
+  fi 
+
+  #-----------
+  # Copy output binary to uppercase filename for classic99
+  #-----------
+  if [ -e $g_binary ]; then
+     l_upcase_bin=${g_binary^^}
+     l_upcase_bin=${l_upcase_bin/BIN\//bin\/} 
+     cp -p $g_binary $l_upcase_bin
+     cp -p $g_binary /DS414/9900bin
+     cp -p $g_binary /media/q0tws01/FINALGROM/tifun
+  else
+     echo "***** No ROM cart binary created due to errors during assembly." >>$g_xas99run
+  fi
+  echo "***** Assembly process returned with RC=$g_asmrc" >>$g_xas99run
+
+  
+  #------------
+  # Show assembly results
+  #------------
+  if [[ -e "$g_xas99run" ]]; then 
+     filesize=$(stat --printf="%s" "${g_xas99run}")
+     if (( $filesize > 0 )); then
+        cat $g_xas99hdr $g_xas99run | tee ./xas99.log
+     else
+        cat $g_xas99hdr | tee ./xas99.log
+     fi
+  fi
+
+  #-----------
+  # Cleanup, remove any work files of previous run.
+  #-----------
+  l_prepdirs="${g_prepdir%.*}*"
+  rm -rf ${l_prepdirs}
+  rmdir ".${g_basename}"
+}
+
+assert              \
+   && preprocess    \
+   && assemble      \
+   && postprocess

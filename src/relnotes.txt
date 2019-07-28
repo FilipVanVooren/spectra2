@@ -1,0 +1,127 @@
+*******************************************************************************
+*              ___  ____  ____  ___  ____  ____    __    ___
+*             / __)(  _ \( ___)/ __)(_  _)(  _ \  /__\  (__ \
+*             \__ \ )___/ )__)( (__   )(   )   / /(__)\  / _/
+*             (___/(__)  (____)\___) (__) (_)\_)(__)(__)(____)
+*
+*                TMS9900 Monitor with Arcade Game support
+*                                for
+*                     the Texas Instruments TI-99/4A
+*
+*                      2010-2019 by Filip Van Vooren
+*
+*              https://github.com/FilipVanVooren/spectra2.git
+*******************************************************************************
+* Credits
+*     1) Speech code based on version of Mark Wills
+*     2) Number conversion based on work of Mathew Hagerty
+*     3) Bold font style based on work of sometimes99er
+*******************************************************************************
+* NOTE - TODOS
+* 14-03-2018    bit 10 CONFIG register reserved for alpha lock key down!
+*               But code in VIRTKB buggy and disabled for now
+* 25-03-2018    LDFNT routine is not using tmp3. Tighten registers useful?
+* 17-11-2018    bit 2 CONFIG register contains PAL or NTSC detection. 
+*               Remove PAL/NTSC check code and repurpose bit 2.
+*               Everyone has F18a anyway.
+*               Could use bit 2 instead of bit 12 and repurpose bit 12.
+* 24-11-2018    Add "fctn-quit" mini check that can be used if both
+*               virtual/real keyboard scan are skipped
+* 23-12-2018    Memory (scratchpad) layout in separate file
+*               Task Management in separate file
+* 09-01-2019    Add length check in all memory/vdp/grom copy and fill functions
+*               Also there is some weird bug in xcpy if copying 1 byte!
+*               During the second copy it crashes! Special handling
+*               if length <= 2 bytes required/useful?
+*******************************************************************************
+* v1.3    2019/04   Multiple enhancements
+*         New       All equates moved to own equate files.
+*         Bug-Fix   Removed hardwired registers in sound player prepare routine
+*         New       Added length sanity check in cpym2m and introduced 
+*                   crash handler.
+*         New       Added F18a reset function f18rst.
+*         Bug-fix   Upon runlib initialisation the VDP color table and 
+*                   font patterns were offloaded to hardwired addresses,
+*                   independently of chosen video mode table.
+*                   Now have 2 new equates: pctadr, fntadr.
+*         New       Added trimnum function for turning unsigned number into 
+*                   length-prefixed, left-justified string 
+*         New       Added support for f18a 80 columns mode in YX2PX routine.
+*         Bug-fix   Alpha-lock detection was inversed in real keyboard scan.
+*         Change    Moved many functions to separate, skippable modules
+*         New       More equates for hex values
+*         New       New cursor handling functions at, down, up, setx, ...
+*         New       CRC-16 Cyclic Redudancy Check for CPU memory
+*------------------------------------------------------------------------------
+* v1.2    2018/03   Major changes
+*         Bug-fix   Virtual keyboard was missing keys for player 2. Resolved
+*                   by adding "O" (p2 up), "," (p2 down), "K" (p2 left) and
+*                   "L" (p2 right)
+*         Change    Refactored GROM memory code into modules.
+*                   Removed dependency of GROM module in LDFNT routine.
+*                   Refactored library startup code to reduce code dependencies.
+*         Bug-fix   Fixed bug in Speech Synthesizer detection (spconn)
+*         Change    Reworked speech player routine (spplay). 
+*                   Removed resident speech check. Only support speek external
+*                   Removed parameter P1 in (spprep) routine.
+*         New       Use constants embedded in OS ROM for reduced code size and
+*                   faster (16 bit) memory access.
+*         New       Introduced equates for skipping subroutines, allowing
+*                   you to reduce code size.
+*         Change    Repurpose bit 12 in CONFIG register from "keyboard mode" to
+*                   "VDP9918 sprite collision" detected. 
+*                   This is a crucial change.
+*                   Bit 12 in CONFIG is set if C bit in VDP status register is
+*                   on. The important thing is that bit 12 is latched even
+*                   if C bit in VDP status register is reset (due to reading
+*                   VDP status register). You need to clear bit 12 manually
+*                   in your sprite collision routine. 
+*         Change    Removed TI-99/4 check upon initialisation for saving
+*                   on code size/GROM support..
+*         New       Start breaking the monolith, use modules that can
+*                   be included when needed only. Major refactoring
+*         New       Added CLHOOK broutine
+*         Bug-fix   Fixed low-level VDP routines because of wrong VDP bits set.
+*         Change    Removed use of config bit 1 in MKHEX subroutine and
+*                   got rid of multiple colors possibility. 
+*         Change    Removed OS v2.2 check (config bit 10) and repurpose bit 5.
+*                   Check if speech synthesizer present upon startup.
+*         New       Check if F18A present upon startup (config bit 1)
+*         Change    Repurpose bit 1 in CONFIG register from 
+*                   "subroutine state flag 1" to "F18A present flag"
+*         Change    Converted source from upper case to lower case 
+*         New       F18A support routines (detect, 80 cols, ...)
+*         Bug-fix   Removed 6 years-old bug!
+*                   Overflow in calculation of X in YX2PNT routine
+*                   resulted in wrong VDP target address.
+*------------------------------------------------------------------------------
+* v1.1    2011/05   This version was never officially released
+*                   but contains many changes and some new functions.
+*         Bug-fix   by TREV2005. Fixed YX2PYX register issue
+*         Change    Introduced memory location @WCOLMN and rewrote YX2PNT
+*                   for using MPY instruction.
+*                   Adjusted format of video mode table to include number
+*                   of columns per row.
+*                   VIDTAB subroutine adjusted as well.
+*         Change    Removed subroutine GTCLMN. The functionality is replaced
+*                   by the @WCOLMN memory location.
+*         New       Added subroutine SCRDIM for setting base and
+*                   width of a virtual screen.
+*         Change    Introduced memory locations WAUX1,WAUX2,WAUX3.
+*         Change    PUTBOX completely rewritten, now supports repeating
+*                   vertically and/or horizontally.
+*                   This is how its supposed to work from day one..
+*                   WARNING PUTBOX is not compatible with V1.
+*                   width & height swapped in P1.
+*         Change    Removed memory location WSEED.
+*                   On startup value is in WAUX1.
+*                   Added parameter P1 to RND subroutine (address random seed)
+*         Change    Modified FILBOX subroutine. Width and height swapped
+*                   in P1 so that it is the same as for PUTBOX subroutine.
+*         New       Added VIEW subroutine. This is a viewport into
+*                   a virtual screen.
+*         New       Added RLE2V subroutine.
+*                   Decompress RLE (Run Length Encoded data) to VRAM.
+*------------------------------------------------------------------------------
+* v1.0    2011/02   Initial version
+*******************************************************************************

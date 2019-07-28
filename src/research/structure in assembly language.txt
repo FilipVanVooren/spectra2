@@ -1,0 +1,21 @@
+
+
+#structure file {
+   marker         word                  
+   file_no        word
+   flag           byte     size 32
+   line           word
+   index          pointer  index
+   filename       pointer  filename 
+   filestate      pointer  filestate
+   reserved       byte     size 16
+   checksum       word
+}
+
+
+file#size
+
+file.file_no#size
+
+
+file.^filestate.current_row

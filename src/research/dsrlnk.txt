@@ -1,0 +1,3 @@
+; dsrlnk extract out of Turbo Forth by Lee Steward.
+; dsrlnk programmed by Paolo Bagnaresi. 
+; Can not be used for calling DSR in GPL or cassette DSR.

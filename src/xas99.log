@@ -1,0 +1,31 @@
+Preprocessing source file.... PASS 1
+Preprocessing source file.... PASS 2
+************************************************
+Assembly started ........ 19-04-06 15:25:23
+Source file ............. runlib.asm
+Assembly run ............ .runlib/runlib.19203/xas99run.out
+Preprocessed source ..... .runlib/runlib.19203/runlib.asm.19203
+ROM cart binary ......... bin/runlibc.bin
+List file ............... runlib.lst
+Run suffix .............. 190406-19203
+************************************************
+> vdp_tables.asm <2> 0007 - graph1  byte  >00,>e2,>00,>0e,>01,>06,>02,SPFBCK,0,32
+***** Unknown symbol: SPFBCK
+> vdp_tables.asm <2> 0032 - tx4024  byte  >00,>f2,>00,>0e,>01,>06,>00,SPFCLR,0,40
+***** Unknown symbol: SPFCLR
+> vdp_tables.asm <2> 0058 - tx8024  byte  >04,>f0,>00,>3f,>02,>40,>03,SPFCLR,0,80
+***** Unknown symbol: SPFCLR
+> vdp_tables.asm <2> 0084 - tx8030  byte  >04,>f0,>00,>3f,>02,>40,>03,SPFCLR,0,80
+***** Unknown symbol: SPFCLR
+> runlib.asm.19203 <2> 0560 -         data  pctadr,spfclr,16      ; Load color table
+***** Unknown symbol: PCTADR
+> runlib.asm.19203 <2> 0583 -         data  spvmod                ; Equate selected video mode table
+***** Unknown symbol: SPVMOD
+> runlib.asm.19203 <2> 0584 -         li    tmp0,spfont           ; Get font option
+***** Unknown symbol: SPFONT
+> runlib.asm.19203 <2> 0588 -         data  fntadr,spfont         ; Load specified font
+***** Unknown symbol: FNTADR
+> runlib.asm.19203 <2> 0593 -         b     @main                 ; Give control to main program
+***** Unknown symbol: MAIN
+***** No ROM cart binary created due to errors during assembly.
+***** Assembly process returned with RC=1
