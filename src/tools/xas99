@@ -12,9 +12,8 @@
 ###############################################################################
 # 14.01.2018    v.0.1     Alpha release
 # 30.01.2018    v.0.2     Handle modules
-# 04.04.2019    v.0.3     Multiple changes
-#                          - Some bugfixes
-#                          - Show assembly errors/info in vi instead of shell
+# 04.04.2019    v.0.3     Some bugfixes
+# 07.09.2019    v.0.4     Added support for MS Visual Studio Code
 ###############################################################################
 
 #------------------------------------------------------------------------------
@@ -23,6 +22,7 @@
 
 # Source File
 g_source=${1:-test1}                          # Source File
+g_spectra2="${2//\//\\\/}"                    # Path to spectra2 directory (escaped slashes)
 g_basename=${g_source%.*}                     # Source File basename
 g_suffix=${g_source##*.}                      # Source File extension
 g_prepdir=".${g_basename}/${g_basename}.$$"   # Preprocessor directory
@@ -35,10 +35,10 @@ g_date="$(date '+%y%m%d')-$$"                 # Current date & PID
 g_now="$(date '+%y-%m-%d %H:%M:%S')"          # Current date & time
 g_prog="$g_prog ($g_date)"                    # Cartridge title
 g_list="${g_basename}.lst"                    # Always create list file
-g_spectra2='\/2TBHDD\/tifun\/asm\/spectra2'   # Ugly, fix later! 
 g_xas99="${BASH_SOURCE[0]}"                   # This wrapper
 g_xas99hdr="${g_prepdir}/xas99run.hdr"        # Header of xas99 assembly run
 g_xas99run="${g_prepdir}/xas99run.out"        # Output of xas99 assembly run
+g_dest="/media/q0tws01/FINALGROM/tifun"       # Destination for copying resulting binary to
 
 
 
@@ -94,7 +94,7 @@ function preproc_source() {
   #------
   echo "Preprocessing source file.... PASS 2" >>$g_xas99hdr
   awk -f ${g_xas99}.awk -i inplace $g_preproc
-  # view $g_preproc                                           # DEBUG
+  #view $g_preproc                                           # DEBUG
 }
 
 
@@ -193,7 +193,12 @@ function postprocess() {
      l_upcase_bin=${l_upcase_bin/BIN\//bin\/} 
      cp -p $g_binary $l_upcase_bin
      cp -p $g_binary /DS414/9900bin
-     cp -p $g_binary /media/q0tws01/FINALGROM/tifun
+
+
+     # Copy binary to removable media if mounted
+     if [ -d "media/q0tws01/FINALGROM/tifun" ]; then
+        cp -p $g_binary /media/q0tws01/FINALGROM/tifun
+     fi
   else
      echo "***** No ROM cart binary created due to errors during assembly." >>$g_xas99run
   fi
