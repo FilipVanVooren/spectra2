@@ -1,13 +1,13 @@
 Preprocessing source file.... PASS 1
 Preprocessing source file.... PASS 2
 ************************************************
-Assembly started ........ 19-09-07 20:53:49
-Source file ............. hello_world.asm
-Assembly run ............ .hello_world/hello_world.10853/xas99run.out
-Preprocessed source ..... .hello_world/hello_world.10853/hello_world.asm.10853
-ROM cart binary ......... bin/hello_worldc.bin
-List file ............... hello_world.lst.asm
-Run suffix .............. 190907-10853
+Assembly started ........ 19-09-08 19:57:14
+Source file ............. fio.asm
+Assembly run ............ .fio/fio.11161/xas99run.out
+Preprocessed source ..... .fio/fio.11161/fio.asm.11161
+ROM cart binary ......... bin/fioc.bin
+List file ............... fio.lst.asm
+Run suffix .............. 190908-11161
 ************************************************
 Highest ROM address...... 
 ***** Assembly process returned with RC=0

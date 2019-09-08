@@ -1,4 +1,4 @@
-* FILE......: io_dsrlnk.asm
+* FILE......: fio_dsrlnk.asm
 * Purpose...: DSRLNK implementation for file I/O use
 
 *//////////////////////////////////////////////////////////////
