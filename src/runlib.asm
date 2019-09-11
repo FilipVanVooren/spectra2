@@ -5,7 +5,7 @@
 *             (___/(__)  (____)\___) (__) (_)\_)(__)(__)(____)
 *    v1.3
 *                TMS9900 Monitor with Arcade Game support
-*                                for
+*                                  for
 *                     the Texas Instruments TI-99/4A
 *
 *                      2010-2019 by Filip Van Vooren
