@@ -24,24 +24,3 @@ by      equ   wyx                   ;      Cursor Y position
 bx      equ   wyx+1                 ;      Cursor X position                                        
 mcsprd  equ   mcloop+2              ;      Speech read routine                                      
 ***************************************************************       
-
-
-
-***************************************************************                                     
-* >8300 - >83ff       Equates for DSRLNK (alternative layout)
-***************************************************************                                     
-* Equates are used in DSRLNK. 
-* Scratchpad memory needs to be paged out before use of DSRLNK.
-********@*****@*********************@**************************                                     
-haa     equ   >8320                 ; Loaded with HI-byte value >aa                                 
-sav8a   equ   >8322                 ; Contains >08 or >0a                                           
-flgptr  equ   >8324                 ; Pointer to pab+1 dsrlnk                                       
-savver  equ   >8326                 ; Saved version                                                 
-savent  equ   >8328                 ; Saved entry address                                           
-savcru  equ   >832a                 ; Saved cru                                                     
-savlen  equ   >832c                 ; Saved length of filename                                      
-savpab  equ   >832e                 ; Saved PAB address                                             
-namsto  equ   >8330                 ; 8-byte buffer for device name                                 
-dsrlws  equ   >8380                 ; dsrlnk workspace                                              
-dstype  equ   >838a                 ; dstype is address of R5 of DSRLNK ws
-***************************************************************                                     

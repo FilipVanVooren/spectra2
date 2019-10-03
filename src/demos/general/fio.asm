@@ -69,7 +69,7 @@ fntadr  equ   >1100                 ; VDP font start address (in PDT range)
 ;--------------------------------------------------------------
 pabadr1 equ   >01f0                 ; VDP PAB1
 pabadr2 equ   >0200                 ; VDP PAB2
-recbuf  equ   >0300                 ; VDP Buffer
+vrecbuf equ   >0300                 ; VDP Buffer
 
 
 
@@ -77,28 +77,35 @@ recbuf  equ   >0300                 ; VDP Buffer
 * Main
 ********@*****@*********************@**************************
 main    bl    @putat
-        data  >0815,msg
+        data  >0000,msg
 
+        bl    @putat
+        data  >0100,fname
+
+        ;------------------------------------------------------
+        ; Prepare VDP for PAB and page out scratchpad
+        ;------------------------------------------------------
         bl    @cpym2v
         data  pabadr1,dsrsub,2      ; Copy PAB for DSR call files subprogram
 
         bl    @cpym2v
-        data  pabadr2,pab,21        ; Copy PAB to VDP
+        data  pabadr2,pab,25        ; Copy PAB to VDP
 
         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
         data  >a000                 ; Memory destination @>a000
+;        lwpi  >8300                 ; Use WP in scratchpad again
 
         ;------------------------------------------------------
         ; Set up file buffer - call files(1)
         ;------------------------------------------------------
         li    r0,>0100 
         movb  r0,@>834c             ; Set number of disk files to 1
-
         li    r0,pabadr1
         mov   r0,@>8356             ; Pass PAB to DSRLNK
         blwp  @dsrlnk               ; Call subprogram for "call files(1)"
-        data  10 
- 
+        data  >a
+        jeq   done                  ; Exit on error
+        
         ;------------------------------------------------------
         ; Open file
         ;------------------------------------------------------
@@ -107,10 +114,10 @@ main    bl    @putat
         blwp  @dsrlnk
         data  8
 
-
         ;------------------------------------------------------
         ; Read record
         ;------------------------------------------------------
+readfile        
         li    r0,pabadr2+9
         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
 
@@ -120,28 +127,54 @@ main    bl    @putat
         blwp  @dsrlnk
         data  8
 
-        jmp   $
+        jeq   file_error
+        jmp   readfile
 
+        ;------------------------------------------------------
+        ; Close file
+        ;------------------------------------------------------
+close_file        
+        li    r0,pabadr2+9
+        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+
+        bl    @vputb
+        data  pabadr2,io.op.close
+
+        blwp  @dsrlnk
+        data  8
+
+
+done    jmp   $
+
+file_error 
+        jmp   close_file
+
+
+
+
+
+        
 
 
 
 ***************************************************************
 * DSR subprogram for call files
 ***************************************************************
+        even
 dsrsub  byte  >01,>16               ; DSR program/subprogram - set file buffers
 ***************************************************************
 * PAB for accessing file
 ********@*****@*********************@**************************
 pab     byte  io.op.open            ;  0    - OPEN
         byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
-        data  recbuf                ;  2-3  - Record buffer in VDP memory
+        data  vrecbuf               ;  2-3  - Record buffer in VDP memory
         byte  >50                   ;  4    - 80 characters maximum
         byte  >00                   ;  5    - Filled with bytes read during read
         data  >0000                 ;  6-7  - Seek record (only for fixed records)
         byte  >00                   ;  8    - Screen offset (cassette DSR only)
-        byte  11
-        text  'DSK1.MYFILE'         ;  9    - Length of string
-                                    ; 10-.. - Device+String name
+fname   byte  15                    ;  9    - File descriptor length
+        text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
+        even
 
 
 msg     #string '* File reading test *'

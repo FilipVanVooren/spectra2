@@ -10,7 +10,6 @@
 ***************************************************************
 *  bl   @mem.scrpad.pgout
 *  DATA p0
-*--------------------------------------------------------------
 *  P0 = CPU memory destination
 *--------------------------------------------------------------
 *  bl   @memx.scrpad.pgout
@@ -22,14 +21,13 @@
 ********@*****@*********************@**************************
 mem.scrpad.pgout:
         mov   *r11+,tmp1            ; tmp1 = Memory target address
-        mov   tmp1,tmp3             ; tmp3 = copy of tmp1
         ;------------------------------------------------------
         ; Copy scratchpad memory to destination
         ;------------------------------------------------------
 xmem.scrpad.pgout:
         li    tmp0,>8300            ; tmp0 = Memory source address
-        li    tmp2,128              ; tmp2 = Bytes to copy
         mov   tmp1,tmp3             ; tmp3 = copy of tmp1
+        li    tmp2,128              ; tmp2 = Bytes to copy
         ;------------------------------------------------------
         ; Copy memory
         ;------------------------------------------------------
@@ -44,20 +42,18 @@ xmem.scrpad.pgout:
                                     ; R14=PC
         clr   r15                   ; R15=STATUS
         ;------------------------------------------------------
-        ; If we get here, WS will be moved to specified 
+        ; If we get here, WS was copied to specified 
         ; destination.  Also contents of r13,r14,r15 
         ; are about to be overwritten by rtwp instruction.
         ;------------------------------------------------------
-        rtwp                        ; Activate new workspace
+        rtwp                        ; Activate copied workspace
+                                    ; in non-scratchpad memory!
         ;------------------------------------------------------
-        ; Setup scratchpad memory for DSRLNK/GPLLNK
+        ; Clear scratchpad memory >8300 - >83ff
         ;------------------------------------------------------
 mem.scrpad.pgout.after.rtwp:
         li    tmp1,>8300
         li    tmp2,128              ; Clear 128 words of memory
-        ;------------------------------------------------------
-        ; Clear scratchpad memory >8300 - >83ff
-        ;------------------------------------------------------
 !       clr   *tmp1+
         dec   tmp2
         jne   -!                    ; Loop until done
@@ -68,7 +64,7 @@ mem.scrpad.pgout.after.rtwp:
         mov   tmp0,@>83fa           ; R13 = >9800
 
         li    tmp0,>0108
-        mov   tmp0,@>83fc           ; R14 = >0001 
+        mov   tmp0,@>83fc           ; R14 = >0108
 
         li    tmp0,>8c02
         mov   tmp0,@>83fe           ; R15 = >8c02

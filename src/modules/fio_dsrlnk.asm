@@ -5,6 +5,49 @@
 *                          DSRLNK 
 *//////////////////////////////////////////////////////////////
 
+***************************************************************                                     
+* >8300 - >83ff       Equates for DSRLNK (alternative layout)
+***************************************************************                                     
+* Equates are used in DSRLNK. 
+* Scratchpad memory needs to be paged out before use of DSRLNK.
+********@*****@*********************@**************************                                     
+haa     equ   >8320                 ; Loaded with HI-byte value >aa                                 
+sav8a   equ   >8322                 ; Contains >08 or >0a                                           
+
+
+**** Scratchpad. My choice
+*flgptr  equ   >8324                 ; Pointer to pab+1 dsrlnk                                       
+*savver  equ   >8326                 ; Saved version                                                 
+*savent  equ   >8328                 ; Saved entry address                                           
+*savcru  equ   >832a                 ; Saved cru                                                     
+*savlen  equ   >832c                 ; Saved length of filename                                      
+*savpab  equ   >832e                 ; Saved PAB address                                             
+*namsto  equ   >8330                 ; 8-byte buffer for device name                                 
+
+**** Low memory expansion. Official documentation?
+flgptr  equ   >202e                 ; Pointer to pab+1 dsrlnk                                       
+savcru  equ   >2032                 ; Saved cru                                                     
+savent  equ   >2034                 ; Saved entry address                                           
+savlen  equ   >2036                 ; Saved length of filename                                      
+savpab  equ   >2038                 ; Saved PAB address                                             
+savver  equ   >203a                 ; Saved version                                                 
+
+namsto  equ   >8330                 ; 8-byte buffer for device name                                 
+
+
+
+;dsrlws  equ   >8380                 ; dsrlnk workspace                                              
+;dstype  equ   >838a                 ; dstype is address of R5 of DSRLNK ws
+
+dsrlws  equ   >b000                 ; dsrlnk workspace                                              
+dstype  equ   >b00a                 ; dstype is address of R5 of DSRLNK ws
+
+
+***************************************************************        
+
+
+
+
 ***************************************************************
 * dsrlnk - DSRLNK for file I/O in DSR >1000 - >1F000
 ***************************************************************
@@ -21,7 +64,7 @@ dsrlnk  data  dsrlws               ; dsrlnk workspace
         ; DSRLNK entry point
         ;------------------------------------------------------ 
 dlentr  li    r0,>aa00
-        movb  r0,@haa              ; load haa
+        movb  r0,@haa              ; load haa at @>8320
         mov   *r14+,r5             ; get pgm type for link
         mov   r5,@sav8a            ; save data following blwp @dsrlnk (8 or >a)
         szcb  @h20,r15             ; reset equal bit
@@ -116,7 +159,7 @@ namone  cb    *r6+,*r2+            ; compare buffer with rom
         ;------------------------------------------------------
         ; Device name match
         ;------------------------------------------------------
-*        mov   r2,@>83d2            ; DSR entry addr must be saved at @>83d2
+        mov   r2,@>83d2            ; DSR entry addr must be saved at @>83d2
 namtwo  inc   r1                   ; next version found
         mov   r1,@savver           ; save version
         mov   r9,@savent           ; save entry addr

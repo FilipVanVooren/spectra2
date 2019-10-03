@@ -193,6 +193,8 @@ function postprocess() {
      l_upcase_bin=${l_upcase_bin/BIN\//bin\/} 
      cp -p $g_binary $l_upcase_bin
      cp -p $g_binary /DS414/9900bin
+     cp -p $g_binary /media/q0tws01/FINALGROM/tifun
+     scp $g_binary tipi@tipi:~/tipi_disk
 
 
      # Copy binary to removable media if mounted
