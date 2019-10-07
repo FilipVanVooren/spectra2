@@ -1,0 +1,675 @@
+*===================================
+* DSR entry points
+*===================================
+A504E  MOV  11,7              DSK
+       BL   @A4724            --- prepare file operations
+       BL   @A4658            call subroutine
+       DATA A4B8A             find disk in drive (name ptr in R3)
+       JMP  A5072
+ 
+A505C  LI   6,>0100           DSK1
+       JMP  A506C             ----
+ 
+A5062  LI   6,>0200           DSK2
+       JMP  A506C             ----
+ 
+A5068  LI   6,>0300           DSK3
+*                             ----
+A506C  MOV  11,7              save return address
+       BL   @A4724            prepare file operations
+A5072  MOV  @>0054(9),0       PAB ptr
+       BLWP @>005A(9)         set VDP to  read
+       DATA >0002             address in R0
+       MOVB @>FBFE(15),1      get opcode
+       SRL  1,8
+       CI   1,>0009           check range
+       JH   A50BA             illegal opcode
+       CI   2,>0001           filename lenght (including . )
+       JNE  A5098             no filename: dir
+       AI   1,>000A           only allow open, close and read
+       CI   1,>000C
+       JH   A50BA             others are illegal
+A5098  A    1,1               make it a word ptr
+       MOV  @A50A0(1),1       get vector
+       B    *1                branch to it
+*
+A50A0  DATA A50C0             open
+       DATA A52D2             close
+       DATA A52DC             read
+       DATA A53C6             write
+       DATA A567A             rewind
+       DATA A56CE             load
+       DATA A5770             save
+       DATA A4A72             delete
+       DATA A4C9E             scratch record: return with "bad attribute" error
+       DATA A57F4             status
+ 
+       DATA A58B4             open directory
+       DATA A5912             close directory
+       DATA A5928             read directory
+*
+A50BA  BL   @A4C72            return with error
+       DATA >6000             "illegal opcode"
+*---------------------------------
+* Opcode 0: Open
+* --------------
+* PAB 0: >00
+*     1: file type  <--- error code
+*   2-3:
+*     4: record length
+*     5:
+*   6-7: # of records (if output)
+*     8:
+*---------------------------------
+A50C0  CLR  0
+       MOVB @>FBFE(15),0      get file attributes
+       BLWP @>005A(9)
+       DATA >8000             save R0
+       ANDI 0,>1600           keep fix/var and access mode
+       CI   0,>0600
+       JNE  A50DC
+A50D6  BL   @A4C72            dis/fix, open as append: return with error
+       DATA >4000             "bad attribute"
+ 
+A50DC  JLE  A50F2
+       MOV  0,1               var
+       BL   @A4B6A            get 2 bytes from PAB into R0
+       DATA >0004             rec len and char count
+       CI   0,>FF00           is rec len 255?
+       JHE  A50D6             yes: bad attribute
+       MOV  1,0               retrieve attributes
+       ANDI 0,>0600           keep only access mode
+ 
+A50F2  CI   0,>0200           is it output?
+       JNE  A51A6             no
+       BL   @A4658            call subroutine
+       DATA A4798             create file
+A50FE  BL   @A5280            coin status byte in FDR style
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4: status byte in FDR buffer
+       MOVB 2,@>FFFE(15)      write file status in FDR
+       MOV  @>0054(9),3       PAB ptr
+       AI   3,>0004           ptr to rec len
+       CLR  5
+       BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),5      get record length
+       JNE  A5130
+       LI   5,>5000           >00: default it 80
+       BLWP @>005A(9)         set VDP to write
+       DATA >0063             address in R3
+       MOVB 5,@>FFFE(15)      write default rec len
+A5130  AI   4,>0005           point to rec len byte in FDR
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4
+       MOVB 5,@>FFFE(15)      write rec len in FDR buffer
+       LI   1,>0100           256 bytes/sector
+       MOV  2,2               var or dis?
+       JLT  A5148             var
+       JMP  A514C             dis
+A5148  A    1,5               var: rec len +1
+       DEC  1                 254 bytes only (needs size byte)
+A514C  SWPB 5                 make it a word
+       CLR  0
+       DIV  5,0               how many times in 254/255 bytes?
+       AI   4,>FFFC           point to # of rec/sect in FDR
+       MOV  0,1               save result for later
+       SWPB 0
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4
+       MOVB 0,@>FFFE(15)      write # of rec/sect in FDR
+       MOV  @>0056(9),8       point to filename in FDR
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),0      get first char
+       ORI  0,>8000           flag it: update FDR before leaving
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      write it back
+       BLWP @>005A(9)
+       DATA >8001             retrieve R0 (access mode)
+       BL   @A4B6A            get 2 bytes from PAB into R0
+       DATA >0006             required size in records
+       MOV  0,4
+       JEQ  A51A2             no size specified
+       JLT  A50D6             return with "bad attribute" error
+       A    1,4               round up to record size
+       DEC  4
+       CLR  3
+       DIV  1,3               how many sectors will this be?
+       DEC  3                 offset start from 0
+       BL   @A4658            call subroutine
+       DATA A4964             add sectors to FDR to match offset in R3
+A51A2  B    @A56A8            initialise file control block and return to caller
+ 
+A51A6  BLWP @>005A(9)         not output
+       DATA >8000             save R0
+       BL   @A4658            call subroutine
+       DATA A4E02             find FDR on disk
+       BLWP @>005A(9)
+       DATA >8001             retrieve R0 (access mode)
+       MOV  4,4               found FDR?
+       JEQ  A51CE             yes
+       CI   0,>0400           no: is file open as input?
+       JEQ  A51CA             yes: must exist
+       BL   @A4658            no: call subroutine
+       DATA A47AA             create file
+       JMP  A50FE
+ 
+A51CA  B    @A50D6            return with "bad attribute" error
+ 
+A51CE  MOV  0,7               save access mode
+       BL   @A5280            prepare status byte for FDR
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4 (status byte in FDR)
+       MOVB @>FBFE(15),0      get current file status
+       MOV  0,3               save it
+       ANDI 3,>0800           is file write protected?
+       JEQ  A51F2             no
+       CI   7,>0400           yes: is it open as input?
+       JEQ  A51F2             no
+       BL   @A4C72            yes: return with error
+       DATA >2000             "write protected"
+ 
+A51F2  ANDI 0,>8300           keep only file type bits (V/F, D/I, Prg/Data)
+       XOR  2,0               compare with new (coined by A5280)
+       JNE  A51CA             different: bad attribute
+       MOV  @>0054(9),3       PAB ptr
+       AI   3,>0004           ptr to rec len in PAB
+       AI   4,>0005           ptr to rec len in FDR
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),0      get rec len from FDR
+       BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),2      get rec len from PAB
+       JEQ  A5220             0 = keep current one
+       CB   0,2               are they identical?
+       JNE  A51CA             no: "bad attribute"
+A5220  BLWP @>005A(9)         set VDP to write
+       DATA >0063             address in R3
+       MOVB 0,@>FFFE(15)      update rec len in PAB (in case it was 0)
+       BLWP @>005A(9)         retrieve R0 (open mode)
+       DATA >8001
+       ANDI 0,>0600           keep only access mode
+       CLR  2
+       SETO 3
+       CI   0,>0600           is it "append"
+       JNE  A5278             no
+       MOV  @>0056(9),4       yes: get FDR ptr
+       MOV  4,7               save it
+       AI   4,>000E           ptr to # of sectors
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),3      get # of sectors in file
+       SWPB 3
+       MOVB @>FBFE(15),3
+       SWPB 3
+       MOVB @>FBFE(15),2      get eof offset
+       DEC  3                 offset starts from 0
+       JLT  A5278             file is empty (0 sectors)
+       BLWP @>005A(9)
+       DATA >3000             save R2 + R3
+       AI   7,>0100           ptr to data buffer area for this file
+       BL   @A4658            call subroutine
+       DATA A492E             read a sector, from offset in R3
+       BLWP @>005A(9)
+       DATA >3001             retrieve R2 + R3
+A5278  BL   @A52AA            update current record offset in file ctrl block
+       B    @A4676            return to caller
+*
+A5280  BLWP @>005A(9)         prepare file status byte for FDR
+       DATA >8001             -------------------------------- access mode in R0
+       BLWP @>005A(9)
+       DATA >8000             save it back
+       LI   2,>0002           "int" in FDR status byte
+       MOV  @>0056(9),4       FDR pointer
+       SLA  0,4               fix or var?
+       JNC  A529E             fix
+       LI   2,>0082           "int var" in FDR
+       MOV  0,0               dis or int?
+A529E  JLT  A52A2             int
+       DECT 2                 dis: remove the "int" from FDR status
+A52A2  AI   4,>000C           point at file status byte in FDR
+       SWPB 2
+       B    *11
+*
+A52AA  MOV  @>0056(9),4       update sect + rec offsets in file control block
+       AI   4,>FFFA           -----------------------------------------------
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4
+       MOVB 3,@>FFFE(15)      write current sect offset
+       SWPB 3
+       MOVB 3,@>FFFE(15)
+       AI   4,>0004           point to logical rec offset (for var files)
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4
+       MOVB 2,@>FFFE(15)      write record offset
+       B    *11
+*
+*----------------------------------
+* Opcode 1: Close
+* --------------
+* PAB 0: >01
+*     1:           <--- error code
+*   2-3:
+*     4:
+*     5:
+*   6-7:
+*     8:
+*----------------------------------
+A52D2  BL   @A4658            call subroutine
+       DATA A54D0             find file FDR
+       B    @A487A            update FDR + data area, get VIB, return to caller
+*
+*----------------------------------
+* Opcode 2: Read
+* --------------
+* PAB 0: >02
+*     1: file type <--- error code
+*   2-3: data buffer address in VDP mem
+*     4:
+*     5: bytes read
+*   6-7: record #
+*     8:
+*
+* Logical records organisation whithin sectors
+*
+* Fixed records (e.g. rec length = 6)
+* 11 11 11 11 11 11 22 22 22 22 22 22 33 33 33 33 33 33 xx xx xx
+* Where 11=data for record 1, 22=record 2, 33=record 3, xx=junk bytes
+*
+* Variable records:
+* sz 11 11 11 11 11 11 11 sz 22 22 22 22 22 sz 33 33 FF xx xx xx
+* Where sz=record size, 11,22,33=record data, FF=end-of-sector mark, xx=junk
+*----------------------------------
+*
+A52DC  BL   @A4658            call subroutine
+       DATA A54D0             find FDR in VDP buffers, get status from PAB
+       ANDI 0,>0200           what type of access?
+       JEQ  A52EC             "update" or "input": ok
+A52E8  B    @A50BA            "append" or "output": error "illegal opcode"
+A52EC  BL   @A54FC            get status byte in R0, from FDR
+       JLT  A5306             var
+       BL   @A5510            fix: get rec # compare to # of recs/file
+       JL   A52FE             ok: in file
+A52F8  BL   @A4C72            update data and return with error
+       DATA >A000             "eof reached"
+A52FE  BL   @A4658            call subroutine
+       DATA A5576             load record from disk into FDR data buffer area
+       JMP  A5328
+ 
+A5306  BL   @A4658            var: call subroutine
+       DATA A5362             load proper sector, point to rec in it
+       JMP  A52F8             skipped if ok: return with "eof reached"
+ 
+       INC  2                 next byte in data buffer
+       A    4,0               add rec size to offset
+       INC  0                 room for end-of-sector mark
+       MOV  @>0056(9),5       FDR ptr
+       DECT 5                 point to var record offset in sector
+       SWPB 0
+       BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 0,@>FFFE(15)      update var record offset in sector
+       MOV  4,0               save # of bytes to be read
+A5328  MOV  @>0054(9),4       PAB ptr
+       AI   4,>0005           point to char count
+       SWPB 0
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4
+       MOVB 0,@>FFFE(15)      write # of char to be read
+       SWPB 0                 make it a word
+ 
+A533E  MOV  0,0               check it
+       JEQ  A535E             none: return
+A5342  BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2
+       MOVB @>FBFE(15),3      read 1 byte from FDR data buffer area
+       INC  2                 increment source ptr
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 3,@>FFFE(15)      write the byte in PAB data buffer
+       INC  1                 increment destination ptr
+       DEC  0                 more to read?
+       JNE  A5342             yes
+A535E  B    @A4676            return to caller
+*
+A5362  BL   @A5650            load sector, point to record in it
+       MOV  3,3               ----------------------------------- sector offset
+       JLT  A536C             -1: top of file
+       JMP  A5390             in file
+A536C  MOV  3,0
+       INC  0                 next sector
+       C    0,2               compare to # of sect/file
+       JEQ  A535E             end-of-file reached: return to caller (JMP to err)
+       BL   @A4658            call subroutine
+       DATA A489A             update data buffer, if needed
+       MOV  0,3               desired offset
+       CLR  5
+       BL   @A55EE            update sect + rec offsets in control block
+       AI   7,>0100           point to data buffer area (R7 set by A55EE)
+       BL   @A4658            call subroutine
+       DATA A492E             read a sector, from offset in file (in R3)
+       CLR  0
+       JMP  A5398
+ 
+A5390  MOV  0,0               in file: test var rec offset (from A5650)
+       JNE  A5398             inside sector
+       C    0,2               at beg of sector
+       JEQ  A535E             file is empty: return
+A5398  MOV  0,2               FDR data buffer will be added to R2 by A55CA
+       BL   @A4658            call subroutine
+       DATA A55CA             R2=byte in FDR data buf, R1=top of PAB data buf
+       BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2
+       MOVB @>FBFE(15),4      get first byte (rec length)
+       SRL  4,8               make it a word
+       MOV  0,0               var rec offset
+       JEQ  A53BC
+       CI   4,>00FF           is it >FF (end of sector mark) ?
+       JNE  A53BC             no
+       BL   @A5650            yes: get sect + rec offsets from control block
+       JMP  A536C             try again with next sector
+ 
+A53BC  BLWP @>005A(9)
+       DATA >0011             retrieve return address from stack in R11
+       INCT 11                skip the JMP to "eof reached" error
+       B    *11
+*
+*------------------------------------
+* Opcode 3: Write
+* --------------
+* PAB 0: >03
+*     1: file type <--- error code
+*   2-3: data buffer address in VDP mem
+*     4:
+*     5: bytes to write
+*   6-7: record #
+*     8:
+*------------------------------------
+A53C6  BL   @A4658            call subroutine
+       DATA A54D0             find FDR in VDP buffers
+       ANDI 0,>0600           keep only access mode
+       CI   0,>0400           is it "input"
+       JEQ  A52E8             yes: return with error "illegal opcode"
+       BL   @A54FC            get file status byte from FDR
+       JLT  A5402             var
+ 
+       BL   @A5510            fix: get rec # from PAB, sect # in R0
+       JL   A53FA             less that total rec/file
+       BLWP @>005A(9)         past eof: expand file
+       DATA >D800             save R0, R1, R3, R4
+       MOV  0,3               desired sector offset
+       BL   @A4658            call subroutine
+       DATA A4964             append enough sectors to reach offset in R3
+       BLWP @>005A(9)
+       DATA >D801             restore R0, R1, R3, R4
+       BL   @A561A            update # of rec/file in FDR
+ 
+A53FA  BL   @A4658            in file: call subroutine
+       DATA A5576             fetch rec from disk into FDR data buffer area
+       JMP  A54A8             set "update data" flag, write data, return
+ 
+A5402  BL   @A5650            var: R2=sect/file R3=sect offset R0=rec offset
+       MOV  3,3               sector offset in file
+       JLT  A540C             -1: top of file
+       JMP  A5422             in file
+A540C  BLWP @>005A(9)         "next sector" loop
+       DATA >3000             save R2 + R3
+       BL   @A4658            call subroutine
+       DATA A489A             update data buffer if needed
+       BLWP @>005A(9)
+       DATA >3001             retrieve R2 + R3
+       INC  3                 next sector
+       CLR  0                 init char offset in sector
+ 
+A5422  C    3,2               did we reach last sector?
+       JNE  A5438             no
+       BLWP @>005A(9)         yes: expand file
+       DATA >9000             save R0 + R4
+       BL   @A4658            call subroutine
+       DATA A4964             get last sector then append sectors to reach R3
+       BLWP @>005A(9)
+       DATA >9001             retrieve R0 + R4
+ 
+A5438  MOV  @>0054(9),5       PAB ptr
+       AI   5,>0005           point to char count
+       BLWP @>005A(9)         set VDP to read
+       DATA >00A2             address in R5
+       MOVB @>FBFE(15),4      get # of chars to write
+       SRL  4,8               make it a word
+       MOV  4,5
+       A    0,5               add current char offset in sector
+       INC  5                 make room for size byte
+       CI   5,>00FF           past end of sector?
+       JH   A540C             yes: not enough room, try next sector
+       SETO 2                 ok: rec will fit in sector
+       MOV  @>0056(9),1       FDR ptr
+       A    5,1               past-last-byte offset
+       AI   1,>0100           ptr to data buffer area
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 2,@>FFFE(15)      write end-of-sect mark to FDR data buffer area
+       BLWP @>005A(9)
+       DATA >8000             save R0 (current byte offset in sector)
+       MOV  3,0
+       BL   @A55EE            update sect + rec offsets in control block
+       AI   1,>0012           point to eof offset in FDR (R1 modified by A55EE)
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 5,@>FFFE(15)      update eof offset in last sector, in FDR
+       BL   @A561A            update # of rec/file in FDR
+       BLWP @>005A(9)
+       DATA >2001             retrieve old R0 in R2 (current byte offset)
+       MOV  4,0               record size
+       BL   @A4658            call subroutine
+       DATA A55CA             get FDR data buffer in R2, PAB data buffer in R1
+       SWPB 4
+       BLWP @>005A(9)         set VDP to write
+       DATA >0043             address in R2
+       MOVB 4,@>FFFE(15)      write size byte to FDR data buffer
+       INC  2                 increment dest pointer
+ 
+A54A8  MOV  2,3               invert source and dest
+       MOV  1,2               so we can use the same read-write loop
+       MOV  3,1               than the "read" opcode
+       MOV  @>0056(9),4       FDR ptr
+       DEC  4                 pointer to drive # for that file
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),5      get drive #
+       ORI  5,>8000           add "update data area" flag
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4
+       MOVB 5,@>FFFE(15)      write back flagged byte
+       B    @A533E            to read-write loop
+*
+A54D0  BL   @A4658            find FDR in VDP buffer
+       DATA A4DA4             ---------------------- find file FDR
+       MOV  4,4               found?
+       JEQ  A54E0             yes
+       BL   @A4C72            no: return with error
+       DATA >E000             "file error"
+A54E0  INC  1                 point to filename in FDR
+       MOV  1,@>0056(9)       new FDR ptr
+       MOV  @>0054(9),4       get PAB ptr
+       INC  4                 point to status byte
+       CLR  0
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),0      get file status
+       B    @A4676            return to caller
+*
+A54FC  MOV  @>0056(9),4       get status byte from FDR
+       AI   4,>000C           ------------------------ point to status byte
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),0      read status byte
+       B    *11
+*
+A5510  MOVB @>FBFE(15),5      get record # from PAB, check if valid
+       SRL  5,8               -------------------------------------
+       JNE  A551C             get # of rec/sector from FDR
+       LI   5,>0100           0: default to 256
+A551C  MOV  @>0054(9),3       PAB ptr
+       AI   3,>0006           point to rec #
+       BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),1      get record # from PAB
+       SWPB 1
+       MOVB @>FBFE(15),1
+       SWPB 1
+       MOV  1,0               save it
+       JLT  A553C             too big
+       JMP  A5542             ok
+A553C  BL   @A4C72            update data then return with error
+       DATA >8000             "memory full"
+A5542  INC  0                 next record
+       BLWP @>005A(9)         set VDP to write
+       DATA >0063             address in R3
+       MOVB 0,@>FFFE(15)      write back # of future record
+       SWPB 0
+       MOVB 0,@>FFFE(15)
+       CLR  0
+       MOV  1,3               save # of desired rec
+       DIV  5,0               divide by # of rec/sector = sect # in R0
+A555A  MOV  @>0056(9),2       FDR ptr
+       AI   2,>0012           point to total # of rec (# of sectors for var)
+       BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2
+       MOVB @>FBFE(15),2      get total # of recs/file (sect/file for var)
+       SWPB 2
+       MOVB @>FBFE(15),2      remember: bytes are swapped
+       C    3,2               compare with desired record (ignored by var)
+       B    *11
+*
+A5576  BLWP @>005A(9)         fetch record into FDR data buffer area
+       DATA >4000             -------------------------------------- save R1
+       AI   4,>FFEE           ptr to top of control block
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),5      get current sector offset in file
+       SWPB 5
+       MOVB @>FBFE(15),5
+       SRC  5,8
+       JLT  A559E             -1: top of file
+       C    5,0               compare with desired offset (from A5510)
+       JEQ  A55AE             same
+       BL   @A4658            call subroutine
+       DATA A489A             update data buffer if needed
+A559E  MOV  0,3               desired sector offset in file
+       BL   @A55EE            update sect + rec offsets in control block
+       AI   7,>0100           point to data buffer area (R7 set by A55EE)
+       BL   @A4658            call subroutine
+       DATA A492E             read a sector from offset in file (in R3)
+A55AE  BLWP @>005A(9)
+       DATA >4001             retrieve R1
+       MOV  @>0056(9),3       FDR ptr
+       AI   3,>0011           point to record length
+       BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),0      get rec length in bytes
+       SRL  0,8               make it a word
+       MPY  0,1               calc file offset in bytes
+A55CA  A    @>0056(9),2       add FDR ptr
+       AI   2,>0100           point inside data buffer area
+       MOV  @>0054(9),3       PAB ptr
+       INCT 3                 point to data buffer address
+       BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),1      get PAB data buffer address
+       SWPB 1
+       MOVB @>FBFE(15),1
+       SWPB 1
+       B    @A4676            return
+*
+A55EE  MOV  @>0056(9),7       update sect + rec offsets in control block
+       MOV  7,1               ------------------------------------------ FDR ptr
+       AI   1,>FFFA           top of file control block
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      current sector offset in file
+       SWPB 0
+       MOVB 0,@>FFFE(15)
+       AI   1,>0004           point to var rec offset in sector
+       SWPB 5
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 5,@>FFFE(15)      first free byte in current sector
+       B    *11
+*
+A561A  MOV  @>0056(9),2       update # of rec/file in FDR
+       BLWP @>005A(9)         --------------------------- set VDP to read
+       DATA >0042             address in R2 (FDR ptr)
+       MOVB @>FBFE(15),10     get first char of filename
+       ORI  10,>8000          set "was modified" flag
+       BLWP @>005A(9)         set VDP to write
+       DATA >0043             address in R2
+       MOVB 10,@>FFFE(15)     write flagged char back
+       AI   2,>0012           point to # of recs/file in FDR
+       INC  3                 one more
+       BLWP @>005A(9)         set VDP to write
+       DATA >0043             address in R2
+       SWPB 3                 update # of recs/file
+       MOVB 3,@>FFFE(15)
+       SWPB 3
+       MOVB 3,@>FFFE(15)
+       B    *11
+*
+A5650  MOV  @>0056(9),8       get rec offset, compare sect with total
+       MOV  8,4               --------------------------------------- FDR ptr
+       AI   4,>0100           point to data buffer area
+       DECT 8                 point to var record offset
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),2      get var rec offset in current sector
+       SRL  2,8               make it a word
+       MOV  11,10             save return point
+       BL   @A4B74            get 2 bytes from FDR (at R8-4) into R0
+       DATA -4                current sector offset in file
+       MOV  0,3               save it
+       MOV  10,11             restore return point
+       MOV  2,0               var record offset
+       B    @A555A            get # of sect/file from FDR, return
+*
+*------------------------------------
+* Opcode 4: Rewind
+* --------------
+* PAB 0: >04
+*     1: file type <--- error code
+*   2-3:
+*     4:
+*     5:
+*   6-7: record #  <--- >0000 if sequential
+*     8:
+*------------------------------------
+A567A  BL   @A4658            call subroutine
+       DATA A54D0             find FDR in VDP buffers, read status from PAB
+       BLWP @>005A(9)
+       DATA >8000             save R0 (status from PAB)
+       ANDI 0,>0600           keep only access mode
+       JEQ  A5696             "update" is ok
+       CI   0,>0400           is it "input"?
+       JEQ  A5696             yes: ok
+       B    @A50BA            "output" or "append": return with "illegal opcode"
+A5696  BL   @A4658            call subroutine
+       DATA A489A             update data buffer if needed
+       BLWP @>005A(9)
+       DATA >8001             retrieve R0 (status from PAB)
+       ANDI 0,>0100           sequential or reloc?
+       JNE  A56CA             reloc: don't do anything, return
+ 
+A56A8  CLR  2                 rewind file: record offset = 0
+       SETO 3                 -----------  current record = -1 (none)
+       BL   @A52AA            update file control block
+       CLR  0                 record 0
+       MOV  @>0054(9),8       get PAB ptr
+       AI   8,>0006           point to record #
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      write record #
+       NOP
+       MOVB 0,@>FFFE(15)
+A56CA  B    @A4676            return to caller
+*

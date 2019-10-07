@@ -32,7 +32,7 @@ savlen  equ   >2036                 ; Saved length of filename
 savpab  equ   >2038                 ; Saved PAB address                                             
 savver  equ   >203a                 ; Saved version                                                 
 
-namsto  equ   >8330                 ; 8-byte buffer for device name                                 
+namsto  equ   >2100                 ; 8-byte buffer for device name                                 
 
 
 
@@ -49,7 +49,7 @@ dstype  equ   >b00a                 ; dstype is address of R5 of DSRLNK ws
 
 
 ***************************************************************
-* dsrlnk - DSRLNK for file I/O in DSR >1000 - >1F000
+* dsrlnk - DSRLNK for file I/O in DSR >1000 - >1F00
 ***************************************************************
 *  blwp @dsrlnk
 *  data p0
@@ -73,7 +73,7 @@ dlentr  li    r0,>aa00
         mov   r0,@flgptr           ; save again pointer to pab+1 for dsrlnk 
                                    ; data 8
         ;------------------------------------------------------
-        ; Get file descriptor length
+        ; Fetch file descriptor length from PAB
         ;------------------------------------------------------ 
         ai    r9,>fff8             ; adjust r9 to addr PAB flag -> (pabaddr+9)-8
         bl    @_vsbr               ; read file descriptor length
@@ -119,40 +119,47 @@ norom   mov   r12,r12              ; anything to turn off?
         ;------------------------------------------------------
 nooff   ai    r12,>0100            ; next rom to turn on
         clr   @>83d0               ; clear in case we are done
-        ci    r12,>2000            ; see if done
+        ci    r12,>2000            ; Card scan complete? (>1000 to >1F00)
         jeq   nodsr                ; yes, no dsr match
         mov   r12,@>83d0           ; save addr of next cru
+        ;------------------------------------------------------
+        ; Look at card ROM (@>4000 eq 'AA' ?)
+        ;------------------------------------------------------
         sbo   0                    ; turn on rom
         li    r2,>4000             ; start at beginning of rom
-        cb    *r2,@haa             ; check for a valid rom
+        cb    *r2,@haa             ; check for a valid DSR header
         jne   norom                ; no rom here
         ;------------------------------------------------------
-        ; Valid DSR ROM found, now start digging in
+        ; Valid DSR ROM found. Now loop over chain/subprograms
         ;------------------------------------------------------
-        ; dstype is the address of R5 of the DSRLNK workspace 
-        ; (dsrlws--see bottom of page), which is where 8 for a DSR
-        ; or 10 (>A) for a subprogram is stored before the DSR
-        ; ROM is searched.
+        ; dstype is the address of R5 of the DSRLNK workspace,
+        ; which is where 8 for a DSR or 10 (>A) for a subprogram
+        ; is stored before the DSR ROM is searched.
         ;------------------------------------------------------
         a     @dstype,r2           ; go to first pointer (byte 8 or 10)
         jmp   sgo2
-sgo     mov   @>83d2,r2            ; continue where we left off
+
+sgo     mov   @>83d2,r2            ; Offset 0 > Fetch link to next DSR or subprogram
         sbo   0                    ; turn rom back on
-sgo2    mov   *r2,r2               ; is addr a zero (end of link)
-        jeq   norom                ; yes, no programs to check
         ;------------------------------------------------------
-        ; Loop over entries in DSR header looking for match
+        ; Get DSR entry
         ;------------------------------------------------------
-        mov   r2,@>83d2            ; remember where to go next
-        inct  r2                   ; go to entry point
-        mov   *r2+,r9              ; get entry addr just in case
+sgo2    mov   *r2,r2               ; is addr a zero? (end of chain?)
+        jeq   norom                ; yes, no more DSRs or programs to check
+        mov   r2,@>83d2            ; Offset 0 > Store link to next DSR or subprogram
+        inct  r2                   ; Offset 2 > Has call address of current DSR/subprogram code
+        mov   *r2+,r9              ; Store call address in r9. Move r2 to offset 4 (DSR/subprogram name)
+        ;------------------------------------------------------
+        ; Check file descriptor in DSR
+        ;------------------------------------------------------
+        clr   r5                   ; Remove any old stuff
         movb  @>8355,r5            ; get length as counter
         jeq   namtwo               ; if zero, do not check
         cb    r5,*r2+              ; see if length matches
-        jne   sgo                  ; no, try next
-        srl   r5,8                 ; yes, move to lo byte as counter
-        li    r6,namsto            ; point to 8-byte buffer
-namone  cb    *r6+,*r2+            ; compare buffer with rom
+        jne   sgo                  ; no, length does not match. Go process next DSR entry
+        srl   r5,8                 ; yes, move to low byte
+        li    r6,namsto            ; Point to 8-byte CPU buffer
+namone  cb    *r6+,*r2+            ; compare byte in CPU buffer with byte in DSR ROM
         jne   sgo                  ; try next if no match
         dec   r5                   ; loop til full length checked
         jne   namone
@@ -161,15 +168,19 @@ namone  cb    *r6+,*r2+            ; compare buffer with rom
         ;------------------------------------------------------
         mov   r2,@>83d2            ; DSR entry addr must be saved at @>83d2
 namtwo  inc   r1                   ; next version found
-        mov   r1,@savver           ; save version
-        mov   r9,@savent           ; save entry addr
-        mov   r12,@savcru          ; save cru
+        mov   r1,@savver           ; save version number
+        mov   r9,@savent           ; save entry address
+        mov   r12,@savcru          ; save cru address
         ;------------------------------------------------------
         ; Call DSR program in device card
         ;------------------------------------------------------
         bl    *r9                  ; go run routine
+        ;
+        ; Depending on IO result the DSR either does RET or
+        ; INCT R11 and RET meaning that jmp or sbz gets executed
+        ;
         jmp   sgo                  ; error return
-        sbz   0                    ; turn off rom if good return
+        sbz   0                    ; turn off rom if good return        
         lwpi  dsrlws               ; restore workspace
         mov   r9,r0                ; point to flag in pab
 frmdsr  mov   @sav8a,r1            ; get back data following blwp @dsrlnk

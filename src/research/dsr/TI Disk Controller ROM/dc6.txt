@@ -1,0 +1,517 @@
+*------------------------------------
+* Opcode 5: Load
+* --------------
+* PAB 0: >05
+*     1: file type  <--- error code
+*   2-3: data buffer address in VDP mem
+*     4:
+*     5:
+*   6-7: maximum # of bytes (size of buffer)
+*     8:
+*------------------------------------
+A56CE  BL   @A4658            call subroutine
+       DATA A4E02             find FDR on disk
+       MOV  4,4               found?
+       JEQ  A56DE             yes
+A56D8  BL   @A4C72            no: return with error
+       DATA >E000             "file error"
+A56DE  BL   @A4B70            get 2 bytes from FDR into R0
+       DATA >000C             file status byte
+       ANDI 0,>0100           is it "program"?
+       JEQ  A56D8             no: file error
+       INCT 8                 point to # of sect/file in FDR
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),1      get # of sectors in file
+       SWPB 1
+       MOVB @>FBFE(15),1
+       SRC  1,8
+       JEQ  A56D8             0=empty file: return with "file error"
+       BL   @A57C0            get data buffer address in R7, # of sectors in R2
+       INCT 8                 point to eof offset in FDR
+       CLR  4
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),4      get # of bytes in last sector
+       C    1,2               compare # of sect with max in PAB
+       JH   A56D8             file is too big: return with "file error"
+       JNE  A571C             file is smaller
+       C    0,4               same # of sect: check bytes in last sector
+       JL   A56D8             file is too big: "file error"
+A571C  CLR  3                 sector offset in file
+       SWPB 4
+A5720  DEC  1                 next sector
+       JEQ  A573E             done
+       BLWP @>005A(9)
+       DATA >D900             save R0, R1, R3, R4, R7
+       BL   @A4658            call subroutine
+       DATA A492E             read a sector from offset in R3
+       BLWP @>005A(9)         restore R0, R1, R3, R4, R7
+       DATA >D901
+       INC  R3                next sector
+       AI   7,>0100           256 bytes further in PAB buffer
+       JMP  A5720             keep going
+ 
+A573E  MOV  4,4
+       JNE  A574A
+       BL   @A4658            call subroutine
+       DATA A492E             read a sector from offset in R3
+       JMP  A576C             done
+ 
+A574A  MOV  7,5               save PAB data buffer ptr
+       MOV  @>0056(9),7       FDR ptr
+       AI   7,>0100           point to FDR data area
+       BLWP @>005A(9)
+       DATA >0D00             save R4, R5, R7
+       BL   @A4658            call subroutine
+       DATA A492E             read a sector from offset in R3
+       BLWP @>005A(9)         restore R4 in R0, R5 in R1, R7 in R2
+       DATA >E001
+       BL   @A4658            call subroutine
+       DATA A533E             write bytes from FDR data buffer to PAB data buf
+A576C  B    @A487A            update FDR, data buffer, VIB and return to caller
+*
+*------------------------------------
+* Opcode 6: Save
+* --------------
+* PAB 0: >06
+*     1: file type  <--- error code
+*   2-3: data buffer address in VDP mem
+*     4:
+*     5:
+*   6-7: # of bytes to save
+*     8:
+*------------------------------------
+A5770  BL   @A4658            call subroutine
+       DATA A4798             create file
+       BL   @A57C0            get PAB buffer ptr + # of bytes
+       CLR  3                 sector offset 0
+A577C  BLWP @>005A(9)
+       DATA >B100             save R0, R2, R3, R7
+       BL   @A4658            call subroutine
+       DATA A494E             write sector to offset in R3
+       BLWP @>005A(9)
+       DATA >B101             retrieve R0, R2, R3, R7
+       INC  3                 next sector
+       AI   7,>0100           256 bytes further in PAB data buffer
+       DEC  2                 next sector
+       JNE  A577C             more to do
+ 
+       MOV  @>0056(9),1       FDR ptr
+       AI   1,>000C           point to file status byte
+       LI   2,>0100           value for "program" file
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 2,@>FFFE(15)      write file status byte in FDR
+       AI   1,>0004           point to eof offset byte in FDR
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      # of bytes in last sector
+       B    @A487A            update FDR, data buffer, VIB then return to caller
+*
+A57C0  MOV  @>0054(9),0       get buffer address + # of bytes
+       INCT 0                 ------------------------------- data buffer in PAB
+       BLWP @>005A(9)         set VDP to read
+       DATA >0002             address in R0
+       MOVB @>FBFE(15),7      get data buffer address
+       SWPB 7
+       MOVB @>FBFE(15),7
+       SWPB 7
+       AI   0,>0004           point to # of bytes to transfer
+       BLWP @>005A(9)         set VDP to read
+       DATA >0002             address in R0
+       MOVB @>FBFE(15),2      get # of bytes to be transfered
+       SRL  2,8               make it # of sectors (256 bytes each)
+       CLR  0
+       MOVB @>FBFE(15),0      see if one more is needed
+       JEQ  A57F2             no
+       INC  2                 yes: one more sector
+A57F2  B    *11
+*
+*-------------------------------------
+* Opcode 9: Status
+* --------------
+* PAB 0: >09
+*     1:
+*   2-3:
+*     4:
+*     5:
+*   6-7: record #
+*     8:           <--- file status
+*
+* Status bits, returned in PAB byte 8:
+* >80: file not found
+* >40: file is protected
+* >20:
+* >10: internal (else display or program)
+* >08: program file
+* >04: variable (else fixed or program)
+* >02: memory full
+* >01: end-of-file reached
+*-------------------------------------
+A57F4  BL   @A4658            call subroutine
+       DATA A4DA4             save filename in comp buf, then find FDR in VDP
+A57FA  MOV  4,4               found?
+       JEQ  A581E             yes
+ 
+       BL   @A4658            no: call subroutine
+       DATA A4E0C             find FDR on disk
+       LI   0,>8000           value for "file not found"
+       MOV  4,4               found?
+       JNE  A589E             no: return with that value
+       MOV  @>0056(9),1       yes: ptr to FDR
+       CLR  2
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 2,@>FFFE(15)      invalidate that FDR (file not open)
+       JMP  A588A             transfer FDR status to PAB status byte
+ 
+A581E  BL   @A4658            file is open: call subroutine
+       DATA A54E0             adjust FDR ptr, get PAB file type into R4
+       BL   @A54FC            get status byte from FDR
+       JLT  A582C             var
+       JMP  A5838             fix
+ 
+A582C  BL   @A4658            var: call subroutine
+       DATA A5362             load wanted sector, point to wanted rec in buffer
+       JMP  A585A             out of range
+       CLR  2                 ok: clear flag
+       JMP  A588A             copy status byte from FDR into PAB, return
+ 
+A5838  MOVB @>FBFE(15),5      fix: get rec/sect byte
+       SRL  5,8               make it a word
+       JNE  A5844
+       LI   5,>0100           00 (program files) means 256
+A5844  BL   @A4B6A            get 2 bytes from PAB into R0
+       DATA >0006             # of wanted record
+       MOV  0,3               save it
+       JLT  A5886             too big: set memory full bit in PAB status byte
+       BL   @A555A            get # recs/file into R2, comp with R3
+       CLR  2
+       JL   A588A             in file: copy file type bits, return
+       DIV  5,2               how many sectors do we need?
+       MOV  2,3               save result
+ 
+A585A  BL   @A4B70            get 2 bytes from FDR into R0
+       DATA >000E             # of sectors/file
+       INC  3                 plus 1 sector for FDR
+       LI   2,>0100           value for "eof reached" in PAB status
+       S    0,3               are there enough sectors in file for these recs?
+       JGT  A586C
+       JMP  A588A             yes: we reached the eof
+A586C  BL   @A4658            call subroutine
+       DATA A4CD2             load VIB (sector 0)
+       MOV  3,4               number of sectors that will be needed
+       MOV  5,8               VIB ptr
+       AI   8,>000A           skip 10 bytes (required by A5A68)
+       BL   @A5A68            count free sectors in bitmap, into R3
+       LI   2,>0100           value for "eof reached"
+       C    3,4               are there that many free sectors?
+       JHE  A588A             yes
+A5886  LI   2,>0200           value for "memory full"
+ 
+A588A  BL   @A4B70            get 2 bytes from FDR into R0
+       DATA >000C             file status byte
+       ANDI 0,>8F00           mask irrelevant bits
+       JGT  A589A
+       ORI  0,>0080           var: put var bit in PAB status style
+A589A  SLA  0,3               get rid of var bit in FDR style
+       SOCB 2,0               add "eof" and "mem full" bits
+ 
+A589E  MOV  @>0054(9),1       PAB ptr
+       AI   1,>0008           point to bias/status return byte
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      write file status to PAB
+       B    @A4676            return to caller
+*
+*---------------------------------
+* Disk directory access
+* ---------------------
+* The directory is accessed by omiting the filename in the DSR name: "DSK1."
+* It must be opened for input only, as an Int/Fix 38 file.
+* It consists in upto 128 records, the first one contains the disk informations,
+* the others the informations for upto 127 files (in alphabetical order).
+* Each record consists in an ascii string and three floating point numbers.
+*
+* Record 0 contains:
+* - Diskname (an ascii string of upto 10 chars).
+* - The number zero.
+* - The number of sectors on disk.
+* - The number of free sectors on disk.
+*
+* Other records contain:
+* - Filename (an ascii string of upto 10 chars).
+* - Filetype: 1=D/F, 2=D/V, 3=I/F, 4=I/V, 5=Prog, 0=end of directory.
+*   If the file is protected, this number is negative (-1=D/F, etc).
+* - File size in sectors (including the FDR itself).
+* - File record length (0 for programs).
+*---------------------------------
+ 
+*---------------------------------
+* Open disk directory pseudo-file
+*---------------------------------
+A58B4  MOVB @>FBFE(15),0      get file type from PAB
+       ANDI 0,>1E00           mask irrelavant bits (rel/seq)
+       CI   0,>0C00           is it "int/fix" in "output" mode?
+       JEQ  A58C8             yes
+A58C2  BL   @A4C9E            return with error
+       DATA >4000             "bad attributes"
+A58C8  BL   @A4B6A            get 2 bytes from PAB into R0
+       DATA >0004             rec length
+       SRL  0,8               make it a word
+       JEQ  A58D8             >00= default: set it to 38
+       CI   0,>0026           is it 38?
+       JNE  A58C2             no: return with "bad attributes" error
+A58D8  LI   0,>2600           set rec len to 38
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8 (from A4B6A)
+       MOVB 0,@>FFFE(15)      write rec len to PAB
+ 
+       CLR  7
+       BL   @A5AA2            find matching drive in file control blocks
+       DATA A58F4             go there if not found
+A58EE  BL   @A4C72            update data then return with error
+       DATA >E000             "file error"
+A58F4  MOV  7,7               did we find a free slot?
+       JNE  A58FE             yes
+       BL   @A4C9E            no: return with error
+       DATA >8000             "memory full"
+A58FE  BLWP @>005A(9)         set VDP to write
+       DATA >00E3             address in R7
+       MOVB 3,@>FFFE(15)      write drive #
+       SWPB 3
+       MOVB 3,@>FFFE(15)      and a space as filename (illegal, indicates dir)
+       B    @A4676            return to caller
+*
+*---------------------------------
+* Close disk directory
+*---------------------------------
+A5912  BL   @A5AA2            find matching drive in file control blocks
+       DATA A58EE             go there if not found: return with "file error"
+       CLR  0
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      clear drive #
+       B    @A4676            return to caller
+*
+*---------------------------------
+* Read a record from disk directory
+*---------------------------------
+A5928  BL   @A5AA2            find matching drive in file control blocks
+       DATA A58EE             go ther it not found: return with "file error"
+       INC  8
+       MOV  8,5               save ptr to FDR
+       BL   @A4B6A            get 2 bytes from PAB into R0
+       DATA >0006             record #
+       MOV  0,2               save it
+       INC  2
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 2,@>FFFE(15)      write record number in FDR
+       SWPB 2                 after first char of filename!
+       MOVB 2,@>FFFE(15)
+       SLA  0,1               since two byte per file ptr
+       MOVB 0,0               is rec # greater than 128?
+       JEQ  A5958             no
+       BL   @A4C72            yes: update data then return with error
+       DATA >A000             "past eof"
+A5958  SETO 2                 code for read
+       MOV  0,4               record #
+       JEQ  A59D4             0=disk parameters
+       LI   4,>0001           sector #1
+       BL   @A4658            call subroutine
+       DATA A4D4E             read sector into buffer in R5
+       MOV  5,8               buffer ptr
+       AI   5,>00FF           point to data buffer area in this ctrl block
+       DECT 0                 don't count record 0
+       A    0,8               point to desired file ptr
+       BL   @A4B76            get two byte from VDP at R8 into R0
+       MOV  0,4               sector where that FDR is to be found
+       JEQ  A59CA             no more
+       BL   @A4658            call subroutine
+       DATA A4D4E             read FDR sector into data buffer area
+       BL   @A4B70            get 2 bytes from FDR into R0
+       DATA >010E             # of sect/file
+       MOV  0,6               save it to output file size
+       INC  6                 include the FDR itself
+       MOVB @>FBFE(15),3      ignore eof offset
+       LI   2,>0A00           10 chars per filename
+       MOVB @>FBFE(15),3      get rec length
+       SRL  3,8               make it a word
+       DECT 8                 point to status byte in FDR
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),0      get file status byte
+       MOV  0,7
+       ANDI 0,>0800           keep only "write protected" bit
+       SZCB 0,7               clear "write protected" bit (if it was set)
+       SRL  7,8               make it a word
+       INC  7                 types are numbered from 1
+       CI   7,>0002           is it a "program" file?
+       JNE  A59BA             no
+       AI   7,>0003           yes: make it type 5
+A59BA  CI   7,>0008           is it var?
+       JL   A59C4             no
+       AI   7,>FF81           yes: add 1 and clear "var" bit
+A59C4  SLA  0,4               "write protect" bit will be >80
+       SOC  0,7               add it to file type
+       JMP  A59D2
+ 
+A59CA  CLR  2                 no more files: filename size = 0
+       CLR  6                 file size = 0
+       CLR  3                 rec length = 0
+       CLR  7                 type = 0
+A59D2  JMP  A59F2             output that
+ 
+A59D4  AI   5,>00FF           disk info: point to data buffer area in ctrl block
+       BL   @A4658            call subroutine
+       DATA A4D4E             read sector 0
+       BL   @A4B70            get 2 bytes from FDR into R0
+       DATA >010A             # of sectors on disk
+       MOV  0,6               duplicate it
+       DECT 6                 minus directory itself (sect 0 + 1)
+       BL   @A5A68            count free sectors in bitmap, result in R3
+       CLR  7                 filetype is not used
+       LI   2,>0A00           diskname is 10 chars
+ 
+A59F2  BL   @A4B6A            get 2 bytes from PAB into R0
+       DATA >0002             data buffer address
+       MOV  0,8               duplicate it
+       INC  8                 skip first byte
+       SRL  2,8               filename length (or diskname)
+       JEQ  A5A2C             0: skip filename copying
+       CLR  1
+A5A02  BLWP @>005A(9)         set VDP to read
+       DATA >00A2             address in R5 (FDR ptr)
+       MOVB @>FBFE(15),1      get 1 char from filename in FDR
+       CI   1,>2000           is it a space?
+       JEQ  A5A24             yes: end of name
+       BLWP @>005A(9)         no: set VDP to write
+       DATA >0103             address in R8 (PAB data buffer ptr)
+       MOVB 1,@>FFFE(15)      copy char in PAB data buffer
+       INC  5                 increment source ptr
+       INC  8                 increment destination ptr
+       DEC  2                 next char
+       JNE  A5A02
+A5A24  NEG  2                 number of trailing spaces
+       AI   2,>000A           number of chars in filename
+       SWPB 2
+A5A2C  BLWP @>005A(9)         set VDP to write
+       DATA >0003             address in R0 (beg of PAB data buffer)
+       MOVB 2,@>FFFE(15)      write string length byte
+ 
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOV  7,1               file type + protection
+       BL   @A5AE6            make it a float number
+       MOV  6,1               file size in sectors, including FDR
+       BL   @A5AE6            make it a float number
+       MOV  3,1               record length
+       BL   @A5AE6            make it a float number
+       MOV  @>0054(9),8       get PAB ptr
+       AI   8,>0005           point to character count
+       LI   0,>2600           always 38 bytes
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      write # of characters in record
+       B    @A4676            return to caller
+*
+A5A68  AI   8,>002E           count free sectors in VIB bitmap
+       LI   2,>00C8           -------------------------------- bitmap size
+       CLR  3                 free sectors counter
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+A5A78  MOVB @>FBFE(15),1      get a byte from bitmap
+       AI   1,>0100
+       SRL  1,8
+       JEQ  A5A9C             was >FF: no free sectors, next byte
+       DEC  1                 was it >00?
+       JNE  A5A8E             no: count bits
+       AI   3,>0008           yes: 8 more free sectors
+       JMP  A5A9C             next byte
+A5A8E  LI   0,>0008           8 bits per byte
+A5A92  SRL  1,1               test a bit
+       JOC  A5A98             was 1: sector is used
+       INC  3                 was 0: one more free sector
+A5A98  DEC  0                 next bit in byte
+       JNE  A5A92             more to come
+A5A9C  DEC  2                 next bitmap byte
+       JNE  A5A78             more to come
+       B    *11
+*
+A5AA2  MOV  *11+,10           find drive in file control blocks
+       MOV  11,5              --------------------------------- save 2 returns
+       MOV  @>0056(9),8       "top of mem" word in VDP buffers header
+       AI   8,>0003           point to max # of files
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),2      get # of files
+       SRA  2,8               make it a word
+       AI   8,>0006           point to drive # in file ctrl block
+       LI   3,>0020           filename begin with space (illegal: flag for dir)
+       MOVB 6,3               add drive #
+A5AC4  BL   @A4B76            read 2 bytes from VDP at R8 into R0
+       C    3,0               match with that control block?
+       JEQ  A5ADE             yes
+       ANDI 0,>00FF           keep only first char of filename
+       JNE  A5AD4             valid filename: a FDR is loaded here
+       MOV  8,7               this space is free: save ptr
+A5AD4  AI   8,>0206           point to next file control block
+       DEC  2                 next file
+       JNE  A5AC4             more to come
+       B    *10               not found: return to address passed in data word
+A5ADE  INC  8                 drive matches: point to FDR
+       MOV  8,@>0056(9)       save ptr
+       B    *5                return to caller after data word
+*
+A5AE6  LI   2,>0800           write an integer in floating point format
+       MOVB 2,@>FFFE(15)      ----------------------------------------- size=8
+       MOV  1,5               integer is in R1: save it for sign processing
+       ANDI 1,>7FFF           clear sign bit
+       CI   1,100             is it less than 100?
+       JL   A5B08             yes
+       CLR  0                 100 or over
+       LI   4,100
+       DIV  4,0               divide by 100
+       ORI  0,>4100           add exponent 2 to hundreths
+       JMP  A5B12
+ 
+A5B08  MOV  1,0               is it 0?
+       JEQ  A5B10             yes: exponent is 0
+       ORI  0,>4000           no: add exponent 1
+A5B10  CLR  1                 next digits will be 0
+ 
+A5B12  MOV  5,5               test sign bit
+       JLT  A5B18             negative
+       JMP  A5B1A             positive or zero
+A5B18  NEG  0                 negate first word
+A5B1A  MOVB 0,@>FFFE(15)      write exponent to VDP at preset address
+       SWPB 0
+       MOVB 0,@>FFFE(15)      write first first 2 digits (or hundreths)
+       SWPB 1
+       MOVB 1,@>FFFE(15)      write last 2 digits (if any)
+       LI   2,>0005           the remaining bytes are all 0 with integers
+A5B2E  MOVB 2,@>FFFE(15)      write 0 to VDP
+       DEC  2                 next byte
+       JNE  A5B2E             more to do
+       B    *11
+*--------------------------------------
+* Floating point format
+* ---------------------
+* Float numbers are 8 bytes long: EE 12 34 56 78 9A BC
+* EE is the exponent in radix 100 (not in radix 10 as usual!). It is biased
+* by 64: >40=0, 41=1 (i.e *100), >42=2 (i.e * 10,000) >3F= -1 (i.e /100), etc
+*
+* 12 ... BC are the mantissa in binary coded decimal: each byte encodes two
+* decimal digits from 00 to 99
+*
+* For negative numbers, the first word is negated
+* For zero, the first word is >0000 the others are irrelevant
+*
+* Examples: 40 08 00 00 00 00 00 00 is 8.0
+*           41 02 37 00 00 00 00 00 is 255.0 (>37 hex = 55 decimal)
+*           BF F8 00 00 00 00 00 00 is -8.0
+*           43 01 02 03 04 05 06 07 is 1020304.050607
+*--------------------------------------
+*

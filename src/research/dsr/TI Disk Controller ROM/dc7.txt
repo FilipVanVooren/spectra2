@@ -1,0 +1,459 @@
+*---------------------------------------
+* Subprogram >10: sector R/W
+* --------------
+* >834A: (n/a)      <--- sector #
+* >834C: drive #
+* >834D: R/W code (write if >00)
+* >834E: VDP buffer
+* >8350: sector #   <--- error code
+*---------------------------------------
+A5B38  MOV  11,7
+       BL   @A4724            prepare disk operations
+       MOV  @>0050(9),@>004A(9) copy sector #
+       B    @A40E8
+*
+*---------------------------------------
+* Subprogram >11: format disk
+* --------------
+* >834A: (n/a)      <--- # of sectors on disk
+* >834C: DSR+drive # (DSR >0x old version >1x new, >2x unknown)
+* >834D: # of tracks
+* >834E: VDP buffer
+* >8350: density    <--- error code
+* >8351: # of sides <--- ditto
+*---------------------------------------
+A5B48  MOV  11,7
+       BL   @A4724            prepare disk operations
+       B    @A42AC
+*
+*---------------------------------------
+* Subprogram >12: file (un)protect
+* --------------
+* >834C: drive #
+* >834D: protect code (>00 unprotect)
+* >834E: ptr to filename
+* >8350: (n/a)      <--- error code
+*---------------------------------------
+A5B52  MOV  11,7
+       BL   @A4724            prepare disk operations
+       MOVB @>004D(9),0       get protection code
+       ANDI 0,>0800           keep the bit that will be needed
+       BLWP @>005A(9)         save R0 on stack
+       DATA >8000
+       MOV  @>004E(9),0       get pointer to filename
+       BL   @A4658            call subroutine
+       DATA A5C54             load FDR in VDP buffer
+       BLWP @>005A(9)         retrieve old R0, in R2
+       DATA >2001
+       BL   @A4B70            read two bytes in R0 from top of FDR + offset
+       DATA >000C             file status byte
+       ANDI 0,>F700           clear protection flag
+       SOCB 2,0               set it if needed
+       BLWP @>005A(9)         set VDP for write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      write back file status to FDR
+ 
+A5B8C  MOV  @>0056(9),8       FDR address in VDP mem
+       BLWP @>005A(9)         set VDP for read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),0      get drive # in ctrl block
+       ORI  0,>8000           flag it
+       BLWP @>005A(9)         set VDP for write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      write it back
+       B    @A487A            update FDR, load VIB
+*
+*---------------------------------
+* Subprogram >13: file rename
+* --------------
+* >834C: drive #
+* >834E: ptr to new name
+* >8350: ptr to old name <--- error code
+*---------------------------------
+A5BAC  MOV  11,7
+       BL   @A4724            prepare disk operations
+       MOV  @>004E(9),0       get ptr to new filename
+       BLWP @>005A(9)         save R0 on stack
+       DATA >8000
+       MOV  @>0050(9),0       get ptr to old filename
+       BL   @A4658            call subroutine
+       DATA A5C54             put FDR in VDP buffer
+       BL   @A4ADA            remove FDR ptr from sector 1
+       BL   @A4B70            get 2 bytes from FDR
+       DATA >000C             file status byte
+       ANDI 0,>0800           protected?
+       JEQ  A5BDC             no
+       BL   @A4C72            yes: return with error
+       DATA >2000             "write protected"
+A5BDC  BL   @A4B70            get 2 bytes from FDR
+       DATA >FFFC             sector # of FDR
+       MOV  0,1
+       BLWP @>005A(9)         retrieve R0 from stack
+       DATA >8001             ptr to new filename
+       BLWP @>005A(9)         save R1 on stack
+       DATA >4000             sector # of FDR
+       BL   @A5E9C            write drive # and filename in compare buffer
+       BL   @A4658            call subroutine
+       DATA A4E38             find FDR from filename
+       MOV  4,4               found?
+       JEQ  A5C6E             yes: return with "file error" (name already exist)
+       BL   @A4B0A            insert a FDR in sector 1
+       BLWP @>005A(9)         retrieve sect # of FDR in R4
+       DATA >0801
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 4,@>FFFE(15)      write sector # of FDR
+       SWPB 4
+       MOVB 4,@>FFFE(15)
+       SWPB 4                 sector #
+       SETO 2                 code for read
+       CLR  5                 buffer offset: VDP at >8356
+       BL   @A4658            call subroutine
+       DATA A4D4A             read FDR
+       MOV  5,1
+       MOV  @>0058(9),0
+       AI   0,>0101
+       DEC  1
+       BL   @A5EB2            copy filename in compare buffer to FDR
+       CLR  2                 code for write
+       BL   @A4658            call subroutine
+       DATA A4D4E             write FDR (with new name in it)
+       BL   @A4658            call subroutine
+       DATA A4D36             write sector 1 (with new FDR ptr in it)
+       MOV  @>0056(9),1       FDR ptr
+       BLWP @>005A(9)         prepare VDP to write
+       DATA >0023             address in R1
+       MOVB 4,@>FFFE(15)      clear first char of FDR in buffer
+       B    @A4676            return to caller
+*
+A5C54  CLR  6                 put FDR in VDP buffer
+       MOVB @>004C(9),6       --------------------- get drive #
+       BL   @A5E9C            update filename compare buffer
+       BL   @A4658            call subroutine
+       DATA A4DC4             look if FDR already in VDP buffer
+       BL   @A4658            call subroutine
+       DATA A4E08             file FDR on disk
+       MOV  4,4               found?
+       JEQ  A5C74             yes
+A5C6E  BL   @A4C9E            no: return with error code in >8350
+       DATA >E000             "file error"
+A5C74  B    @A4676            return to caller
+*
+*-------------------------------------
+* Subprogram >14: file raw read
+* --------------
+* >834C: drive #                          <--- >00
+* >834D: # of sectors (>00=get file info) <--- sectors read
+* >834E: ptr to filename
+* >8350: file info buffer (>83xx)         <--- error code
+*                              |
+* >83xx  : VDP buffer       <--'
+* >83xx+2: first sector # (total # of sect when get file info)
+* >83xx+4: status flag
+* >83xx+5: recs/sector
+* >83xx+6: eof offset
+* >83xx+7: rec size
+* >83xx+8: # of recs
+*-------------------------------------
+A5C78  MOV  11,7
+       BL   @A4724            prepare disk operations
+       BL   @A5ED4            load filename and ptrs
+       BL   @A5EFA            find file FDR, load some info
+       MOV  2,2               # of sectors to read
+       JEQ  A5CC6             >00: get file info
+       S    3,0               sectors in file -  first sector to read
+       JGT  A5C92             in file
+       CLR  2                 past eof
+       JMP  A5CC0
+A5C92  C    2,0               sectors past first one vs sectors to load
+       JL   A5C98
+       MOV  0,2               load what's left
+A5C98  BLWP @>005A(9)
+       DATA >2000             save R2
+A5C9E  BLWP @>005A(9)
+       DATA >3100             save R2, R3, R7
+       BL   @A4658            call subroutine
+       DATA A492E             read sector from offset in file
+       BLWP @>005A(9)
+       DATA >3101             retrieve R2, R3, R7
+       INC  3                 next sector
+       AI   7,>0100           increment VDP buffer ptr by 256 bytes
+       DEC  2                 more to do?
+       JNE  A5C9E             yes
+A5CBA  BLWP @>005A(9)
+       DATA >2001             retrieve R2 (# of sectors read)
+A5CC0  MOV  2,@>004C(9)       update # of sectors in parameters
+       JMP  A5CDA
+ 
+A5CC6  MOV  0,*4+             get file info: sectors in file
+       DECT 8
+       INCT 2                 copy 2 bytes (status + recs/sector)
+       BL   @A5F2E            from VDP at R8 to file info structure
+       LI   2,>0004           copy 4 bytes
+       A    2,8
+       BL   @A5F2E            eof offset, rec len, # of recs (or # of sect)
+A5CDA  BL   @A4658            call subroutine
+       DATA A487A             updata FDR (+ data) if needed, read VIB
+       CLR  @>0050(9)         clear error flag
+       B    @A4676            return to caller
+*
+*--------------------------------------
+* Subprogram >15: file raw write
+* --------------
+* >834C: drive #                                  <--- >00
+* >834D: # of sectors (>00=create file from info) <--- # of sectors written
+* >834E: ptr to filename
+* >8350: file info buffer (>83xx)                 <--- error code
+*                              |
+* >83xx  : VDP buffer       <--'
+* >83xx+2: first sector # (total # of sectors when creating file)
+* >83xx+4: status flag
+* >83xx+5: recs/sector
+* >83xx+6: eof offset
+* >83xx+7: rec size
+* >83xx+8: # of recs
+*--------------------------------------
+A5CE8  MOV  11,7
+       BL   @A4724            prepare disk operations
+       BL   @A5ED4            load drive + filename, + a few info
+       JEQ  A5D1C             sectors to write=0: create file
+       BL   @A5EFA            find file FDR
+       BLWP @>005A(9)
+       DATA >2000             save R2 (# of sectors to write)
+A5CFE  BLWP @>005A(9)
+       DATA >3100             save R2, R3, R7
+       BL   @A4658            call subroutine
+       DATA A494E             write sector from offset in file
+       BLWP @>005A(9)
+       DATA >3101             retrieve R2, R3, R7
+       INC  3                 next sector
+       AI   7,>0100           increment VDP ptr by 256 bytes
+       DEC  2                 more to do?
+       JNE  A5CFE             yes
+       JMP  A5CBA             update # of sectors written, in param. Then return
+ 
+A5D1C  BL   @A4658            create file
+       DATA A4DC4             find file FDR in VDP buffers
+       BL   @A4658            call subroutine
+       DATA A4E08             find file FDR on disk
+       BL   @A4658            call subroutine
+       DATA A479E             create file
+       BLWP @>005A(9)
+       DATA >0801             retrieve R4 (file info ptr)
+       MOV  @>0056(9),8       FDR ptr
+       INCT 4                 skip 2 bytes
+       MOV  *4+,3             # of sector to create
+       AI   8,>000A           skip filename
+       BL   @A5F3E            write 2 bytes in VDP at R8+2
+       DATA >0002             i.e. status + recs/sector
+       BL   @A5F3E            write 4 bytes in VDP at new R8+4
+       DATA >0004             i.e. eof offset, rec len, # of recs (or # of sect)
+       DEC  3                 offset = # of sectors-1 (starts from 0)
+       JLT  A5D56             create an empty file, FDR only
+       BL   @A4658
+       DATA A4964             append enough sectors to reach offset
+A5D56  B    @A5B8C            modify FDR, write it, load VIB, return
+*
+*---------------------------------------
+* Subprogram FILES: number of files
+*---------------------------------------
+A5D5A  MOV  11,7
+       BL   @A4724            prepare disk operation
+       MOV  @>002C(9),8       ptr to next basic token
+       AI   8,>0007           skip "FILES"
+       BL   @A4B76            get next two bytes in R0
+       CI   0,>C801           >C8=unquoted string, size=1 char
+       JNE  A5DAA             return (with error) if different
+       INCT 8                 increment pointer
+       BL   @A4B76            get next two bytes
+       SWPB 0
+       AI   0,>49D0           substact >B630: # of files  >B6=closed parenthesis
+       CI   0,>0009           only 9 files allowed in Basic !
+       JH   A5DAA             return with error if more
+       SWPB 0
+       MOVB 0,@>004C(9)       put new # of files in scratch-pad memory
+       BL   @A4658            call subroutine
+       DATA A5DB4             subprogram >16 (private entry point)
+       MOVB @>0050(9),@>0050(9) test result
+       JNE  A5DAA             error
+       MOV  @>002C(9),8       ok: get ptr to Basic token
+       AI   8,>000C           skip the whole statement
+       MOV  8,@>002C(9)       update ptr
+       SZCB @>0042(9),@>0042(9) clear current token
+A5DAA  B    @A4676            return to caller (i.e. Basic)
+*
+*---------------------------------------
+* Subprogram >16: number of files
+* --------------
+* >834C: # of files
+* >8350: (n/a)      <--- error code
+*---------------------------------------
+A5DAE  MOV  11,7              entry point from assembly
+       BL   @A4724            prepare disk operations
+A5DB4  CLR  0                 entry point from "call files"
+       MOVB @>004C(9),0       get # of files
+       JEQ  A5E94             return with error
+       MOV  @>0056(9),8       ptr to "end of buffer" word
+       AI   8,>0003           point to "# of files" byte
+       CLR  3
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),3      get current # of files
+       LI   5,>0206           size of 1 file control block
+       CB   0,3               compare required with current
+       JEQ  A5E8E             same: return with no error
+       JLE  A5E30             less
+       MOV  0,6               more files needed
+       CI   0,>1000           maximum is 16
+       JH   A5E94             return with error
+       S    3,0               how many to add
+       SRL  0,8               make it a word
+       MPY  5,0               # of bytes to add
+       MOV  1,4               result in R0:R1
+       NEG  4
+       MOV  @>0070(9),2       highest free address in VDP mem
+       MOV  2,0
+       S    1,0               what it would become
+       CI   0,>0800           is there room enough for VDP?
+       JLT  A5E94             no: return with error
+       MOV  0,1               ok: new base
+A5DFC  INC  2                 increment source ptr
+       INC  0                 increment destination ptr
+       BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2
+       MOVB @>FBFE(15),3      get a byte
+       BLWP @>005A(9)         set VDP to write
+       DATA >0003             address in R0
+       MOVB 3,@>FFFE(15)      copy a byte
+       C    2,8               did we copy the whole header?
+       JNE  A5DFC             not yet
+       BLWP @>005A(9)         set VDP to write
+       DATA >0003             address in R0
+       MOVB 6,@>FFFE(15)      new # of files
+       CLR  6
+       S    0,2
+A5E26  MOVB 6,@>FFFE(15)      clear byte
+       DEC  2
+       JNE  A5E26
+       JMP  A5E64
+ 
+A5E30  BLWP @>005A(9)         less files needed
+       DATA >0103             set VDP to write to address in R8
+       MOVB 0,@>FFFE(15)      new # of files in buffer header
+       S    0,3               how many to remove
+       SRL  3,8               make it a word
+       MPY  5,3               # of bytes to remove
+       MOV  4,1               result in R3:R4
+       A    8,1               new address for buffer header
+       MOV  @>0070(9),2       highest free address in VDP mem
+A5E48  BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),0      read a byte
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      write byte back
+       DEC  1                 decrement destination ptr
+       DEC  8                 decrement source ptr
+       C    8,2               did we copy the whole header?
+       JNE  A5E48             not yet
+ 
+A5E64  MOV  1,@>0070(9)       new first free address
+       MOV  1,8
+A5E6A  INCT 8                 point to "end of buffer" word
+       BL   @A4B76            read it in R0
+       MOVB @>FBFE(15),1      get CRU base byte
+       CB   12,1              same as current controller?
+       JEQ  A5E8E             yes: return with no error
+       A    4,0               no: coin address of next buffer
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      write new "end of buffer" word
+       MOV  0,8               and make it new address
+       SWPB 0
+       MOVB 0,@>FFFE(15)
+       JMP  A5E6A             now, try again
+ 
+A5E8E  CLR  @>0050(9)         clear error flag
+       JMP  A5E98
+A5E94  SETO @>0050(9)         set error flag
+A5E98  B    @A4676            return to caller
+*
+*-----------------------------------------------------------
+*
+A5E9C  CLR  @>0054(9)         write drive # and filename in compare buffer
+       MOV  @>0058(9),1       --------------------------------------------
+       AI   1,>0100           ptr to filename compare buffer
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 6,@>FFFE(15)      write drive #
+A5EB2  LI   2,>000A           filename must be exactly 10 chars
+A5EB6  INC  1                 next char in compare buffer
+       BLWP @>005A(9)         set VDP to read
+       DATA >0002             address in R0
+       MOVB @>FBFE(15),3      get 1 char from filename
+       INC  0                 next char in provided filename
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 3,@>FFFE(15)      write 1 char to compare buffer
+       DEC  2
+       JNE  A5EB6             next char
+       B    *11
+*
+A5ED4  MOV  11,10             load compare buffer and ptrs
+       CLR  6                 ----------------------------
+       MOVB @>004C(9),6       drive #
+       MOV  @>004E(9),0       ptr to filename
+       BL   @A5E9C            write them in compare buffer
+       MOVB @>0050(9),4       file info structure ptr
+       SRL  4,8
+       A    9,4               make it a PAB address
+       MOVB @>004D(9),0       # of sectors (>00=get file info)
+       BLWP @>005A(9)
+       DATA >0800             save R4
+       SRL  0,8
+       B    *10               EQ set for get file info
+*
+A5EFA  BLWP @>005A(9)         find file FDR
+       DATA >8010             ------------- save R0 + R11
+       BL   @A4658            call subroutine
+       DATA A4DC4             find file FDR in VDP buffers
+       BL   @A4658            call subroutine
+       DATA A4E08             find FDR on disk
+       MOV  4,4               found ?
+       JEQ  A5F16             yes
+       BL   @A4C72            no: return with error
+       DATA >E000             "file error"
+A5F16  BL   @A4B70            get two bytes from FDR into R0
+       DATA >000E             # of sectors in file
+       BLWP @>005A(9)
+       DATA >2011             retrieve R0 in R2 (# of sect to read), and R11
+       BLWP @>005A(9)
+       DATA >0801             retrieve R4 (ptr to file info structure)
+       MOV  *4+,7             VDP buffer
+       MOV  *4,3              first sector
+       B    *11
+*
+A5F2E  BLWP @>005A(9)         copy VDP bytes to scratch-pad
+       DATA >0102             ----------------------------- read from VDP at R8
+A5F34  MOVB @>FBFE(15),*4+    read bytes into scratch-pad at R4
+       DEC  2                 # of byte in R2
+       JNE  A5F34             next byte
+       B    *11
+*
+A5F3E  MOV  *11+,2            copy scratch-pad bytes to VDP
+       A    2,8               -----------------------------
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8 + offset in data word
+A5F48  MOVB *4+,@>FFFE(15)    write byte from scratch-pad at R4
+       DEC  2                 # of bytes in R2, was in data word
+       JNE  A5F48             next byte
+       B    *11
+*-----------------------------------------
+*
+* The remaining bytes (>5F52 to >5FEF) all contain >FFFF
+* Bytes >5FF0 to >5FFE map to the FDC registers
+*
+*-----------------------------------------
+* Th.N. April 1999
+ 
+       END

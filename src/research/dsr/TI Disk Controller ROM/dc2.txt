@@ -1,0 +1,688 @@
+*=====================================
+* Power-up routine
+*=====================================
+A4070  MOV  11,7              save return address
+       STWP 9                 get workspace (should be >83E0)
+       AI   9,>FF20           point to top of scratch-pad mem (>8300)
+       MOV  @>0070(9),0       highest free address in vdp mem (>8370)
+       MOV  0,2               save it
+       AI   0,>F7D8           we'll need >828 bytes
+       MOV  0,@>0070(9)       update address
+       INC  0
+       BL   @A40DA            set VDP address
+       LI   1,>0828
+A4090  CLR  @>FFFE(15)        clear these >828 bytes
+       DEC  1
+       JNE  A4090
+       BL   @A40DA            set VDP address (same)
+       LI   3,>AA03
+       MOVB 3,@>FFFE(15)      write buffer ID mark
+       NOP
+       MOVB 2,@>FFFE(15)      write old highest free address
+       SWPB 2
+       MOVB 2,@>FFFE(15)
+       NOP
+       MOVB 12,@>FFFE(15)     write CRU base of disk controller (1 byte)
+       SWPB 3
+       MOVB 3,@>FFFE(15)      write number of files (3)
+       BL   @A4726            preparation routine
+       BL   @A4658            call subroutine
+       DATA A4554             reset all drives
+       CLR  @>0054(9)         name length = 0 for power-up
+       BLWP @>005A(9)         retrieve R7 (saved by A4726)
+       DATA >0011             put it into R11
+       MOV  @A40D8,@>006C(9)  ???
+       B    *11               return
+ 
+A40D8  DATA >0404
+*
+A40DA  ORI  0,>4000           set VDP for a write
+       SWPB 0                 -------------------
+       MOVB 0,*15             pass address
+       SWPB 0
+       MOVB 0,*15
+       B    *11
+ 
+*---------------------------------------
+* Sector read/write
+*---------------------------------------
+A40E8  LI   4,>000A           try ten times
+A40EC  MOVB @A4630,@>0050(9)  no error
+       BL   @A4496            select drive
+       BL   @A45F0            point to # of last track
+       CLR  0
+       MOVB @>FBFE(15),0      get # of last track accessed
+       CI   0,>D700
+       JH   A410C             too high: drive was reset
+       BL   @A4524            seek track 0
+       SETO 0                 inverted data bus" >FF will be >00
+A410C  MOVB 0,@>5FFA          place >00 in track register
+       MOV  @>004A(9),1       sector #
+       SBZ  7                 side 0
+       CLR  7
+       CI   1,>02D0           max 720 (DS/SD)
+       JHE  A41B6             error 7
+       CI   1,>0168           on which side is it?
+       JL   A413E             0-359: on side 0
+       AI   1,-719            on side 1: sector # grow from in to out
+       ABS  1                 719 - sector #
+       CLR  0
+       DIV  @A4632,0          sect/track (=9)
+       AI   1,-8              invert: 8=0, 0=8, 7=1, etc
+       ABS  1
+       SBO  7                 side 1
+       LI   7,>0100           side number = >01
+       JMP  A414E
+A413E  CI   1,>0001           is it sector 0 or 1?
+       JH   A4148             no
+       BL   @A4524            yes: seek track 0
+A4148  CLR  0
+       DIV  @A4632,0          R0=track #, R1=sector #
+A414E  SWPB 0
+       INV  0
+       BL   @A4614            set VDP to write
+       MOVB 0,@>FFFE(15)      save # of last track accessed
+       MOVB 0,@>5FFE          pass to data register
+       SWPB 1
+       INV  1
+       MOVB 1,@>5FFC          pass new sector # to sector register
+       CB   0,@>5FF2          new track # same as current?
+       JEQ  A417A             yes
+       BL   @A45CA            send command
+       DATA >E100             "seek" h=1 V=1 r1r0=10
+       BL   @A4482            wait for command completion
+       SLA  0,13              test "seek error" bit
+       JOC  A41B0             try again, then error 11
+A417A  BL   @A45CA            send command
+       DATA >3F00             "read ID" E=0
+       SBO  2                 enable hold
+       MOVB @>5FF6,0          skip track #
+       LI   6,>0004
+       MOVB @>5FF6,5          side #
+       INV  5
+A4190  MOVB @>5FF6,0          skip next 4 bytes
+       DEC  6
+       JNE  A4190
+       BL   @A4480            SBZ 2, wait for command completion
+       SLA  0,13              test status bits
+       JOC  A41BC             "not found": try again, then error 21
+       JLT  A41C2             "crc error": try again, then error 22
+       SLA  0,2
+       JOC  A41C8             "lost data": try again, then error 23
+       CB   7,5               side # matches?
+       JEQ  A41CE             yes: sector found, now access it
+ 
+A41AA  BL   @A45AC            no: error 6
+       DATA >0600
+A41B0  BL   @A4590            gracefull error 11
+       DATA >1100
+A41B6  BL   @A45AC            error 7
+       DATA >0700
+A41BC  BL   @A4590            gracefull error 21
+       DATA >2100
+A41C2  BL   @A4590            gracefull error 22
+       DATA >2200
+A41C8  BL   @A4590            gracefull error 23
+       DATA >2300
+ 
+A41CE  MOVB 1,@>5FFC          load sector register
+       MOV  @>004E(9),2       data buffer address
+       MOVB @>004D(9),0       read or write ?
+       JEQ  A425C             write
+       BL   @A4614            read: set VDP to write
+A41E0  BL   @A45CA            ---- send command
+       DATA >7700             "read sector" m=0 S=1 E=0 C=0
+       LI   6,>0100           256 bytes / sector
+       SETO 5
+       SBO  2
+       MOVB @>004D(9),0       read or write?
+       JNE  A4214             read
+       CLR  0                 write:  now we must verify
+A41F6  MOVB @>5FF6,0          get a byte from FDC ------
+       AB   @>FBFE(15),0      compare with byte in data buffer
+       CI   0,>FF00
+       JNE  A422E             mismatch
+       SZCB @>5FF6,0          again
+       SB   @>FBFE(15),0
+       JNE  A422E             mismatch
+       DECT 6
+       JNE  A41F6             next byte
+       JMP  A422C             done
+A4214  MOVB @>5FF6,0          get 1 byte from FDC
+       INV  0
+       MOVB 0,@>FFFE(15)      save it to VDP
+       MOVB @>5FF6,0          again
+       INV  0
+       MOVB 0,@>FFFE(15)
+       DECT 6
+       JNE  A4214             next byte
+A422C  CLR  5                 clear flag
+A422E  BL   @A4480            SBZ 2, wait for command completion
+       SLA  0,13              test status bits
+       JOC  A4244             "not found": try again, then error 21
+       JLT  A424A             "crc error": try again, then error 22
+       MOV  5,5
+       JNE  A4256             try again, then error 28
+       SLA  0,2
+       JOC  A4250             "lost data": try again, then error 23
+       B    @A4676            return
+ 
+A4244  BL   @A4590            gracefull error 21
+       DATA >2100
+ 
+A424A  BL   @A4590            gracefull error 22
+       DATA >2200
+A4250  BL   @A4590            gracefull error 23
+       DATA >2300
+A4256  BL   @A4590            gracefull error 28
+       DATA >2800
+ 
+A425C  BL   @A461E            write: set VDP to read
+       BL   @A45CA            ----- send command
+       DATA >5700             "write sector" m=0 S=1 E=0 C=0 a=0
+       LI   6,>0100           256 bytes / sector
+       SBO  2                 enable holds
+A426C  MOVB @>FBFE(15),0      get a byte from data buffer
+       INV  0
+       MOVB 0,@>5FFE          pass it to data register
+       MOVB @>FBFE(15),0      again
+       INV  0
+       MOVB 0,@>5FFE
+       DECT 6
+       JNE  A426C             next
+       BL   @A4480            SBZ 2, wait for command completion
+       SLA  0,11              test status bits
+       JOC  A429A             "write protect": error 34
+       SLA  0,2
+       JOC  A42A0             "not found": try again, then error 31
+       SLA  0,2
+       JOC  A42A6             "lost data": try again, then error 33
+       BL   @A461E            now, set VDP to read
+       JMP  A41E0             and verify sector
+ 
+A429A  BL   @A45AC            error 34
+       DATA >3400
+A42A0  BL   @A4590            gracefull error 31
+       DATA >3100
+A42A6  BL   @A4590            gracefull error 33
+       DATA >3300
+ 
+*---------------------------------------
+* Format disk
+*---------------------------------------
+A42AC  CLR  @>004A(9)         called by subprogram >11
+       MOVB @>004C(9),8       DSR version + drive #
+       SRL  8,12              keep version only
+       JEQ  A42C4             0: standard format
+       C    8,@A4630
+       JEQ  A42C4             1: needs DSR version 2 (this one)
+       BL   @A45AC            2: needs another version
+       DATA >0700             returns with error 7
+ 
+A42C4  SZCB @A4638,@>004C(9)  clear DSR version flags
+       CB   @>0051(9),@A4657  double sided?
+       JNE  A42D6             no
+       SETO @>004A(9)         yes: set flag
+A42D6  MOVB @A4630,@>0050(9)  no error
+       BL   @A4496            select drive
+       BL   @A4524            seek track 0
+       CLR  3                 init track counter
+A42E6  MOV  @>004A(9),@>004A(9) check # of sides flag
+       JEQ  A42F8             single-side
+       SBO  7                 set CRU bit for side 1
+       LI   7,>0100           value for side 1 in sector ID
+       BL   @A43AA            format one track
+A42F8  SBZ  7                 set CRU bit for side 0
+       CLR  7                 >00 = value for side 0 in sector ID
+       BL   @A43AA            format one track
+       BL   @A45CA            send command
+       DATA >A500             "step-in" (T=1, h=1, V=0, r0r1=10)
+       BL   @A4482            wait for command completion
+       AI   3,>0100           one more track
+       CB   3,@>004D(9)       all done?
+       JNE  A42E6             no: format next one
+       MOV  @>004A(9),@>004A(9) check # of sides
+       JEQ  A437A             single-side
+       SBO  7
+       LI   4,>000A           try 10 times
+A4322  BL   @A4524            seek track 0
+       MOV  @>004E(9),2       data buffer address
+       BL   @A4614            set VDP to write
+       BL   @A45CA            send command
+       DATA >3F00             "read ID" (E=0)
+       LI   6,>0006           read 6 bytes
+       SBO  2                 enable wait states
+A433A  MOVB @>5FF6,0          read data register
+       INV  0                 FDC has inverted data bus
+       MOVB 0,@>FFFE(15)      write it to data buffer
+       MOVB @>5FF6,0          again, why write this twice ?
+       INV  0
+       MOVB 0,@>FFFE(15)
+       DECT 6
+       JNE  A433A
+       BL   @A4480            SBZ 2 then wait for command completion
+       SLA  0,13              check status bits
+       JOC  A4398             "not found"
+       JLT  A439E             "CRC error"
+       SLA  0,2
+       JOC  A43A4             "lost data"
+       MOV  @>004E(9),2       address of data buffer
+       INC  2                 skip track #
+       BL   @A461E            set VDP to read from it
+       CLR  0
+       MOVB @>FBFE(15),0      read one byte
+       JEQ  A437A             side 0
+       MOVB @>004D(9),0       side 1: get tracks/side
+       SLA  0,1               times two (since 2 sides)
+       JMP  A4384
+A437A  MOVB @A4631,@>0051(9)  error code 1
+       MOVB @>004D(9),0       get # of tracks
+A4384  SRL  0,8               make it a word
+       MPY  @A4632,0          times # of sectors per track
+       MOV  1,@>004A(9)       pass total # of sectors per disk
+       MOVB @A4633,@>004D(9)  pass # of sectors per track
+       B    @A4676            return
+*
+A4398  BL   @A4590            try again, or error >21
+       DATA >2101
+A439E  BL   @A4590            try again, or error >22
+       DATA >2201
+A43A4  BL   @A4590            try again, or error >23
+       DATA >2301
+*
+A43AA  MOV  11,8              format a track
+       MOV  @>004E(9),2       --------------
+       BL   @A4614            set VDP to write to data buffer
+       LI   6,>0016           write 24 sync bytes >00
+       CLR  2                 sector counter
+       JMP  A43C0
+A43BC  LI   6,>0006           write 6 sync bytes >00
+A43C0  MOVB @A4630,@>FFFE(15)
+       DEC  6
+       JNE  A43C0
+       MOVB @A4639,@>FFFE(15) write >FE (will be ID mark)
+       NOP
+       MOVB 3,@>FFFE(15)      write track #
+       NOP
+       MOVB 7,@>FFFE(15)      write side #
+       MOVB 3,0               track number
+       SRL  0,8               make it a word
+       SWPB 7
+       MPY  @A4635(7),0       times >00 for side 1, >06 for side 0
+       SWPB 7
+       A    2,1               add # of sectors prepared
+       DIV  @A4632,0          divide by sectors/track
+       MOVB @A464F(1),@>FFFE(15) sector #, according to interlacing pattern
+       LI   6,>FFEC           write 20 times
+A43F8  MOVB @A464E(6),@>FFFE(15) code for a CRC
+       INC  6
+       JNE  A43F8             one more
+       LI   0,>E5E5           data to put in empty sectors
+       BL   @A4474            write it 256 times
+       DATA >0100
+       MOVB @A464E,@>FFFE(15) write code to CRC
+       SETO 0                 >FF filler bytes
+       BL   @A4474            write it 45 times
+       DATA >002D
+       INC  2                 # of sectors prepared
+       CI   2,>0009
+       JNE  A43BC             one more
+       BL   @A4474            write 231 more >FF at end  of track
+       DATA >00E7
+ 
+       LI   4,>0003           try 3 times
+A442C  MOVB @>004E(9),2       top of data buffer
+       BL   @A461E            set VDP to read from it
+       BL   @A45CA            send command
+       DATA >0B00             "write track" (E=1)
+       LI   6,>0CA3
+       SBO  2                 enable wait states
+A4440  MOVB @>FBFE(15),0      read one byte from buffer
+       INV  0                 FDC has an inverted data bus
+       MOVB 0,@>5FFE          send it to data register
+       MOVB @>FBFE(15),0      why on earth is it done like that???
+       INV  0
+       MOVB 0,@>5FFE          send next byte
+       DECT 6
+       JGT  A4440             next pair of bytes
+       BL   @A4480            SBZ 2, then wait for command completion
+       SLA  0,11              check "write protect" bit
+       JNC  A4464
+       B    @A429A            error code >34 ??
+A4464  SLA  0,4               test "lost data" bit
+       JNC  A4472             ok: return
+       DEC  4                 shall we try again?
+       JNE  A442C             yes
+       BL   @A45AC            no: error code >33
+       DATA >3300
+A4472  B    *8                return
+ 
+A4474  MOV  *11+,6            VDP repeated write
+A4476  MOVB 0,@>FFFE(15)      ------------------
+       DEC  6                 byte in R0
+       JNE  A4476             number of repeats in data word
+       B    *11
+*
+A4480  SBZ  2                 wait for command completion
+A4482  MOVB @>5FF0,0          --------------------------- get status
+       INV  0                 FDC has an inverted data bus
+       JLT  A4490             drive not ready
+       SRC  0,9
+       JOC  A4482             FDC busy: keep waiting
+       B    *11
+A4490  BL   @A45AC            exit with error code 6, reseting all drives
+       DATA >0600
+*
+A4496  MOV  11,7              select a drive
+       MOV  @>0058(9),2       --------------
+       AI   2,>FFF6           point to drive info
+       BL   @A461E            set VDP to read
+       MOVB @>FBFE(15),0      get # of last drive accessed
+       CLR  5                 clear flag
+       CB   0,@>004C(9)       same as the one to be formated?
+       JEQ  A44B2             yes
+       SETO 5                 no: set flag
+A44B2  CLR  0
+       MOVB @>004C(9),0       get drive #
+       JEQ  A451E             can't be >00: error #7
+       BL   @A4614            set VDP to write, address in R2
+       MOVB 0,@>FFFE(15)      modify last drive accessed
+       SWPB 0
+       CI   0,>0003
+       JH   A451E             drive number can't be higher than 3: error #7
+       LI   2,>0080
+       SLA  2,0               proper drive selection bit: >01 >02 or >04
+       AI   12,>0008          CRU address of drive selection bits (4-6)
+       MOV  5,5               test "same drive" flag
+       JEQ  A4506
+       LDCR @A4505,3          deselect all drives
+       AI   12,>FFFA          selection bits are echoed in CRU bits 1-3
+       STCR 0,3               load CRU bits 2-4
+       AI   12,>0006          back to bits 4-6
+       CZC  2,0               echoed properly?
+       JEQ  A4506             yes: go on
+       CLR  0
+       MOV  @>0058(9),2       point to drive info
+       AI   2,>FFF6
+       BL   @A4614            set VDP to write to address in R2
+       MOVB 0,@>FFFE(15)      clear "last drive accessed"
+       AI   12,>FFF8          back to CRU base
+       BL   @A45AC            exit with "device error"
+       BYTE >06
+A4505  BYTE >00
+ 
+A4506  LDCR 2,3               select drive
+       AI   12,>FFF8          back to cru base
+       MOV  5,5               test "same drive" flag
+       JEQ  A451C             same: return
+       LI   0,>0BB8           different: wait while drive gets ready
+A4514  SRC  5,4
+       SRC  5,4
+       DEC  0
+       JNE  A4514             keep waiting
+A451C  B    *7
+ 
+A451E  BL   @A45AC            exit with error #7
+       DATA >0700
+*
+A4524  MOV  11,8              seek track 0
+       BL   @A45CA            ------------
+       DATA >F500             send "restore" command (h=1, V=0, r0r1=10)
+       BL   @A4482            wait for command completion
+       BL   @A4544            test if track 0 reached, error it not
+       BL   @A45F0            set VDP to read "last track #"
+       BL   @A4614            set VDP to write at same address
+       MOVB @A4640,@>FFFE(15) set "last track #" as >FF for this drive
+       B    *8
+*
+A4544  MOVB @>5FF0,0          check if track 0 reached
+       INV  0                 ------------------------
+       SLA  0,6               test the "track 0" bit
+       JOC  A4552
+       B    @A4490            exit with error code 6, reseting all drives
+A4552  B    *11
+*
+A4554  AI   12,>0008          reset all drives
+       LDCR @A4630,4          ---------------- no drive selected
+       AI   12,>FFF8
+       SBZ  1                 motor strobe
+       SBO  1
+       MOVB @A45BC,@>5FF8     send "Force interrupt" with no interrupt flag set
+       MOV  @>0058(9),2       ptr to VIB buffer
+       AI   2,>FFF6           now points to drive info buffer
+       BL   @A4614            set VDP to write to address in R2
+       LI   0,>0004
+A457A  MOVB 0,@>FFFE(15)      write four >00 (i.e. clear drive info)
+       DEC  0
+       JNE  A457A
+       BL   @A4480            test status, reset drives if not ready
+       MOVB @A4630,@>0050(9)  no error
+       B    @A4676            get return address from stack
+ 
+A4590  DEC  4                 gracefull error
+       JEQ  A45AC             --------------- no more tries: error
+       MOV  *11,11            try again: get data word
+       SRC  11,1              test return flag
+       JNC  A459E
+       B    @A4322            back to "read ID" in format routine
+A459E  CI   4,>0005
+       JH   A45A8
+       BL   @A4524            last 5 tries: seek track 0
+A45A8  B    @A40EC            back to sector r/w routine
+*
+A45AC  MOV  *11,0             exit with error
+       MOVB 0,@>0050(9)       --------------- place err code in >8350
+       CI   0,>0600           check if "device error"
+       JNE  A45C6             no: exit
+       BL   @A45CA            yes: reset drives
+A45BC  DATA >2F00             send force interrupt, no ints
+A45BE  MOVB @>5FF0,0          get status
+       SRC  0,9               test "busy" flag
+       JNC  A45BE             wait until done
+A45C6  B    @A4676            return to caller (address from stack)
+*
+A45CA  MOV  *11+,0            send command to FDC from data word
+       MOVB @>5FF0,6          ------------- get status
+       SLA  6,1               test "ready" bit
+       SBZ  1                 strobe motor
+       SBO  1
+       JOC  A45E4             ready (inverted)
+       LI   6,>7530           wait a long time
+A45DC  SRC  5,4
+       SRC  5,4
+       DEC  6
+       JNE  A45DC
+A45E4  MOVB 0,@>5FF8          send command
+       SBO  3                 signal head loaded (HLT pin)
+       SRC  5,8               kill time
+       SRC  5,8
+       B    *11
+ 
+A45F0  CLR  0                 get last track # for this drive
+       MOVB @>004C(9),0       ---------------- get drive #
+       JEQ  A460E             can't be 0
+       SWPB 0
+       CI   0,>0003
+       JH   A460E             can't be higher than 3
+       MOV  @>0058(9),2
+       AI   2,>FFF6           point to "last drive accessed"
+       A    0,2               point to "last track" for this drive
+       B    @A461E            prepare VDP to read from address in R2
+ 
+A460E  BL   @A45AC            exit with error code 7
+       DATA >0700
+*
+A4614  ORI  2,>4000           set VDP address to write
+       ANDI 2,>7FFF           ------------------------ not to a register
+       JMP  A4622
+A461E  ANDI 2,>3FFF           set VDP address to read
+A4622  SWPB 2                 -----------------------
+       MOVB 2,*15             write address
+       SWPB 2
+       MOVB 2,*15
+       ANDI 2,>3FFF
+       B    *11
+*
+A4630  BYTE >00
+A4631  BYTE >01
+A4632  BYTE >00               sectors per track
+A4633  BYTE >09               "
+       BYTE >00
+A4635  BYTE >06
+       DATA >0003
+A4638  BYTE >F0
+A4639  BYTE >FE
+       DATA >01F7
+       DATA >FFFF
+       DATA >FFFF
+A4640  DATA >FFFF
+       DATA >FFFF
+       DATA >FFFF
+       DATA >FF00
+       DATA >0000
+       DATA >0000
+       DATA >00FB
+A464E  BYTE >F7               code for CRC
+A464F  BYTE 0,7,5,3,1,8,6,4   sector interlace pattern
+A4657  BYTE 2
+*
+A4658  DECT @>0066(9)         call subroutine, return address in stack
+       MOV  @>0066(9),10      ---------------
+       BLWP @>005A(9)         set VDP to write to address in R10
+       DATA >0143
+       MOV  *11+,10           get next data word
+       SWPB 11                write return address to VDP
+       MOVB 11,@>FFFE(15)
+       SWPB 11
+       MOVB 11,@>FFFE(15)
+       B    *10               branch to address in data word
+*
+A4676  MOV  @>0066(9),11      get return address from VDP stack
+       BLWP @>005A(9)         ---------------------------------
+       DATA >0162             set VDP to read from address in R11
+       MOVB @>FBFE(15),11
+       SWPB 11
+       MOVB @>FBFE(15),11
+       INCT @>0066(9)
+       B    *11
+ 
+*---------------------------------------
+* Custom routines, dealing with VDP memory
+* Format is >pppr where r is routine number (0-3)
+* and ppp contains parameters
+* The workspace it >8300. Called by BLWP @>005A(9).
+*---------------------------------------
+A4690  MOV  13,10             save wregs ptr
+       MOV  *14+,8            get next data word
+       MOV  8,9               save it
+       SRL  9,4               keep parameter
+       ANDI 8,>0003           four possible operations
+       A    8,8               make it a word ptr
+       MOV  @>001E(13),11     get old R15, i.e. VDP port (>8C02)
+       MOV  @A46A8(8),8       get vector for operation
+       B    *8                branch to it
+ 
+A46A8  DATA A46B0             save registers to VDP stack
+       DATA A46DC             retrieve registers
+       DATA A4712             set VDP address to read
+       DATA A4708             set VDP address to write
+*
+A46B0  AI   10,>0016       0: save registers in VDP mem
+A46B4  SRL  9,1               -------------- start with R12
+       JNC  A46D8             bits in >ppp tell which register to save (R0-R11)
+       DECT 12                previous address in VDP stack (grows down)
+       MOV  *10,8             get register contents
+       SWPB 12                set VDP address to write
+       MOVB 12,*11            R12 is >8366: VDP stack ptr
+       SWPB 12
+       ORI  12,>4000
+       MOVB 12,*11
+       SWPB 8                 save register to VDP mem
+       MOVB 8,@>FFFE(11)
+       SWPB 8
+       MOVB 8,@>FFFE(11)
+       MOV  9,9               more to come?
+       JEQ  A4706             no:return
+A46D8  DECT 10                point to previous register
+       JMP  A46B4
+*
+A46DC  SLA  9,4            1: retrieve registers from VDP mem
+A46DE  SLA  9,1               ------------------ each bit tells whether to load
+       JNC  A4702             don't retrieve that one
+       SWPB 12                set VDP address to read
+       MOVB 12,*11            R12 is >8366: VDP stack ptr
+       SWPB 12
+       ANDI 12,>3FFF
+       MOVB 12,*11
+       NOP
+       MOVB @>FBFE(11),8      get a 2-byte value from VDP
+       SWPB 8
+       MOVB @>FBFE(11),8
+       MOV  8,*10             save it to register
+       INCT 12                increment ptr (stack grows downwards)
+       MOV  9,9               more to come?
+       JEQ  A4706             no: return
+A4702  INCT 10                next register
+       JMP  A46DE
+A4706  RTWP
+*
+A4708  A    13,9           2: set VDP for a write
+       MOV  *9,8              -------------------
+       ORI  8,>4000           get address from reg in >..p2 (*2)
+       JMP  A471A
+ 
+A4712  A    13,9           3: set VDP for a read
+       MOV  *9,8              ------------------
+       ANDI 8,>3FFF           get register from reg in >..p3 (*2)
+A471A  SWPB 8                 set VDP address
+       MOVB 8,*11
+       SWPB 8
+       MOVB 8,*11
+       RTWP
+ 
+*---------------------------------------
+* Preparation subroutine
+* Sets up the 4 custom subroutines
+* Gets a few pointers to VDP buffers
+*  >8358: copy of VIB  >8366: VDP stack ptr (grows down from drive info)
+*  >8354: PAB          >8356: ptr to end-of-buffer
+*---------------------------------------
+A4724  INCT 7                 stop scanning upon return
+A4726  MOV  11,10             save return address
+       STWP 9                 get workspace (should be >83E0)
+       AI   9,>FF20           top of scratch/pad mem (>8300)
+       LI   0,A4690           entry to 4 custom routines
+       MOV  0,@>005C(9)       put it in >835C
+       MOV  9,0
+       AI   0,>004E           workspace for these four (>834E)
+       MOV  0,@>005A(9)       put it in >835A
+ 
+       MOV  @>0070(9),8       highest free address in VDP mem
+A4744  INCT 8                 point to "end-of-buffer" word
+       BL   @A4B76            read 2 bytes from VDP address R8, into R0
+       MOV  8,2               save current R8
+       MOV  0,8               get end-of-buffer word
+       MOVB @>FBFE(15),1      get CRU of controller that reserved this mem
+       CB   12,1              same as ours?
+       JNE  A4744             no: use end-of-buffer to link to next buffer
+       AI   8,>FEF6           yes: point to volume information block
+       MOV  8,@>0058(9)       save it in >8358
+       AI   8,>FFF6           point to disk drive info (drive #, last tracks)
+       MOV  8,@>0066(9)       save in >8366: VDP stack ptr (DECT before writing)
+       BLWP @>005A(9)         save R7 (return address)
+       DATA >0100
+       MOV  @>0056(9),7       ptr to PAB: end of DSR name
+       MOV  7,3               save it
+       S    @>0054(9),7       beg of DSR name
+       MOV  2,@>0056(9)       >8356: ptr to "end-of-buffer" word in VDP mem
+       DEC  7                 point to name length byte
+       CLR  2
+       BLWP @>005A(9)         set VDP to read from address in R2
+       DATA >00E2
+       MOVB @>FBFE(15),2      get name length byte
+       SWPB 2                 make it a word
+       S    @>0054(9),2       minus DSR name size: lenght of .parameters
+       AI   7,>FFF7           point to top of PAB
+       MOV  7,@>0054(9)       save it in >8354
+       B    *10
+*

@@ -91,9 +91,22 @@ main    bl    @putat
         bl    @cpym2v
         data  pabadr2,pab,25        ; Copy PAB to VDP
 
+        bl    @cpym2v
+        data  >37d7,schrott,6 
+
+
         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
         data  >a000                 ; Memory destination @>a000
-;        lwpi  >8300                 ; Use WP in scratchpad again
+
+         
+        ;--------
+        ; FIX SCRATCHPAD MEMORY
+        ;--------
+        li    r0,>37D7
+        mov   r0,@>8370             ; Highest free address in VDP memory
+
+
+
 
         ;------------------------------------------------------
         ; Set up file buffer - call files(1)
@@ -106,6 +119,7 @@ main    bl    @putat
         data  >a
         jeq   done                  ; Exit on error
         
+
         ;------------------------------------------------------
         ; Open file
         ;------------------------------------------------------
@@ -162,6 +176,8 @@ file_error
 ***************************************************************
         even
 dsrsub  byte  >01,>16               ; DSR program/subprogram - set file buffers
+
+
 ***************************************************************
 * PAB for accessing file
 ********@*****@*********************@**************************
@@ -178,3 +194,4 @@ fname   byte  15                    ;  9    - File descriptor length
 
 
 msg     #string '* File reading test *'
+schrott data  >00aa, >3fff, >1103

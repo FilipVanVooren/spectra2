@@ -1,0 +1,592 @@
+*---------------------------------
+* Opcode 7: Delete
+* ----------------
+* PAB 0: >07
+*     1:            <--- error code
+*   2-3:
+*     4:
+*     5:
+*   6-7:
+*     8:
+*---------------------------------
+A4A72  BL   @A4658            delete file
+       DATA A4DA4             ----------- find file FDR in VDP buffers
+       MOV  4,4               found?
+       JEQ  A4A8A             yes
+       BL   @A4658            no: call subroutine
+       DATA A4E0C             find FDR on disk
+       MOV  4,4               found?
+       JEQ  A4AAC             yes
+       B    @A4676            no: return to caller
+ 
+A4A8A  INC  1                 FDR found, point to it
+       MOV  1,@>0056(9)       save it for other routines
+       BL   @A4658            call subroutine
+       DATA A4D34             read sector 1
+       BL   @A4B70            read 2 bytes from VDP at >8356+offset
+       DATA >FFFC             i.e. get sector # of FRD in R0
+       MOV  0,3               save it for later
+       MOV  5,8               ptr to top of sector 1
+A4AA0  BL   @A4B76            read 2 bytes from VDP at R8 into R0
+       INCT 8                 next FDR ptr in sector 1
+       C    0,3               is this the one we want?
+       JNE  A4AA0             not yet
+       DECT 8                 yes: point back to it
+A4AAC  BLWP @>005A(9)         save R8
+       DATA >0080
+       BL   @A4658            call subroutine
+       DATA A48DE             free file sectors in VIB bitmap
+       BLWP @>005A(9)         retrieve R8
+       DATA >0081
+       BL   @A4ADA            remove FDR ptr from sector 1
+       CLR  2                 code for write
+       BL   @A4658            call subroutine
+       DATA A4D36             write sector 1
+       BL   @A4B70            get 2 bytes from VDP at >8356+offset in R0
+       DATA >FFFC             i.e. sector # of FDR
+       BL   @A4658            call subroutine
+       DATA A4FBC             free sector in R0 in VIB bitmap
+       B    @A4886            clear 1rst byte of filename in VDP
+*
+* Sector 1 contains an alphabetically sorted list of FDR pointers
+* Each pointer is 2 bytes long and contains the sector # of this FDR
+* The list must end with a >0000 mark. Thus there can be 127 files at most
+*
+A4ADA  MOV  @>0056(9),5       remove FDR ptr from sector 1
+       AI   5,>0100           ----------------------------
+       MOV  5,3               pointer to data buffer
+       AI   3,>0100           point to next ctrl block
+       MOV  8,2               shift up FDR list, erasing FDR pointed by R8
+       INCT 2                 point to next FDR ptr in sector 1
+A4AEC  BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2
+       MOVB @>FBFE(15),0      get 1 byte
+       INC  2                 inc source ptr
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      copy 1 byte
+       INC  8                 inc dest pointer
+       C    2,3               done?
+       JNE  A4AEC             not yet
+       B    *11
+*
+A4B0A  MOV  11,10             insert a FDR in sector 1
+       MOV  8,1               ------------------------
+       BL   @A4B70            get 2 bytes from VDP at >8356+offset
+       DATA >01FC             i.e. last FDR slot in sector 1 (list ends with 0)
+       MOV  0,0
+       JEQ  A4B1C
+       B    @A4E28            "memory full" error
+A4B1C  DEC  8                 previous byte
+       BLWP @>005A(9)         set VDP to read
+       DATA >0102             address in R8
+       MOVB @>FBFE(15),0      get 1 byte
+       INCT 8
+       BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      copy byte two bytes further down
+       DECT 8
+       C    8,1               done ?
+       JNE  A4B1C             not yet
+       B    *10
+*
+A4B3C  MOV  @>0058(9),2       compare filenames
+       AI   2,>0100           -----------------
+A4B44  BLWP @>005A(9)         set VDP to read
+       DATA >0022             address in R1 (ptr to filename)
+       MOVB @>FBFE(15),0      get 1 char
+       ANDI 0,>7FFF           clear flag (on drive #)
+       BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2 (filename compare buffer)
+       MOVB @>FBFE(15),3      get 1 char
+       CB   0,3               compare chars
+       JNE  A4B68             mismatch
+       INC  1                 match: increment pointers
+       INC  2
+       DEC  4
+       JNE  A4B44             next char
+A4B68  B    *11               if complete match: ret with EQ set
+*
+A4B6A  MOV  @>0054(9),8       get two bytes from PAB
+       JMP  A4B74             ----------------------
+ 
+A4B70  MOV  @>0056(9),8       get two bytes from FDR
+A4B74  A    *11+,8            ---------------------- offset in data word
+ 
+A4B76  BLWP @>005A(9)         get two byte from VDP at R8
+       DATA >0102             --------------------------- set VDP to read at R8
+       MOVB @>FBFE(15),0      get two bytes of data
+       SWPB 0
+       MOVB @>FBFE(15),0
+       SRC  0,8               why not swpb ?
+       B    *11
+ 
+A4B8A  MOV  @>0058(9),1       find disk from name (ptr in R3)
+       AI   1,>0100           -------------------
+       BL   @A4C14            copy filename from VDP at R3 to compare buffer
+       BLWP @>005A(9)         save R2 + R3
+       DATA >3000
+       MOV  0,0               last char copied
+       JLT  A4BA2             flagged
+       JMP  A4BAC
+A4BA2  MOV  0,6
+       ANDI 6,>0300
+       JEQ  A4C18             return with "file error"
+       JMP  A4C0A             return to caller
+A4BAC  CLR  6                 don't read any drive
+       BL   @A4658            call subroutine
+       DATA A4CD2             save current VIB
+A4BB4  AI   6,>0100           next drive
+       SETO 7                 error flags
+       SETO 2                 code for read
+       CLR  4                 sector 0
+       BL   @A4658            call subroutine
+       DATA A4D50             read sector 0
+       MOV  7,7               ok?
+       JNE  A4C02             no: try next drive
+       LI   4,>000A           yes: diskname size
+       MOV  @>0058(9),1       VIB ptr
+       BLWP @>005A(9)         save R1-R3
+       DATA >7000
+       BL   @A4B3C            compare names (ptr in R1 + compare buffer)
+       BLWP @>005A(9)
+       DATA >7001             retrieve R1-R3
+       MOV  4,4               name matched?
+       JNE  A4C02             no: try next drive
+       MOV  6,0               drive #
+       ORI  0,>8000           add "update" flag
+       BLWP @>005A(9)         set VDP to write
+       DATA >0063             address in R3
+       MOVB 0,@>FFFE(15)      copy drive+flag before diskname in source
+       DEC  5                 before sector 0 copy
+       BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 6,@>FFFE(15)      copy drive # before VIB
+       JMP  A4C0A             done
+ 
+A4C02  CI   6,>0300           did we do all drives?
+       JNE  A4BB4             no: try next on
+       JMP  A4C18             return with "file error"
+ 
+A4C0A  BLWP @>005A(9)         retrieve R2 + R3
+       DATA >3001
+       B    @A4676            return to caller
+*
+A4C14  DEC  2
+       JH   A4C1E
+A4C18  BL   @A4C9E            return with error
+       DATA >E000             "file error"
+ 
+A4C1E  LI   0,>2000           copy (+check) filename in VDP from R3 to R1
+       BLWP @>005A(9)         ---------------------- set VDP to write
+       DATA >0023             address in R1
+       LI   8,>000A           10 chars per filename
+A4C2C  MOVB 0,@>FFFE(15)      fill filename with spaces
+       DEC  8
+       JNE  A4C2C
+       LI   8,>000B           11 chars countring drive #
+A4C38  INC  3                 increment source ptr
+       BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),0      get a char
+       JEQ  A4C18             >00: return with "file error"
+       JLT  A4C68             flag bit set
+       CI   0,>2E00
+       JEQ  A4C68             '.'
+       DEC  8
+       JEQ  A4C18             name to long: return with "file error"
+       CI   0,>2000
+       JEQ  A4C18             name can't contain spaces: "file error" again
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      copy 1 char
+       INC  1                 increment destination pointer
+       DEC  2                 more?
+       JNE  A4C38             yes
+A4C68  CI   8,>000B           name can't be 0 chars long
+       JEQ  A4C18             else return with "file error"
+       B    *11
+ 
+A4C70  DATA >AA00
+ 
+A4C72  MOV  11,0              update data, then error
+       MOV  @>0056(9),3       -----------------------
+       DEC  3                 see what >8356 is pointing at
+       BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),2      get 1 byte
+       CB   2,@A4C70          is it >AA (disk buffer area mark)
+       JEQ  A4C9C             yes: announce error (code in data word)
+       BLWP @>005A(9)         no: >8356 points to a FDR. Save R0
+       DATA >8000
+       BL   @A4658            call subroutine
+       DATA A487A             update FRD and data buffer if needed
+       BLWP @>005A(9)         retrieve R0
+       DATA >8001
+A4C9C  MOV  0,11
+ 
+A4C9E  MOV  @>0054(9),1       annouce error
+       JEQ  A4CBE             ------------- no PAB
+       INC  1                 for DSRs: ptr to status byte
+       BLWP @>005A(9)         set VDP to read
+       DATA >0022             address in R2
+       MOVB @>FBFE(15),2      get file status byte
+       SOC  *11+,2            add error code
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R2
+       MOVB 2,@>FFFE(15)      write back status byte
+       JMP  A4CC2
+A4CBE  MOV  *11+,@>0050(9)    for subs: error code in >8350
+A4CC2  MOV  @>0058(9),8       get stack ptr
+       AI   8,-12             point back to initial caller
+       MOV  8,@>0066(9)       update pointer
+       B    @A4676            return to caller
+*
+A4CD2  BLWP @>005A(9)         read VIB (drive # in R6)
+       DATA >3000             -------- save R2 + R3
+       MOV  @>0058(9),5       pointer to VIB in ctrl block
+       DEC  5                 ptr to drive #
+       BLWP @>005A(9)         set VDP for read
+       DATA >00A2             address in R5
+       MOVB @>FBFE(15),2      get drive #
+       MOV  2,3
+       CLR  4                 sector 0 for VIB
+       ANDI 2,>0300           clear flag (>80 = update data)
+       CB   2,6               wanted drive?
+       JEQ  A4D28             yes: return
+       MOV  3,3               no: shall we update VIB?
+       JLT  A4CFA             yes
+       JMP  A4D0E             no
+A4CFA  BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 4,@>FFFE(15)      clr drive #
+       INC  5                 point back to VIB buffer
+       BL   @A4658            call subroutine
+       DATA A4D52             write sector 0 to old drive (in R2)
+       DEC  5                 point to drive #
+A4D0E  SETO 2                 flag for read
+       MOVB 6,2               add wanted drive
+       JEQ  A4D1E             none
+       INC  5                 point at VIB buffer
+       BL   @A4658            call subroutine
+       DATA A4D50             read sector (in R4) to buffer (in R5)
+       DEC  5                 point at drive #
+A4D1E  BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 6,@>FFFE(15)      write drive # in control block, before FDR
+A4D28  INC  5                 point back to FDR
+       BLWP @>005A(9)
+       DATA >3001             retrieve R2 + R3 from stack
+       B    @A4676            branch to address on stack
+*
+A4D34  SETO 2                 read sector 1
+A4D36  LI   4,>0001           -------------
+       LI   5,>0100           into data buffer area of current ctrl block
+       JMP  A4D4A
+ 
+A4D40  BL   @A4B70            read FDR
+       DATA >FFFC             -------- get sector # of FDR from control block
+ 
+A4D46  MOV  0,4               sector read/write
+       CLR  5                 -----------------
+A4D4A  A    @>0056(9),5       point to FDR or data buffer
+A4D4E  CLR  7
+A4D50  MOVB 6,2               add drive # for r/w flag
+A4D52  BLWP @>005A(9)         save R0-R8
+       DATA >FF80
+       MOV  4,@>004A(9)       sector #
+       MOV  2,@>004C(9)       drive | r/w flag
+       MOV  5,@>004E(9)       buffer ptr
+       BL   @A4658            call subroutine
+       DATA A40E8             sector read/write
+       BLWP @>005A(9)         retrieve R0-R8
+       DATA >FF81
+       MOVB @>0050(9),7       get error code | flags
+       SWPB 7
+       JEQ  A4D9C
+       MOV  7,7
+       JGT  A4D7E
+       JMP  A4D94
+A4D7E  ANDI 7,>00FF
+       CI   7,>0034
+       JNE  A4D8E
+       BL   @A4C72
+       DATA >2000             "write protected"
+A4D8E  BL   @A4C72
+       DATA >C000             "device error"
+A4D94  MOVB @>004D(9),@>004D(9) read or write?
+       JEQ  A4D7E             write
+A4D9C  ANDI 7,>00FF
+       B    @A4676            return to caller
+*
+A4DA4  MOV  @>0058(9),1       save filename in compare buffer and find its FDR
+       AI   1,>0100           ------------------------------------------------
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1: filename compare buffer
+       MOVB 6,@>FFFE(15)      write drive #
+       INC  1
+       BL   @A4C14            copy (+ check) filename from R3 to R1
+       MOV  2,2               all chars copied (or was there a "." or a >00 ?)
+       JEQ  A4DC4
+A4DC0  B    @A4C18            return with "file error"
+*
+A4DC4  MOV  @>0056(9),1       find filename in buffered FDRs
+       AI   1,>0003           ------------------------------
+       BLWP @>005A(9)         set VDP to read
+       DATA >0022             address in R1
+       MOVB @>FBFE(15),2      get # of files
+       SRL  2,8               make it a word
+       MOV  2,3               save it
+       AI   1,>0006           ptr to drive #
+A4DDE  LI   4,>000B           compare 11 bytes (drive + filename)
+       BLWP @>005A(9)         save R1-R3
+       DATA >7000
+       BL   @A4B3C            compare with name in compare buffer
+       BLWP @>005A(9)         retrieve R1-R3
+       DATA >7001
+       MOV  4,4               fully compared?
+       JEQ  A4DFE             yes: done
+       AI   1,>0206           move to next FDR in VDP mem
+       DEC  2
+       JNE  A4DDE             next file
+A4DFE  B    @A4676            return to caller (R4=0 if successfull)
+*
+A4E02  BL   @A4658
+       DATA A4DA4             save name in comp buffer, find FDR in VDP buffers
+ 
+A4E08  MOV  4,4               find FDR on disk (from filename)
+       JEQ  A4DC0             ----------------  "file error"
+A4E0C  MOV  @>0056(9),5       ptr to top of disk buffer in VDP mem
+       AI   5,>000A           ptr to drive # in first file control block
+A4E14  BLWP @>005A(9)         set VDP to read
+       DATA >00A2             address in R5
+       MOVB @>FBFE(15),2      get drive #
+       JEQ  A4E2E             free control block found
+       AI   5,>0206           ptr to  file control block
+       DEC  3
+       JNE  A4E14             more files ?
+A4E28  BL   @A4C72            no:
+       DATA >8000             "memory full"
+ 
+A4E2E  MOV  5,@>0056(9)       save ptr to free ctrl block (drive #)
+       BL   @A4658            call subroutine
+       DATA A4D34             read sector 1
+A4E38  MOV  @>0056(9),8       entry point if sector 1 already read
+       AI   8,>017E           point to middle of sector 1
+       LI   2,>0040           distance: start with 1/4 sector
+A4E44  SETO 4
+       BL   @A4B76            read 2 bytes in R0 from VDP address in R8
+       MOV  0,0
+       JEQ  A4EAA             no file here: move up
+       BLWP @>005A(9)         save R2
+       DATA >2000
+       SETO 2                 code for read
+       BL   @A4658            call subroutine
+       DATA A4D46             read FDR, sector # in R0
+       MOV  5,1               A4D46 sets R5 as FDR ptr
+       AI   5,>FFFC           point to "sector # of FDR" in ctrl block
+       BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 4,@>FFFE(15)      A4D46 puts sector # in R4
+       SWPB 4                 copy it to ctrl block
+       MOVB 4,@>FFFE(15)
+       MOV  1,5               FDR ptr
+       DEC  1                 now point to drive #
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 6,@>FFFE(15)      save drive #
+       LI   4,>000B           size to compare (drive # + filename)
+       BL   @A4B3C            compare filenames
+       BLWP @>005A(9)         retrieve R2
+       DATA >2001
+       JEQ  A4EA6             compared ok: return
+       BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 4,@>FFFE(15)      remaining chars to compare
+       C    0,3               what kind of mismatch occured?
+       JH   A4EAA             too far down the alphabet
+       A    2,8               too far up: move half-way down
+       MOV  2,2
+       JNE  A4EB0             then divide distance by 2
+       INCT 8                 already checked: reset EQ
+A4EA6  B    @A4676            return (from stack)
+ 
+A4EAA  S    2,8               move half-way up
+       MOV  2,2
+       JEQ  A4EA6             can't: already checked
+A4EB0  SRL  2,2               divide distance by 2
+       A    2,2               but keep it even
+       JMP  A4E44
+*
+* The cluster info list is located in the FDR, bytes >1C to >FF
+* A cluster info consists in 3 bytes, i.e 6 nibbles
+* 3 nibbles specify the beginning sector for that cluster, and
+* 3 nibbles specify the total file offset in sectors, including this cluster.
+* The nibbles are arranged as EG SB OF, to be combined as BEG OFS
+*
+A4EB6  MOV  11,10             decode cluster info
+       BL   @A4B76            ------------------- read 2 bytes VDP at R8 in R0
+       SWPB 0
+       MOVB @>FBFE(15),2      get third byte from cluster list
+       MOV  0,1
+       ANDI 1,>0FFF           start sector in R1
+       SZC  1,0               remove it from R0
+       SRL  2,8
+       SOC  0,2               combine offset nibbles
+       SRC  2,12              offset in R2
+       B    *10
+*
+A4ED2  SRC  2,4               write info for 1 cluster
+       MOV  2,0               ------------------------
+       ANDI 0,>F000           sector in R1, offset in R2
+       SOC  0,1               copy nibble 3 of offset before nibble 1 of sector
+A4EDC  BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       SWPB 1                 write cluster info
+       MOVB 1,@>FFFE(15)      as 3 bytes
+       SWPB 1
+       MOVB 1,@>FFFE(15)
+       SWPB 2
+       MOVB 2,@>FFFE(15)
+       B    *11
+*
+* The sector bitmap is located in the VIB (i.e. sector 0) at bytes >38 to >FF
+* In each byte a bit defines a sector, from right to left: "0"=free, "1"=used
+*
+A4EF6  BLWP @>005A(9)         find a free sector in bitmap
+       DATA >7800             ----------------------------
+       BL   @A4658            call subroutine
+       DATA A4CD2             load VIB for drive in R6
+       MOV  1,1               first sector specified in R1 ?
+       JNE  A4F0A             yes
+       LI   1,>0021           no: start with sector 34
+A4F0A  INC  1
+       MOV  1,0
+       SRL  1,3               div by 8 since 8 sect/byte in bitmap
+       LI   2,>00FF
+       ANDI 0,>0007           bit number in bitmap byte
+       JEQ  A4F1C
+       SLA  2,0               get that bit
+A4F1C  MOV  1,3               byte #
+       A    5,3               add VIB ptr
+       AI   3,>0038           ptr to sector in bitmap
+       CI   1,>00C8           end of VIB?
+       JLT  A4F2C             no
+       CLR  1                 yes: top of bitmap
+A4F2C  A    5,1
+       AI   1,>0038           make another bitmap ptr
+       BLWP @>005A(9)         set VDP to read
+       DATA >0022             address in R1
+A4F38  SETO 0
+       MOVB @>FBFE(15),0      get bitmap byte
+       MOV  0,4               save it
+       SOC  2,0               mask previous sectors
+       CLR  2
+       INC  0                 get 1 more sector
+       JNE  A4F68             ok
+       INC  1                 byte full: try next
+       MOV  1,0
+       AI   0,>FF00           won't change if byte # became >100
+       C    0,5               still in VIB?
+       JNE  A4F5E             yes
+       AI   1,>FF38           no: to top of bitmap
+       BLWP @>005A(9)         set VDP to read
+       DATA >0022             address in R1
+A4F5E  C    1,3               are we back to where we started?
+       JNE  A4F38             no: seach that byte for a free sector
+       MOV  4,0               get original byte
+       INC  0                 try sectors just before ours (no mask this time)
+       JEQ  A4FB2             full: return with EQ
+A4F68  DEC  0                 restore original byte
+       MOV  0,2
+       CLR  0                 bit counter
+       SWPB 2
+A4F70  INC  0                 increment bit count
+       SRC  2,1               find first "0" bit from the right
+       JOC  A4F70             not yet
+       LI   2,>0080
+       SLA  2,0               make a mask for that bit
+       DEC  0                 bit # (0-7)
+       SOC  2,4               mark sector as used in bitmap byte
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 4,@>FFFE(15)      update bitmap
+       AI   1,>FFC8
+       S    5,1               byte # in bitmap
+       SLA  1,3               times 8 (8 sect per byte)
+       SOC  0,1               add bit #: = sector #
+       MOV  1,0               save it
+ 
+A4F96  DEC  5                 point to drive #
+       BLWP @>005A(9)         set VDP to read
+       DATA >00A2             address in R5
+       MOVB @>FBFE(15),1      get drive #
+       ORI  1,>8000           add flag: update VIB
+       BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 1,@>FFFE(15)      write back flagged drive #
+       INC  5                 point to VIB (& return with NEQ)
+A4FB2  BLWP @>005A(9)         retrieve R1-R4
+       DATA >7801
+       B    @A4676            return to caller
+*
+A4FBC  MOV  0,1               free sector(s) in bitmap
+       LI   2,>0001           ------------------------ 1 sector only
+A4FC2  BLWP @>005A(9)         entry point if more than 1 sector
+       DATA >7800             save R1-R4
+       BL   @A4658            call subroutine
+       DATA A4CD2             load VIB for drive in R6
+       MOV  1,0               sector #
+       ANDI 0,>0007           bit in bitmap byte (8 per byte)
+       SRL  1,3               byte in bitmap
+       A    5,1               add VIB buffer
+       AI   1,>0038           add bitmap offset in VIB
+       MOV  0,3
+       NEG  0
+       AI   0,>0008           change 0-7 into 8-1
+       LI   4,>00FF           mask to erase
+       C    2,0               how many to erase?
+       JLT  A4FEE             less than in that byte
+       JMP  A5004
+ 
+A4FEE  LI   0,>0008           free sectors in first byte
+       S    2,0
+       SRC  4,0               adjust mask
+       MOV  3,0               original bit # of starting sector
+       JEQ  A4FFC
+       SLA  4,0               don't erase before starting sector
+A4FFC  JMP  A5000
+ 
+A4FFE  SRL  9,3               what the heck is that???
+ 
+A5000  SWPB 4
+       JMP  A5036             goto erase last byte
+ 
+A5004  SRC  4,0               adjust mask
+A5006  S    0,2               that many will be freed
+       BLWP @>005A(9)         set VDP to read
+       DATA >0022             address in R1
+       MOVB @>FBFE(15),0      get bitmap byte
+       SZC  4,0               mark sectors as free
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      write it back
+       LI   4,>FF00           clear full byte
+       INC  1                 next byte
+       LI   0,>0008           i.e. 8 sectors
+       C    2,0               how many more setors?
+       JLT  A502E             less than 8
+       JMP  A5006             8 or more: next byte
+ 
+A502E  MOV  2,0               remaining sectors
+       LI   4,>00FF
+       SLA  4,0               coin mask
+A5036  BLWP @>005A(9)         set VDP to read
+       DATA >0022             address in R1
+       MOVB @>FBFE(15),0      get bitmap byte
+       SZC  4,0               mark sectors as free
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      write it back
+       JMP  A4F96             done: flag drive # and return
+*

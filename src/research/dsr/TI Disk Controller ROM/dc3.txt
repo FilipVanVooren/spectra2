@@ -1,0 +1,270 @@
+*
+A4798  BL   @A4658            create file
+       DATA A4E02             ----------- find a FDR in disk
+A479E  MOV  4,4               found?
+       JNE  A47AA             no
+       BL   @A4658            yes: delete old file
+       DATA A48DE             free file sector in VIB bitmap
+       JMP  A4834             clear its FDR
+ 
+A47AA  BL   @A4B0A            new file: insert a FDR in sector 1
+       SETO 1
+       BL   @A4658            call subroutine
+       DATA A4EF6             find a free sector in VIB bitmap
+       MOV  0,0               found?
+       JNE  A47C0             yes: # in R0
+       BL   @A4C72            no: update data, then return with error
+       DATA >8000             "memory full"
+ 
+A47C0  BLWP @>005A(9)         set VDP to write
+       DATA >0103             address in R8
+       MOVB 0,@>FFFE(15)      write sector # for FDR in sector 1
+       SWPB 0
+       MOVB 0,@>FFFE(15)
+       SWPB 0
+       MOV  @>0056(9),1       ptr to FDR in VDP buffers
+       AI   1,>FFFC           ptr to sector # for FDR
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      write sector # for FDR in VDP buffer
+       SWPB 0
+       MOVB 0,@>FFFE(15)
+       AI   1,>0003           ptr to drive #
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 6,@>FFFE(15)      write drive # before FDR in VDP buffer
+       CLR  2                 code for write
+       INC  1
+       BL   @A4658            call subroutine
+       DATA A4D36             write sector 1
+       MOV  @>0058(9),5       ptr to VIB in VDP buffers
+       CLR  4                 sector 0
+       BL   @A4658            call subroutine
+       DATA A4D4E             write VIB to sector 0
+       MOV  5,3               copy filename from compare buffer to FDR
+       AI   3,>0101           ptr to file compare buffer
+       LI   2,>000A           10 chars per filename
+A4818  BLWP @>005A(9)         set VDP to read
+       DATA >0062             address in R3
+       MOVB @>FBFE(15),0      get 1 char
+       INC  3                 increment source ptr
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+       MOVB 0,@>FFFE(15)      copy 1 char
+       INC  1                 increment destination ptr
+       DEC  2                 # of chars in R2
+       JNE  A4818             next
+A4834  MOV  @>0056(9),1       FDR ptr
+       AI   1,>000A           skip filename
+       LI   2,>00F6           remaining bytes in FDR
+       BLWP @>005A(9)         set VDP to write
+       DATA >0023             address in R1
+A4846  MOVB 2,@>FFFE(15)      write >00
+       DEC  2                 clear remainder of new FDR
+       JNE  A4846             next byte
+       JMP  A4870             write FDR to disk return to caller
+*
+A4850  MOV  @>0056(9),5       check if FDR must be updated
+       BLWP @>005A(9)         ---------------------------- set VDP to read
+       DATA >00A2             address in R5
+       MOVB @>FBFE(15),4      get filename in file ctrl block
+       JLT  A4862             flag: FDR was modified, update it
+       JMP  A4876
+A4862  ANDI 4,>7F00           clear flag bit
+       BLWP @>005A(9)         st VDP to write
+       DATA >00A3             address in R5
+       MOVB 4,@>FFFE(15)      write back filename without flag bit
+A4870  CLR  2                 code for write
+       B    @A4D40            write FDR to disk
+A4876  B    @A4676            return to caller
+*
+A487A  BL   @A4658            update FDR + data
+       DATA A489A             ----------------- update data buffer if necessary
+       BL   @A4658            call subroutine
+       DATA A4850             update FDR if necessary
+A4886  MOV  @>0056(9),5
+       CLR  6
+       BLWP @>005A(9)         set VDP to write
+       DATA >00A3             address in R5
+       MOVB 6,@>FFFE(15)      clr first byte of filename in FDR
+       B    @A4CD2
+*
+A489A  MOV  @>0056(9),4       check if data buffer must be updated
+       DEC  4                 ------------------------------------
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),1      get drive #
+       JLT  A48AE             flag: must be updated
+       JMP  A48DA             no need to update: return
+A48AE  ANDI 1,>7F00           erase flag
+       BLWP @>005A(9)         set VDP to write
+       DATA >0083             address in R4
+       MOVB 1,@>FFFE(15)      write back drive # without flag
+       AI   4,>FFFB           point to current logical record offset
+       BLWP @>005A(9)         set VDP to read
+       DATA >0082             address in R4
+       MOVB @>FBFE(15),3      get current logical record offset
+       SWPB 3
+       MOVB @>FBFE(15),3
+       SWPB 3
+       MOV  4,7
+       AI   7,>0106           point to data buffer area
+       JMP  A494E
+A48DA  B    @A4676            return to caller
+*
+A48DE  MOV  @>0056(9),2       free file sectors in VIB bitmap
+       AI   2,>000C           -------------------------------
+       BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2
+       MOVB @>FBFE(15),0      get file status byte from FDR
+       ANDI 0,>0800           write protected?
+       JEQ  A48FC             no
+       BL   @A4C72            update data if needed, the return with error
+       DATA >2000             "write protected"
+ 
+A48FC  MOV  @>0056(9),8       get ptr to FDR
+       AI   8,>001C           point to clusters list
+       SETO 4                 previous offset
+A4906  BL   @A4EB6            decode cluster info: sector in R1, offset in R2
+       AI   8,>0003           next cluster ptr
+       MOV  1,1
+       JEQ  A492A             sector 0 = no more clusters
+       MOV  2,0               total offset
+       S    4,2               minus previous cluster offset = cluster size
+       MOV  0,4               new "previous cluster offset"
+       BL   @A4658            call subroutine
+       DATA A4FC2             free sectors in bitmap (from R1, # in R2)
+       MOV  8,1
+       S    @>0056(9),1
+       CI   1,>0100           end of FDR reached?
+       JNE  A4906             not yet
+A492A  B    @A4676            return to caller
+*
+A492E  BL   @A4B70            read a sector from offset in file
+       DATA >000E             --------------------------------- get # of sectors
+       C    0,3               is desired sector in file?
+       JH   A493E             yes
+       BL   @A4C72            no: update data, then return with error
+       DATA >A000             "past end-of-file"
+A493E  BL   @A4658            call subroutine
+       DATA A4A4E             find sector from cluster list
+       A    1,4               put sector in R4
+       SETO 2                 code for read
+A4948  MOV  7,5               buffer ptr
+       B    @A4D4E            read/write sector
+*
+A494E  BLWP @>005A(9)         write sector to offset in file offset in R3
+       DATA >8100             ------------------------------ save R0 and R7
+       BL   @A4658            call subroutine
+       DATA A4964             append enough sectors to reach that offset
+       BLWP @>005A(9)         retrieve R0 and R7
+       DATA >8101
+       CLR  2                 code for write
+       JMP  A4948             write sector
+*
+A4964  BL   @A4B70            append sector(s) to a file to get offset in R3
+       DATA >000E             -------------------------- get # of sect from FDR
+ 
+A496A  C    0,3               is desired sector in file?
+       JH   A49FC             yes: find it and return
+       MOV  0,0
+       JEQ  A4974             empty file
+       DEC  0                 last sector #
+A4974  MOV  3,5               save desired sector offset
+       MOV  0,3               last sector in file
+       BL   @A4658            call subroutine
+       DATA A4A4E             find sector # from offset in file
+       BLWP @>005A(9)         save R1 (sector #)
+       DATA >4000
+       A    4,1               # of last sector in cluster
+       MOV  5,4               offset of desired sector
+A4988  BL   @A4658            call subroutine
+       DATA A4EF6             find free sector in bitmap,  starting from R1
+       MOV  0,0               found?
+       JNE  A499A             yes: # in R0
+       MOV  2,5               no: save # of sectors
+       BL   @A4A08            update FDR
+       JMP  A49D0             return with "memory full"
+ 
+A499A  MOV  1,1
+       JEQ  A49DE             empty cluster
+       INC  1                 one more sector in cluster
+       C    0,1               same as the one found in bitmap?
+       JEQ  A49DC             yes: just increase cluster size
+       BLWP @>005A(9)         no: retrieve R1 (sector #)
+       DATA >4001
+       BLWP @>005A(9)         save R0 + R2
+       DATA >A000
+       BL   @A4ED2            update current cluster info
+       BLWP @>005A(9)         retrieve R0 + R2
+       DATA >A001
+       AI   8,>0003           ptr to next cluster info
+       MOV  8,1
+       S    @>0056(9),1       current FDR size
+       CI   1,>0100           room enough?
+       JNE  A49D4             yes
+       BL   @A4658            no: call subroutine
+       DATA A4FBC             free sector in bitmap
+A49D0  B    @A4E28            return with "memory full"
+ 
+A49D4  MOV  0,1               new sector #
+       BLWP @>005A(9)         save R1
+       DATA >4000
+A49DC  JMP  A49EC             make a new cluster
+ 
+A49DE  BLWP @>005A(9)         retrieve R1
+       DATA >4001
+       BLWP @>005A(9)         save R0
+       DATA >8000
+       SETO 2                 empty file: start from offset 0
+A49EC  MOV  0,1               sector #
+       INC  2                 increment cluster size
+       C    2,4               enough?
+       JNE  A4988             no: get one more sector
+       MOV  4,5
+       BL   @A4A08            add sector to FDR
+       JMP  A4A04             done
+ 
+A49FC  BL   @A4658            call subroutine
+       DATA A4A4E             find a sector from offset in file
+       A    1,4               last sector in cluster
+A4A04  B    @A4676            return to caller
+*
+A4A08  MOV  11,10             add sector to FDR
+       MOV  1,4               -----------------
+       BLWP @>005A(9)         retrieve R1
+       DATA >4001
+       MOV  1,1               sector #
+       JEQ  A4A4C             none: return
+       BL   @A4ED2            write info for 1 cluster
+       MOV  @>0056(9),2       pointer to FDR
+       BLWP @>005A(9)         set VDP to read
+       DATA >0042             address in R2
+       MOVB @>FBFE(15),1      first char of filename
+       ORI  1,>8000           flag
+       BLWP @>005A(9)         set VDP to write
+       DATA >0043             address in R2
+       MOVB 1,@>FFFE(15)
+       AI   2,>000E           ptr to # of sectors
+       INC  5                 new # of sectors
+       BLWP @>005A(9)         set VDP to write
+       DATA >0043             address in R2
+       MOVB 5,@>FFFE(15)      update # of sectors
+       SWPB 5
+       MOVB 5,@>FFFE(15)
+A4A4C  B    *10
+*
+A4A4E  MOV  @>0056(9),8       find sector from offset in file
+       AI   8,>001C           ------------------------------- cluster list
+       MOV  3,4               desired sector offset is in R3
+A4A58  BL   @A4EB6            decode info: sector in R1, offset in R2
+       C    2,3               reached yet?
+       JLT  A4A62             no
+       JMP  A4A6E             yes: return
+A4A62  AI   8,>0003           point to next cluster info
+       MOV  3,4
+       S    2,4
+       DEC  4                 size of the desired cluster (if it's the next)
+       JMP  A4A58             keep trying
+A4A6E  B    @A4676            return to caller
+*
