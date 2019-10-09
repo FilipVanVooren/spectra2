@@ -190,7 +190,7 @@
     .endif
 
     .ifndef skip_iosupport
-        copy  "fio_dsrlnk.asm"      ; DSRLNK for peripheral communication 
+        copy  "dsrlnk.asm"          ; DSRLNK for peripheral communication 
         copy  "fio_files.asm"       ; Files I/O support
     .endif
 
