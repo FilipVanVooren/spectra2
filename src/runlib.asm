@@ -14,7 +14,8 @@
 *******************************************************************************
 * This file: runlib.a99
 *******************************************************************************
-* Use following equates to skip/exclude support modules
+* Use following equates to skip/exclude support modules and to control startup
+* behaviour.
 *
 * == Memory
 * skip_rom_bankswitch       equ  1  ; Skip support for ROM bankswitching
@@ -23,7 +24,7 @@
 * skip_cpu_cpu_copy         equ  1  ; Skip CPU  to CPU copy functions
 * skip_grom_cpu_copy        equ  1  ; Skip GROM to CPU copy functions
 * skip_grom_vram_copy       equ  1  ; Skip GROM to VRAM copy functions
-
+*
 * == VDP
 * skip_textmode_support     equ  1  ; Skip 40x24 textmode support
 * skip_vdp_f18a_support     equ  1  ; Skip f18a support
@@ -54,144 +55,149 @@
 * skip_cpu_hexsupport       equ  1  ; Skip mkhex, puthex
 * skip_cpu_numsupport       equ  1  ; Skip mknum, putnum, trimnum
 * skip_cpu_crc16            equ  1  ; Skip CPU memory CRC-16 calculation
-
+*
 * == Kernel/Multitasking
 * skip_timer_alloc          equ  1  ; Skip support for timers allocation
 * skip_mem_paging           equ  1  ; Skip support for memory paging 
 * skip_iosupport            equ  1  ; Skip support for file I/O, dsrlnk
+*
+* == Startup behaviour 
+* startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300:>83ff to @>2000
+* startup_keep_vdpdiskbuf   equ  1  ; Keep VDP memory reseved for 3 VDP disk buffers
 *******************************************************************************
 
 *//////////////////////////////////////////////////////////////
 *                       RUNLIB SETUP
 *//////////////////////////////////////////////////////////////
 
-        copy  "memsetup.equ"        ; runlib scratchpad memory setup
-        copy  "registers.equ"       ; runlib registers
-        copy  "portaddr.equ"        ; runlib hardware port addresses
-        copy  "param.equ"           ; runlib parameters
+        copy  "memsetup.equ"             ; runlib scratchpad memory setup
+        copy  "registers.equ"            ; runlib registers
+        copy  "portaddr.equ"             ; runlib hardware port addresses
+        copy  "param.equ"                ; runlib parameters
 
     .ifndef skip_rom_bankswitch
-        copy  "rom_bankswitch.asm"  ; Bank switch routine
+        copy  "rom_bankswitch.asm"       ; Bank switch routine
     .endif
 
-        copy  "constants.asm"       ; Define constants
-        copy  "values.equ"          ; Equates for word/MSB/LSB-values
-        copy  "config.equ"          ; Equates for bits in config register
-        copy  "cpu_crash_hndlr.asm" ; CPU program crashed handler
-        copy  "vdp_tables.asm"      ; Data used by runtime library
-        copy  "basic_cpu_vdp.asm"   ; Basic CPU & VDP functions
+        copy  "constants.asm"            ; Define constants
+        copy  "values.equ"               ; Equates for word/MSB/LSB-values
+        copy  "config.equ"               ; Equates for bits in config register
+        copy  "cpu_crash_hndlr.asm"      ; CPU program crashed handler
+        copy  "vdp_tables.asm"           ; Data used by runtime library
+        copy  "basic_cpu_vdp.asm"        ; Basic CPU & VDP functions
 
     .ifndef skip_cpu_vram_copy
-        copy  "copy_cpu_vram.asm"   ; CPU to VRAM copy functions
+        copy  "copy_cpu_vram.asm"        ; CPU to VRAM copy functions
     .endif
 
     .ifndef skip_vram_cpu_copy
-        copy  "copy_vram_cpu.asm"   ; VRAM to CPU copy functions
+        copy  "copy_vram_cpu.asm"        ; VRAM to CPU copy functions
     .endif
 
     .ifndef skip_cpu_cpu_copy
-        copy  "copy_cpu_cpu.asm"    ; CPU to CPU copy functions
+        copy  "copy_cpu_cpu.asm"         ; CPU to CPU copy functions
     .endif
 
     .ifndef skip_grom_cpu_copy
-        copy  "copy_grom_cpu.asm"   ; GROM to CPU copy functions
+        copy  "copy_grom_cpu.asm"        ; GROM to CPU copy functions
     .endif
 
     .ifndef skip_grom_vram_copy
-        copy  "copy_grom_vram.asm"  ; GROM to VRAM copy functions
+        copy  "copy_grom_vram.asm"       ; GROM to VRAM copy functions
     .endif
 
     .ifndef skip_vdp_rle_decompress
-        copy  "vdp_rle_decompr.asm" ; RLE decompress to VRAM
+        copy  "vdp_rle_decompr.asm"      ; RLE decompress to VRAM
     .endif
 
     .ifndef skip_vdp_intscr
-        copy  "vdp_intscr.asm"      ; VDP interrupt & screen on/off
+        copy  "vdp_intscr.asm"           ; VDP interrupt & screen on/off
     .endif
 
     .ifndef skip_vdp_sprites
-        copy  "vdp_sprites.asm"     ; VDP sprites 
+        copy  "vdp_sprites.asm"          ; VDP sprites 
     .endif
 
     .ifndef skip_vdp_cursor
-        copy  "vdp_cursor.asm"      ; VDP cursor handling
+        copy  "vdp_cursor.asm"           ; VDP cursor handling
     .endif
 
     .ifndef skip_vdp_yx2px_calc
-        copy  "vdp_yx2px_calc.asm"  ; VDP calculate pixel pos for YX coordinate
+        copy  "vdp_yx2px_calc.asm"       ; VDP calculate pixel pos for YX coordinate
     .endif
 
     .ifndef skip_vdp_px2yx_calc
-        copy  "vdp_px2yx_calc.asm"  ; VDP calculate YX coordinate for pixel pos
+        copy  "vdp_px2yx_calc.asm"       ; VDP calculate YX coordinate for pixel pos
     .endif
 
     .ifndef skip_vdp_bitmap
-        copy  "vdp_bitmap.asm"      ; VDP Bitmap functions
+        copy  "vdp_bitmap.asm"           ; VDP Bitmap functions
     .endif
 
     .ifndef skip_vdp_f18a_support
-        copy  "vdp_f18a_support.asm" ; VDP F18a low-level functions
+        copy  "vdp_f18a_support.asm"     ; VDP F18a low-level functions
     .endif
 
     .ifndef skip_vdp_hchar
-        copy  "vdp_hchar.asm"       ; VDP hchar functions
+        copy  "vdp_hchar.asm"            ; VDP hchar functions
     .endif
 
     .ifndef skip_vdp_vchar
-        copy  "vdp_vchar.asm"       ; VDP vchar functions
+        copy  "vdp_vchar.asm"            ; VDP vchar functions
     .endif
 
     .ifndef skip_vdp_boxes
-        copy  "vdp_boxes.asm"       ; VDP box functions
+        copy  "vdp_boxes.asm"            ; VDP box functions
     .endif
 
     .ifndef skip_vdp_viewport
-        copy  "vdp_viewport.asm"    ; VDP viewport functionality
+        copy  "vdp_viewport.asm"         ; VDP viewport functionality
     .endif
 
     .ifndef skip_sound_player
-        copy  "snd_player.asm"      ; Sound player
+        copy  "snd_player.asm"           ; Sound player
     .endif
 
     .ifndef skip_tms52xx_detection
-        copy  "tms52xx_detect.asm"  ; Detect speech synthesizer
+        copy  "tms52xx_detect.asm"       ; Detect speech synthesizer
     .endif
 
     .ifndef skip_tms52xx_player
-        copy  "tms52xx_player.asm"  ; Speech synthesizer player
+        copy  "tms52xx_player.asm"       ; Speech synthesizer player
     .endif
 
     .ifndef skip_virtual_keyboard
-        copy  "keyb_virtual.asm"    ; Virtual keyboard scanning
+        copy  "keyb_virtual.asm"         ; Virtual keyboard scanning
     .endif
 
     .ifndef skip_real_keyboard
-        copy  "keyb_real.asm"       ; Real Keyboard support 
+        copy  "keyb_real.asm"            ; Real Keyboard support 
     .endif
 
     .ifndef skip_cpu_hexsupport
-        copy  "cpu_hexsupport.asm"  ; CPU hex numbers support
+        copy  "cpu_hexsupport.asm"       ; CPU hex numbers support
     .endif
 
     .ifndef skip_cpu_numsupport
-        copy  "cpu_numsupport.asm"  ; CPU unsigned numbers support
+        copy  "cpu_numsupport.asm"       ; CPU unsigned numbers support
     .endif
 
     .ifndef skip_cpu_crc16
-         copy  "cpu_crc16.asm"      ; CRC-16 checksum calculation
+         copy  "cpu_crc16.asm"           ; CRC-16 checksum calculation
     .endif
 
     .ifndef skip_random_generator
-        copy  "rnd_support.asm"     ; Random number generator
+        copy  "rnd_support.asm"          ; Random number generator
     .endif
 
     .ifndef skip_mem_paging
-        copy  "mem_paging.asm"      ; Memory paging functions
+        copy  "mem_scrpad_backrest.asm"  ; Scratchpad backup/restore 
+        copy  "mem_scrpad_paging.asm"    ; Scratchpad memory paging
     .endif
 
     .ifndef skip_iosupport
-        copy  "dsrlnk.asm"          ; DSRLNK for peripheral communication 
-        copy  "fio_files.asm"       ; Files I/O support
+        copy  "dsrlnk.asm"               ; DSRLNK for peripheral communication 
+        copy  "fio_files.asm"            ; Files I/O support
     .endif
 
 
@@ -401,14 +407,18 @@ clhook  clr   @wtiusr               ; Unset user hook address
 *  after clearing scratchpad memory.
 *  Use 'B @RUNLI1' to exit your program.
 ********@*****@*********************@**************************
+    .ifdef startup_backup_scrpad
+runlib  bl    @mem.scrpad.backup    ; Backup scratchpad memory to @>2000
+        clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
+    .else
 runlib  clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
+    .endif
 *--------------------------------------------------------------
 * Alternative entry point
 *--------------------------------------------------------------
 runli1  limi  0                     ; Turn off interrupts
         lwpi  ws1                   ; Activate workspace 1
         mov   @>83c0,r3             ; Get random seed from OS monitor
-
 *--------------------------------------------------------------
 * Clear scratch-pad memory from R4 upwards
 *--------------------------------------------------------------
@@ -460,8 +470,13 @@ runli9  clr   r1
 *--------------------------------------------------------------
 * Setup video memory
 *--------------------------------------------------------------
-        bl    @filv
-        data  >0000,>00,16000       ; Clear VDP memory
+    .ifdef startup_keep_vdpdiskbuf
+        bl    @filv                 ; Clear most part of 16K VDP memory, 
+        data  >0000,>00,>3fd8       ; Keep memory for 3 VDP disk buffers (>3fd8 - >3ff)
+    .else
+        bl    @filv                 ; Clear all of 16K VDP memory
+        data  >0000,>00,>3fff
+    .endif
         bl    @filv
         data  pctadr,spfclr,16      ; Load color table
 *--------------------------------------------------------------

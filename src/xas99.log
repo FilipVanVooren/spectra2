@@ -1,13 +1,13 @@
 Preprocessing source file.... PASS 1
 Preprocessing source file.... PASS 2
 ************************************************
-Assembly started ........ 19-04-06 15:25:23
+Assembly started ........ 19-10-13 20:31:29
 Source file ............. runlib.asm
-Assembly run ............ .runlib/runlib.19203/xas99run.out
-Preprocessed source ..... .runlib/runlib.19203/runlib.asm.19203
+Assembly run ............ .runlib/runlib.19241/xas99run.out
+Preprocessed source ..... .runlib/runlib.19241/runlib.asm.19241
 ROM cart binary ......... bin/runlibc.bin
-List file ............... runlib.lst
-Run suffix .............. 190406-19203
+List file ............... runlib.lst.asm
+Run suffix .............. 191013-19241
 ************************************************
 > vdp_tables.asm <2> 0007 - graph1  byte  >00,>e2,>00,>0e,>01,>06,>02,SPFBCK,0,32
 ***** Unknown symbol: SPFBCK
@@ -17,15 +17,365 @@ Run suffix .............. 190406-19203
 ***** Unknown symbol: SPFCLR
 > vdp_tables.asm <2> 0084 - tx8030  byte  >04,>f0,>00,>3f,>02,>40,>03,SPFCLR,0,80
 ***** Unknown symbol: SPFCLR
-> runlib.asm.19203 <2> 0560 -         data  pctadr,spfclr,16      ; Load color table
+> mem_scratchpad.asm <2> 0020 -         mov   @>8300,>2000
+***** Invalid register: >2000
+> mem_scratchpad.asm <2> 0021 -         mov   @>8302,>2002
+***** Invalid register: >2002
+> mem_scratchpad.asm <2> 0022 -         mov   @>8304,>2004
+***** Invalid register: >2004
+> mem_scratchpad.asm <2> 0023 -         mov   @>8306,>2006
+***** Invalid register: >2006
+> mem_scratchpad.asm <2> 0024 -         mov   @>8308,>2008
+***** Invalid register: >2008
+> mem_scratchpad.asm <2> 0025 -         mov   @>830A,>200A
+***** Invalid register: >200A
+> mem_scratchpad.asm <2> 0026 -         mov   @>830C,>200C
+***** Invalid register: >200C
+> mem_scratchpad.asm <2> 0027 -         mov   @>830E,>200E
+***** Invalid register: >200E
+> mem_scratchpad.asm <2> 0028 -         mov   @>8310,>2010
+***** Invalid register: >2010
+> mem_scratchpad.asm <2> 0029 -         mov   @>8312,>2012
+***** Invalid register: >2012
+> mem_scratchpad.asm <2> 0030 -         mov   @>8314,>2014
+***** Invalid register: >2014
+> mem_scratchpad.asm <2> 0031 -         mov   @>8316,>2016
+***** Invalid register: >2016
+> mem_scratchpad.asm <2> 0032 -         mov   @>8318,>2018
+***** Invalid register: >2018
+> mem_scratchpad.asm <2> 0033 -         mov   @>831A,>201A
+***** Invalid register: >201A
+> mem_scratchpad.asm <2> 0034 -         mov   @>831C,>201C
+***** Invalid register: >201C
+> mem_scratchpad.asm <2> 0035 -         mov   @>831E,>201E
+***** Invalid register: >201E
+> mem_scratchpad.asm <2> 0036 -         mov   @>8320,>2020
+***** Invalid register: >2020
+> mem_scratchpad.asm <2> 0037 -         mov   @>8322,>2022
+***** Invalid register: >2022
+> mem_scratchpad.asm <2> 0038 -         mov   @>8324,>2024
+***** Invalid register: >2024
+> mem_scratchpad.asm <2> 0039 -         mov   @>8326,>2026
+***** Invalid register: >2026
+> mem_scratchpad.asm <2> 0040 -         mov   @>8328,>2028
+***** Invalid register: >2028
+> mem_scratchpad.asm <2> 0041 -         mov   @>832A,>202A
+***** Invalid register: >202A
+> mem_scratchpad.asm <2> 0042 -         mov   @>832C,>202C
+***** Invalid register: >202C
+> mem_scratchpad.asm <2> 0043 -         mov   @>832E,>202E
+***** Invalid register: >202E
+> mem_scratchpad.asm <2> 0044 -         mov   @>8330,>2030
+***** Invalid register: >2030
+> mem_scratchpad.asm <2> 0045 -         mov   @>8332,>2032
+***** Invalid register: >2032
+> mem_scratchpad.asm <2> 0046 -         mov   @>8334,>2034
+***** Invalid register: >2034
+> mem_scratchpad.asm <2> 0047 -         mov   @>8336,>2036
+***** Invalid register: >2036
+> mem_scratchpad.asm <2> 0048 -         mov   @>8338,>2038
+***** Invalid register: >2038
+> mem_scratchpad.asm <2> 0049 -         mov   @>833A,>203A
+***** Invalid register: >203A
+> mem_scratchpad.asm <2> 0050 -         mov   @>833C,>203C
+***** Invalid register: >203C
+> mem_scratchpad.asm <2> 0051 -         mov   @>833E,>203E
+***** Invalid register: >203E
+> mem_scratchpad.asm <2> 0052 -         mov   @>8340,>2040
+***** Invalid register: >2040
+> mem_scratchpad.asm <2> 0053 -         mov   @>8342,>2042
+***** Invalid register: >2042
+> mem_scratchpad.asm <2> 0054 -         mov   @>8344,>2044
+***** Invalid register: >2044
+> mem_scratchpad.asm <2> 0055 -         mov   @>8346,>2046
+***** Invalid register: >2046
+> mem_scratchpad.asm <2> 0056 -         mov   @>8348,>2048
+***** Invalid register: >2048
+> mem_scratchpad.asm <2> 0057 -         mov   @>834A,>204A
+***** Invalid register: >204A
+> mem_scratchpad.asm <2> 0058 -         mov   @>834C,>204C
+***** Invalid register: >204C
+> mem_scratchpad.asm <2> 0059 -         mov   @>834E,>204E
+***** Invalid register: >204E
+> mem_scratchpad.asm <2> 0060 -         mov   @>8350,>2050
+***** Invalid register: >2050
+> mem_scratchpad.asm <2> 0061 -         mov   @>8352,>2052
+***** Invalid register: >2052
+> mem_scratchpad.asm <2> 0062 -         mov   @>8354,>2054
+***** Invalid register: >2054
+> mem_scratchpad.asm <2> 0063 -         mov   @>8356,>2056
+***** Invalid register: >2056
+> mem_scratchpad.asm <2> 0064 -         mov   @>8358,>2058
+***** Invalid register: >2058
+> mem_scratchpad.asm <2> 0065 -         mov   @>835A,>205A
+***** Invalid register: >205A
+> mem_scratchpad.asm <2> 0066 -         mov   @>835C,>205C
+***** Invalid register: >205C
+> mem_scratchpad.asm <2> 0067 -         mov   @>835E,>205E
+***** Invalid register: >205E
+> mem_scratchpad.asm <2> 0068 -         mov   @>8360,>2060
+***** Invalid register: >2060
+> mem_scratchpad.asm <2> 0069 -         mov   @>8362,>2062
+***** Invalid register: >2062
+> mem_scratchpad.asm <2> 0070 -         mov   @>8364,>2064
+***** Invalid register: >2064
+> mem_scratchpad.asm <2> 0071 -         mov   @>8366,>2066
+***** Invalid register: >2066
+> mem_scratchpad.asm <2> 0072 -         mov   @>8368,>2068
+***** Invalid register: >2068
+> mem_scratchpad.asm <2> 0073 -         mov   @>836A,>206A
+***** Invalid register: >206A
+> mem_scratchpad.asm <2> 0074 -         mov   @>836C,>206C
+***** Invalid register: >206C
+> mem_scratchpad.asm <2> 0075 -         mov   @>836E,>206E
+***** Invalid register: >206E
+> mem_scratchpad.asm <2> 0076 -         mov   @>8370,>2070
+***** Invalid register: >2070
+> mem_scratchpad.asm <2> 0077 -         mov   @>8372,>2072
+***** Invalid register: >2072
+> mem_scratchpad.asm <2> 0078 -         mov   @>8374,>2074
+***** Invalid register: >2074
+> mem_scratchpad.asm <2> 0079 -         mov   @>8376,>2076
+***** Invalid register: >2076
+> mem_scratchpad.asm <2> 0080 -         mov   @>8378,>2078
+***** Invalid register: >2078
+> mem_scratchpad.asm <2> 0081 -         mov   @>837A,>207A
+***** Invalid register: >207A
+> mem_scratchpad.asm <2> 0082 -         mov   @>837C,>207C
+***** Invalid register: >207C
+> mem_scratchpad.asm <2> 0083 -         mov   @>837E,>207E
+***** Invalid register: >207E
+> mem_scratchpad.asm <2> 0084 -         mov   @>8380,>2080
+***** Invalid register: >2080
+> mem_scratchpad.asm <2> 0085 -         mov   @>8382,>2082
+***** Invalid register: >2082
+> mem_scratchpad.asm <2> 0086 -         mov   @>8384,>2084
+***** Invalid register: >2084
+> mem_scratchpad.asm <2> 0087 -         mov   @>8386,>2086
+***** Invalid register: >2086
+> mem_scratchpad.asm <2> 0088 -         mov   @>8388,>2088
+***** Invalid register: >2088
+> mem_scratchpad.asm <2> 0089 -         mov   @>838A,>208A
+***** Invalid register: >208A
+> mem_scratchpad.asm <2> 0090 -         mov   @>838C,>208C
+***** Invalid register: >208C
+> mem_scratchpad.asm <2> 0091 -         mov   @>838E,>208E
+***** Invalid register: >208E
+> mem_scratchpad.asm <2> 0092 -         mov   @>8390,>2090
+***** Invalid register: >2090
+> mem_scratchpad.asm <2> 0093 -         mov   @>8392,>2092
+***** Invalid register: >2092
+> mem_scratchpad.asm <2> 0094 -         mov   @>8394,>2094
+***** Invalid register: >2094
+> mem_scratchpad.asm <2> 0095 -         mov   @>8396,>2096
+***** Invalid register: >2096
+> mem_scratchpad.asm <2> 0096 -         mov   @>8398,>2098
+***** Invalid register: >2098
+> mem_scratchpad.asm <2> 0097 -         mov   @>839A,>209A
+***** Invalid register: >209A
+> mem_scratchpad.asm <2> 0098 -         mov   @>839C,>209C
+***** Invalid register: >209C
+> mem_scratchpad.asm <2> 0099 -         mov   @>839E,>209E
+***** Invalid register: >209E
+> mem_scratchpad.asm <2> 0100 -         mov   @>83A0,>20A0
+***** Invalid register: >20A0
+> mem_scratchpad.asm <2> 0101 -         mov   @>83A2,>20A2
+***** Invalid register: >20A2
+> mem_scratchpad.asm <2> 0102 -         mov   @>83A4,>20A4
+***** Invalid register: >20A4
+> mem_scratchpad.asm <2> 0103 -         mov   @>83A6,>20A6
+***** Invalid register: >20A6
+> mem_scratchpad.asm <2> 0104 -         mov   @>83A8,>20A8
+***** Invalid register: >20A8
+> mem_scratchpad.asm <2> 0105 -         mov   @>83AA,>20AA
+***** Invalid register: >20AA
+> mem_scratchpad.asm <2> 0106 -         mov   @>83AC,>20AC
+***** Invalid register: >20AC
+> mem_scratchpad.asm <2> 0107 -         mov   @>83AE,>20AE
+***** Invalid register: >20AE
+> mem_scratchpad.asm <2> 0108 -         mov   @>83B0,>20B0
+***** Invalid register: >20B0
+> mem_scratchpad.asm <2> 0109 -         mov   @>83B2,>20B2
+***** Invalid register: >20B2
+> mem_scratchpad.asm <2> 0110 -         mov   @>83B4,>20B4
+***** Invalid register: >20B4
+> mem_scratchpad.asm <2> 0111 -         mov   @>83B6,>20B6
+***** Invalid register: >20B6
+> mem_scratchpad.asm <2> 0112 -         mov   @>83B8,>20B8
+***** Invalid register: >20B8
+> mem_scratchpad.asm <2> 0113 -         mov   @>83BA,>20BA
+***** Invalid register: >20BA
+> mem_scratchpad.asm <2> 0114 -         mov   @>83BC,>20BC
+***** Invalid register: >20BC
+> mem_scratchpad.asm <2> 0115 -         mov   @>83BE,>20BE
+***** Invalid register: >20BE
+> mem_scratchpad.asm <2> 0116 -         mov   @>83C0,>20C0
+***** Invalid register: >20C0
+> mem_scratchpad.asm <2> 0117 -         mov   @>83C2,>20C2
+***** Invalid register: >20C2
+> mem_scratchpad.asm <2> 0118 -         mov   @>83C4,>20C4
+***** Invalid register: >20C4
+> mem_scratchpad.asm <2> 0119 -         mov   @>83C6,>20C6
+***** Invalid register: >20C6
+> mem_scratchpad.asm <2> 0120 -         mov   @>83C8,>20C8
+***** Invalid register: >20C8
+> mem_scratchpad.asm <2> 0121 -         mov   @>83CA,>20CA
+***** Invalid register: >20CA
+> mem_scratchpad.asm <2> 0122 -         mov   @>83CC,>20CC
+***** Invalid register: >20CC
+> mem_scratchpad.asm <2> 0123 -         mov   @>83CE,>20CE
+***** Invalid register: >20CE
+> mem_scratchpad.asm <2> 0124 -         mov   @>83D0,>20D0
+***** Invalid register: >20D0
+> mem_scratchpad.asm <2> 0125 -         mov   @>83D2,>20D2
+***** Invalid register: >20D2
+> mem_scratchpad.asm <2> 0126 -         mov   @>83D4,>20D4
+***** Invalid register: >20D4
+> mem_scratchpad.asm <2> 0127 -         mov   @>83D6,>20D6
+***** Invalid register: >20D6
+> mem_scratchpad.asm <2> 0128 -         mov   @>83D8,>20D8
+***** Invalid register: >20D8
+> mem_scratchpad.asm <2> 0129 -         mov   @>83DA,>20DA
+***** Invalid register: >20DA
+> mem_scratchpad.asm <2> 0130 -         mov   @>83DC,>20DC
+***** Invalid register: >20DC
+> mem_scratchpad.asm <2> 0131 -         mov   @>83DE,>20DE
+***** Invalid register: >20DE
+> mem_scratchpad.asm <2> 0132 -         mov   @>83E0,>20E0
+***** Invalid register: >20E0
+> mem_scratchpad.asm <2> 0133 -         mov   @>83E2,>20E2
+***** Invalid register: >20E2
+> mem_scratchpad.asm <2> 0134 -         mov   @>83E4,>20E4
+***** Invalid register: >20E4
+> mem_scratchpad.asm <2> 0135 -         mov   @>83E6,>20E6
+***** Invalid register: >20E6
+> mem_scratchpad.asm <2> 0136 -         mov   @>83E8,>20E8
+***** Invalid register: >20E8
+> mem_scratchpad.asm <2> 0137 -         mov   @>83EA,>20EA
+***** Invalid register: >20EA
+> mem_scratchpad.asm <2> 0138 -         mov   @>83EC,>20EC
+***** Invalid register: >20EC
+> mem_scratchpad.asm <2> 0139 -         mov   @>83EE,>20EE
+***** Invalid register: >20EE
+> mem_scratchpad.asm <2> 0140 -         mov   @>83F0,>20F0
+***** Invalid register: >20F0
+> mem_scratchpad.asm <2> 0141 -         mov   @>83F2,>20F2
+***** Invalid register: >20F2
+> mem_scratchpad.asm <2> 0142 -         mov   @>83F4,>20F4
+***** Invalid register: >20F4
+> mem_scratchpad.asm <2> 0143 -         mov   @>83F6,>20F6
+***** Invalid register: >20F6
+> mem_scratchpad.asm <2> 0144 -         mov   @>83F8,>20F8
+***** Invalid register: >20F8
+> mem_scratchpad.asm <2> 0145 -         mov   @>83FA,>20FA
+***** Invalid register: >20FA
+> mem_scratchpad.asm <2> 0146 -         mov   @>83FC,>20FC
+***** Invalid register: >20FC
+> mem_scratchpad.asm <2> 0147 -         mov   @>83FE,>20FE
+***** Invalid register: >20FE
+> mem_scratchpad.asm <2> 0179 -         jne   -!                    ; Loop until done
+***** Out of range: -! +/- 0x103
+> mem_scratchpad.asm <2> 0203 -         jne   -!                    ; Loop until done
+***** Out of range: -! +/- 0x104
+> mem_scratchpad.asm <2> 0213 -         jne   -!                    ; Loop until done
+***** Out of range: -! +/- 0x105
+> dsrlnk.asm <2> 0081 -         jgt   dsrlnk.error.devicename_invalid
+***** Out of range: DSRLNK.ERROR.DEVICENAME_INVALID +/- 0x16e
+> dsrlnk.asm <2> 0084 -         jeq   dsrlnk.device_name.get_length
+***** Out of range: DSRLNK.DEVICE_NAME.GET_LENGTH +/- 0x116
+> dsrlnk.asm <2> 0097 -         jne   -!                   ; no, loop next char
+***** Out of range: -! +/- 0xf8
+> dsrlnk.asm <2> 0103 -         jeq   dsrlnk.error.devicename_invalid
+***** Out of range: DSRLNK.ERROR.DEVICENAME_INVALID +/- 0x161
+> dsrlnk.asm <2> 0121 -         jeq   dsrlnk.dsrscan.cardloop
+***** Out of range: DSRLNK.DSRSCAN.CARDLOOP +/- 0x10e
+> dsrlnk.asm <2> 0131 -         jeq   dsrlnk.error.nodsr_found
+***** Out of range: DSRLNK.ERROR.NODSR_FOUND +/- 0x14b
+> dsrlnk.asm <2> 0140 -         jne   dsrlnk.dsrscan.cardoff
+***** Out of range: DSRLNK.DSRSCAN.CARDOFF +/- 0xfd
+> dsrlnk.asm <2> 0150 -         jmp   dsrlnk.dsrscan.getentry
+***** Out of range: DSRLNK.DSRSCAN.GETENTRY +/- 0x113
+> dsrlnk.asm <2> 0162 -         jeq   dsrlnk.dsrscan.cardoff
+***** Out of range: DSRLNK.DSRSCAN.CARDOFF +/- 0xf7
+> dsrlnk.asm <2> 0172 -         jeq   dsrlnk.dsrscan.call_dsr
+***** Out of range: DSRLNK.DSRSCAN.CALL_DSR +/- 0x11d
+> dsrlnk.asm <2> 0175 -         jne   dsrlnk.dsrscan.nextentry
+***** Out of range: DSRLNK.DSRSCAN.NEXTENTRY +/- 0x104
+> dsrlnk.asm <2> 0180 -         jne   dsrlnk.dsrscan.nextentry
+***** Out of range: DSRLNK.DSRSCAN.NEXTENTRY +/- 0x100
+> dsrlnk.asm <2> 0183 -         jne   -!
+***** Out of range: -! +/- 0x111
+> dsrlnk.asm <2> 0200 -         jmp   dsrlnk.dsrscan.nextentry
+***** Out of range: DSRLNK.DSRSCAN.NEXTENTRY +/- 0xfb
+> dsrlnk.asm <2> 0208 -         jeq   dsrlnk.dsrscan.dsr.8 ; yes, jump: normal dsrlnk
+***** Out of range: DSRLNK.DSRSCAN.DSR.8 +/- 0x11a
+> dsrlnk.asm <2> 0211 -         jmp   dsrlnk.dsrscan.dsr.8 ; go and return error byte to the caller
+***** Out of range: DSRLNK.DSRSCAN.DSR.8 +/- 0x118
+> dsrlnk.asm <2> 0230 -         jne   dsrlnk.error.io_error
+***** Out of range: DSRLNK.ERROR.IO_ERROR +/- 0x11d
+> runlib.asm.19241 <2> 0232 -         jne   tmgr1a                ; No, so move on
+***** Out of range: TMGR1A +/- 0x11c
+> runlib.asm.19241 <2> 0238 -         jeq   tmgr4                 ; Yes, process slots 0..n
+***** Out of range: TMGR4 +/- 0x131
+> runlib.asm.19241 <2> 0244 -         jne   tmgr2
+***** Out of range: TMGR2 +/- 0x11e
+> runlib.asm.19241 <2> 0251 -         jeq   tmgr3                 ; Yes, skip to user hook
+***** Out of range: TMGR3 +/- 0x122
+> runlib.asm.19241 <2> 0253 -         jne   tmgr3                 ; No, skip to user hook
+***** Out of range: TMGR3 +/- 0x120
+> runlib.asm.19241 <2> 0259 -         jeq   tmgr1
+***** Out of range: TMGR1 +/- 0x105
+> runlib.asm.19241 <2> 0261 -         jne   tmgr1
+***** Out of range: TMGR1 +/- 0x103
+> runlib.asm.19241 <2> 0271 -         jeq   tmgr5
+***** Out of range: TMGR5 +/- 0x124
+> runlib.asm.19241 <2> 0273 -         jmp   tmgr6
+***** Out of range: TMGR6 +/- 0x124
+> runlib.asm.19241 <2> 0275 - tmgr6   jlt   tmgr7                 ; No, continue
+***** Out of range: TMGR7 +/- 0x124
+> runlib.asm.19241 <2> 0276 -         jmp   tmgr8
+***** Out of range: TMGR8 +/- 0x125
+> runlib.asm.19241 <2> 0284 -         jeq   tmgr11                ; Yes, get next slot
+***** Out of range: TMGR11 +/- 0x13b
+> runlib.asm.19241 <2> 0292 -         jne   tmgr10                ; No, get next slot
+***** Out of range: TMGR10 +/- 0x12e
+> runlib.asm.19241 <2> 0306 -         jgt   tmgr12                ; yes, Wait for next VDP interrupt
+***** Out of range: TMGR12 +/- 0x12b
+> runlib.asm.19241 <2> 0308 -         jmp   tmgr9                 ; Process next slot
+***** Out of range: TMGR9 +/- 0x110
+> runlib.asm.19241 <2> 0310 -         jmp   tmgr10                ; Process next slot
+***** Out of range: TMGR10 +/- 0x120
+> runlib.asm.19241 <2> 0312 -         jmp   tmgr1
+***** Out of range: TMGR1 +/- 0xd9
+> timer_alloc.asm <2> 0035 -         jeq   mkslo1                ; Yes, exit
+***** Out of range: MKSLO1 +/- 0x12c
+> timer_alloc.asm <2> 0036 -         jmp   mkslot                ; Process next entry
+***** Out of range: MKSLOT +/- 0x11f
+> runlib.asm.19241 <2> 0339 -         jne   kthread_kb
+***** Out of range: KTHREAD_KB +/- 0x12f
+> runlib.asm.19241 <2> 0426 -         jne   runli3
+***** Out of range: RUNLI3 +/- 0x12a
+> runlib.asm.19241 <2> 0431 -         jne   runli4                ; No, continue
+***** Out of range: RUNLI4 +/- 0x131
+> runlib.asm.19241 <2> 0441 -         jeq   runli6
+***** Out of range: RUNLI6 +/- 0x132
+> runlib.asm.19241 <2> 0443 -         jmp   runli5
+***** Out of range: RUNLI5 +/- 0x12a
+> runlib.asm.19241 <2> 0445 -         jne   runli5
+***** Out of range: RUNLI5 +/- 0x129
+> runlib.asm.19241 <2> 0447 -         jle   runli7                ; No, so it must be NTSC
+***** Out of range: RUNLI7 +/- 0x135
+> runlib.asm.19241 <2> 0474 -         data  pctadr,spfclr,16      ; Load color table
 ***** Unknown symbol: PCTADR
-> runlib.asm.19203 <2> 0583 -         data  spvmod                ; Equate selected video mode table
+> runlib.asm.19241 <2> 0497 -         data  spvmod                ; Equate selected video mode table
 ***** Unknown symbol: SPVMOD
-> runlib.asm.19203 <2> 0584 -         li    tmp0,spfont           ; Get font option
+> runlib.asm.19241 <2> 0498 -         li    tmp0,spfont           ; Get font option
 ***** Unknown symbol: SPFONT
-> runlib.asm.19203 <2> 0588 -         data  fntadr,spfont         ; Load specified font
+> runlib.asm.19241 <2> 0500 -         jeq   runlid                ; Yes, skip it
+***** Out of range: RUNLID +/- 0x13e
+> runlib.asm.19241 <2> 0502 -         data  fntadr,spfont         ; Load specified font
 ***** Unknown symbol: FNTADR
-> runlib.asm.19203 <2> 0593 -         b     @main                 ; Give control to main program
+> runlib.asm.19241 <2> 0507 -         b     @main                 ; Give control to main program
 ***** Unknown symbol: MAIN
 ***** No ROM cart binary created due to errors during assembly.
 ***** Assembly process returned with RC=1

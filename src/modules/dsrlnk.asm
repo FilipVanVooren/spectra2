@@ -17,9 +17,6 @@ sav8a   equ   >8322                 ; Contains >08 or >0a
 
 
 **** Low memory expansion. Official documentation?
-flgptr  equ   >202e                 ; Pointer to pab+1 dsrlnk                                       
-savlen  equ   >2036                 ; Saved length of filename                                      
-savpab  equ   >2038                 ; Saved PAB address                                             
 namsto  equ   >2100                 ; 8-byte buffer for device name                                 
 dsrlws  equ   >b000                 ; dsrlnk workspace                                              
 dstype  equ   >b00a                 ; dstype is address of R5 of DSRLNK ws
@@ -60,7 +57,6 @@ dsrlnk.init:
         szcb  @h20,r15             ; reset equal bit
         mov   @>8356,r0            ; get ptr to pab
         mov   r0,r9                ; save ptr
-        mov   r0,@flgptr           ; save pointer again to pab+1 for dsrlnk 
         ;------------------------------------------------------
         ; Fetch file descriptor length from PAB
         ;------------------------------------------------------ 
@@ -108,10 +104,8 @@ dsrlnk.device_name.get_length:
                                    ; yes, error
         clr   @>83d0
         mov   r4,@>8354            ; save name length for search
-        mov   r4,@savlen           ; save it here too
         inc   r4                   ; adjust for dot
         a     r4,@>8356            ; point to position after name
-        mov   @>8356,@savpab       ; save pointer to position after name
         ;------------------------------------------------------
         ; Prepare for DSR scan >1000 - >1f00
         ;------------------------------------------------------ 
@@ -212,7 +206,7 @@ dsrlnk.dsrscan.call_dsr:
                                    ; (8 or >a)
         ci    r1,8                 ; was it 8?
         jeq   dsrlnk.dsrscan.dsr.8 ; yes, jump: normal dsrlnk
-        movb  @>8350,r1            ; no, we have a data >a. 
+        movb  @>8350,r1            ; no, we have a data >a.
                                    ; Get error byte from @>8350
         jmp   dsrlnk.dsrscan.dsr.8 ; go and return error byte to the caller
 
