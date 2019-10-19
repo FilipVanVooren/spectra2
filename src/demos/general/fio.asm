@@ -13,8 +13,13 @@
         aorg  >6000
 *--------------------------------------------------------------
 debug                     equ  1    ; Turn on debugging
+;--------------------------------------------------------------
+; Equates for spectra2 DSRLNK 
+;--------------------------------------------------------------
+dsrlnk.dsrlws             equ >b000 ; Address of dsrlnk workspace                                              
+dsrlnk.namsto             equ >2100 ; 8-byte RAM buffer for storing device name
 startup_backup_scrpad     equ  1    ; Backup scratchpad @>8300:>83ff to @>2000
-startup_keep_vdpdiskbuf   equ  1    ; Keep VDP memory reseved for 3 VDP disk buffers
+startup_keep_vdpdiskbuf   equ  1    ; Keep VDP memory reserved for 3 VDP disk buffers
 *--------------------------------------------------------------
 * Skip unused spectra2 code modules for reduced code size
 *--------------------------------------------------------------
@@ -72,8 +77,6 @@ pabadr1 equ   >01f0                 ; VDP PAB1
 pabadr2 equ   >0200                 ; VDP PAB2
 vrecbuf equ   >0300                 ; VDP Buffer
 
-
-
 ***************************************************************
 * Main
 ********@*****@*********************@**************************
@@ -98,16 +101,6 @@ main    bl    @putat
 
         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
         data  >a000                 ; Memory destination @>a000
-
-         
-        ;--------
-        ; FIX SCRATCHPAD MEMORY
-        ;--------
-        ;li    r0,>37D7
-        ;mov   r0,@>8370             ; Highest free address in VDP memory
-
-
-
 
         ;------------------------------------------------------
         ; Set up file buffer - call files(1)
