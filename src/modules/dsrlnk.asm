@@ -11,7 +11,6 @@
 * Equates are used in DSRLNK. 
 * Scratchpad memory needs to be paged out before use of DSRLNK.
 ********@*****@*********************@**************************                                     
-haa     equ   >8320                 ; Loaded with HI-byte value >aa                                 
 sav8a   equ   >8322                 ; Contains >08 or >0a                                           
 
 
@@ -51,7 +50,7 @@ dsrlnk  data  dsrlws               ; dsrlnk workspace
         ;------------------------------------------------------ 
 dsrlnk.init:        
         li    r0,>aa00
-        movb  r0,@haa              ; load haa at @>8320
+        movb  r0,@>8320            ; load value >aa00 at @>8320
         mov   *r14+,r5             ; get pgm type for link
         mov   r5,@sav8a            ; save data following blwp @dsrlnk (8 or >a)
         szcb  @h20,r15             ; reset equal bit

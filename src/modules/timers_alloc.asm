@@ -1,5 +1,5 @@
 * FILE......: timer_alloc.asm
-* Purpose...: Support code for timer allocation
+* Purpose...: Timers / Timer allocation
 
 
 ***************************************************************
