@@ -100,7 +100,7 @@ main    bl    @putat
 
 
         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
-        data  >a000                 ; Memory destination @>a000
+              data  >a000           ; Memory destination @>a000
 
         ;------------------------------------------------------
         ; Set up file buffer - call files(1)
@@ -117,10 +117,13 @@ main    bl    @putat
         ;------------------------------------------------------
         ; Open file
         ;------------------------------------------------------
-        li    r0,pabadr2+9
-        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-        blwp  @dsrlnk
-        data  8
+        bl    @file.open
+        data  pabadr2                ; Pass file descriptor to DSRLNK
+
+;        li    r0,pabadr2+9
+;        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+;        blwp  @dsrlnk
+;        data  8
 
         ;------------------------------------------------------
         ; Read record
@@ -179,8 +182,8 @@ dsrsub  byte  >01,>16               ; DSR program/subprogram - set file buffers
 pab     byte  io.op.open            ;  0    - OPEN
         byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
         data  vrecbuf               ;  2-3  - Record buffer in VDP memory
-        byte  >50                   ;  4    - 80 characters maximum
-        byte  >00                   ;  5    - Filled with bytes read during read
+        byte  80                    ;  4    - Record length (80 characters maximum)
+        byte  80                    ;  5    - Character count
         data  >0000                 ;  6-7  - Seek record (only for fixed records)
         byte  >00                   ;  8    - Screen offset (cassette DSR only)
 fname   byte  15                    ;  9    - File descriptor length

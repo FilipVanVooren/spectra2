@@ -40,3 +40,66 @@ io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 
 
 
+***************************************************************
+* file.open - Open File for procesing
+***************************************************************
+*  bl   @file.open
+*  data P0
+*--------------------------------------------------------------
+*  P0 = Address of PAB in CPU RAM (without +9 offset!)
+*--------------------------------------------------------------
+*  bl   @xfile.open
+*
+*  R0 = Address of PAB in CPU RAM
+********@*****@*********************@**************************
+file.open:
+        mov   *r11+,r0              ; Get file descriptor (P0)
+*--------------------------------------------------------------
+* Initialisation
+*--------------------------------------------------------------
+xfile.open:
+        nop
+file.open_init:
+        ai    r0,9                  ; Move to file descriptor length
+        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+*--------------------------------------------------------------
+* Main 
+*--------------------------------------------------------------
+file.open_main:
+        blwp  @dsrlnk               ; Call DSRLNK 
+        data  8                     ; 
+*--------------------------------------------------------------
+* Check if error occured during file open operation
+*--------------------------------------------------------------        
+        jeq   file.error            ; Jump to error handler 
+*--------------------------------------------------------------
+* Exit
+*--------------------------------------------------------------
+file.open_exit:
+        b     *r11                  ; Return to caller
+
+
+
+
+
+
+***************************************************************
+* file.error - Error handler for file errors
+********@*****@*********************@**************************
+file.error:
+;
+; When errors do occur then equal bit in status register is set (1)
+; If no errors occur, the equal bit in status register is reset (0)
+;
+; So upon returning from DSRLNK in your file handling code you
+; should basically add:
+;
+;       jeq   file.error            ; Jump to error handler 
+;
+*--------------------------------------------------------------
+        jmp   $                     ; A File error occured
+*--------------------------------------------------------------
+* Exit
+*--------------------------------------------------------------
+file.error_exit:
+        b     *r11                  ; Return to caller

@@ -1,66 +1,76 @@
 * FILE......: constants.asm
-* Purpose...: Definition of constants used by runlib modules
+* Purpose...: Constants and equates used by runlib modules
+
 
 ***************************************************************                                     
 *                      Some constants                                                               
 ********@*****@*********************@**************************                                     
-    .ifdef use_osrom_constants                                                                      
-wbit0   equ   >06a6                 ; data >8000  Binary 1000000000000000                           
-wbit1   equ   >023c                 ; data >4000  Binary 0100000000000000                           
-wbit2   data  >2000                 ; data >2000  Binary 0010000000000000                           
-wbit3   equ   >0036                 ; data >1000  Binary 0001000000000000                           
-wbit4   equ   >08c6                 ; data >0800  Binary 0000100000000000                           
-wbit5   equ   >0694                 ; data >0400  Binary 0000010000000000                           
-wbit6   equ   >0030                 ; data >0200  Binary 0000001000000000                           
-wbit7   equ   >002a                 ; data >0100  Binary 0000000100000000                           
-wbit8   equ   >06b0                 ; data >0080  Binary 0000000010000000                           
-wbit9   equ   >101e                 ; data >0040  Binary 0000000001000000                           
-wbit10  equ   >0032                 ; data >0020  Binary 0000000000100000                           
-wbit11  data  >0010                 ; data >0010  Binary 0000000000010000                           
-wbit12  equ   >0012                 ; data >0008  Binary 0000000000001000                           
-wbit13  data  >0004                 ; data >0004  Binary 0000000000000100                           
-wbit14  data  >0002                 ; data >0002  Binary 0000000000000010                           
-wbit15  equ   >0378                 ; data >0001  Binary 0000000000000001                           
-whffff  equ   >0e2c                 ; data >ffff  Binary 1111111111111111                           
-bd0     equ   >0002                 ; byte  0     Digit 0                                           
-bd1     equ   >002a                 ; byte  1     Digit 1                                           
-bd2     equ   >002c                 ; byte  2     Digit 2                                           
-bd3     equ   >003e                 ; byte  3     Digit 3                                           
-bd4     equ   >000e                 ; byte  4     Digit 4                                           
-bd5     equ   >007b                 ; byte  5     Digit 5                                           
-bd6     equ   >004e                 ; byte  6     Digit 6                                           
-bd7     equ   >0090                 ; byte  7     Digit 7                                           
-bd8     equ   >0013                 ; byte  8     Digit 8                                           
-bd9     equ   >0006                 ; byte  9     Digit 9                                           
-bd208   equ   >00a6                 ; byte  208   Digit 208 (>D0)                                   
-    .else                                                                                           
-wbit0   data  >8000                 ; Binary 1000000000000000                                       
-wbit1   data  >4000                 ; Binary 0100000000000000                                       
-wbit2   data  >2000                 ; Binary 0010000000000000                                       
-wbit3   data  >1000                 ; Binary 0001000000000000                                       
-wbit4   data  >0800                 ; Binary 0000100000000000                                       
-wbit5   data  >0400                 ; Binary 0000010000000000                                       
-wbit6   data  >0200                 ; Binary 0000001000000000                                       
-wbit7   data  >0100                 ; Binary 0000000100000000                                       
-wbit8   data  >0080                 ; Binary 0000000010000000                                       
-wbit9   data  >0040                 ; Binary 0000000001000000                                       
-wbit10  data  >0020                 ; Binary 0000000000100000                                       
-wbit11  data  >0010                 ; Binary 0000000000010000                                       
-wbit12  data  >0008                 ; Binary 0000000000001000                                       
-wbit13  data  >0004                 ; Binary 0000000000000100                                       
-wbit14  data  >0002                 ; Binary 0000000000000010                                       
-wbit15  data  >0001                 ; Binary 0000000000000001                                       
-whffff  data  >ffff                 ; Binary 1111111111111111                                       
-bd0     byte  0                     ; Digit 0                                                       
-bd1     byte  1                     ; Digit 1                                                       
-bd2     byte  2                     ; Digit 2                                                       
-bd3     byte  3                     ; Digit 3                                                       
-bd4     byte  4                     ; Digit 4                                                       
-bd5     byte  5                     ; Digit 5                                                       
-bd6     byte  6                     ; Digit 6                                                       
-bd7     byte  7                     ; Digit 7                                                       
-bd8     byte  8                     ; Digit 8                                                       
-bd9     byte  9                     ; Digit 9                                                       
-bd208   byte  208                   ; Digit 208 (>D0)                                               
-        even                                                                                        
-    .endif                                                                                          
+
+---------------------------------------------------------------                                     
+* Word values                                                                                       
+*--------------------------------------------------------------
+;                                   ;       0123456789ABCDEF
+w$0000  data  >0000                 ; >0000 0000000000000000                                       
+w$0001  data  >0001                 ; >0001 0000000000000001
+w$0002  data  >0002                 ; >0002 0000000000000010                                       
+w$0004  data  >0004                 ; >0004 0000000000000100                                       
+w$0008  data  >0008                 ; >0008 0000000000001000                                       
+w$0010  data  >0010                 ; >0010 0000000000010000                                       
+w$0020  data  >0020                 ; >0020 0000000000100000                                       
+w$0040  data  >0040                 ; >0040 0000000001000000                                       
+w$0080  data  >0080                 ; >0080 0000000010000000                                       
+w$0100  data  >0100                 ; >0100 0000000100000000                                       
+w$0200  data  >0200                 ; >0200 0000001000000000                                       
+w$0400  data  >0400                 ; >0400 0000010000000000                                       
+w$0800  data  >0800                 ; >0800 0000100000000000                                       
+w$1000  data  >1000                 ; >1000 0001000000000000                                       
+w$2000  data  >2000                 ; >2000 0010000000000000                                       
+w$4000  data  >4000                 ; >4000 0100000000000000                                       
+w$8000  data  >8000                 ; >8000 1000000000000000 
+w$ffff  data  >ffff                 ; >ffff 1111111111111111
+w$d000  data  >d000                 ; >d000 
+*--------------------------------------------------------------
+* Byte values - High byte (=MSB) for byte operations
+*--------------------------------------------------------------
+hb$00   equ   w$0000                ; >0000                                     
+hb$01   equ   w$0100                ; >0100                                                         
+hb$02   equ   w$0200                ; >0200                                                         
+hb$04   equ   w$0400                ; >0400                                                         
+hb$08   equ   w$0800                ; >0800                                                         
+hb$10   equ   w$1000                ; >1000                                                         
+hb$20   equ   w$2000                ; >2000                                                         
+hb$40   equ   w$4000                ; >4000                                                         
+hb$80   equ   w$8000                ; >8000 
+hb$d0   equ   w$d000                ; >d000                                                        
+*--------------------------------------------------------------
+* Byte values - Low byte (=LSB) for byte operations
+*--------------------------------------------------------------
+lb$00   equ   w$0000                ; >0000
+lb$01   equ   w$0001                ; >0001                                                         
+lb$02   equ   w$0002                ; >0002                                                         
+lb$04   equ   w$0004                ; >0004                                                         
+lb$08   equ   w$0008                ; >0008                                                         
+lb$10   equ   w$0010                ; >0010                                                         
+lb$20   equ   w$0020                ; >0020                                                         
+lb$40   equ   w$0040                ; >0040                                                         
+lb$80   equ   w$0080                ; >0080                                        
+*--------------------------------------------------------------
+* Bit values
+*--------------------------------------------------------------
+;                                   ;       0123456789ABCDEF                                     
+wbit15  equ   w$0001                ; >0001 0000000000000001
+wbit14  equ   w$0002                ; >0002 0000000000000010
+wbit13  equ   w$0004                ; >0004 0000000000000100
+wbit12  equ   w$0008                ; >0008 0000000000001000
+wbit11  equ   w$0010                ; >0010 0000000000010000
+wbit10  equ   w$0020                ; >0020 0000000000100000
+wbit9   equ   w$0040                ; >0040 0000000001000000
+wbit8   equ   w$0080                ; >0080 0000000010000000
+wbit7   equ   w$0100                ; >0100 0000000100000000
+wbit6   equ   w$0200                ; >0200 0000001000000000
+wbit5   equ   w$0400                ; >0400 0000010000000000
+wbit4   equ   w$0800                ; >0800 0000100000000000
+wbit3   equ   w$1000                ; >1000 0001000000000000
+wbit2   equ   w$2000                ; >2000 0010000000000000
+wbit1   equ   w$4000                ; >4000 0100000000000000
+wbit0   equ   w$8000                ; >8000 1000000000000000

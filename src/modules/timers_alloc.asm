@@ -31,7 +31,7 @@ mkslot  mov   *r11+,tmp0
 *--------------------------------------------------------------
 *  Check for end of list
 *--------------------------------------------------------------
-        c     *r11,@whffff          ; End of list ?
+        c     *r11,@w$ffff          ; End of list ?
         jeq   mkslo1                ; Yes, exit
         jmp   mkslot                ; Process next entry
 *--------------------------------------------------------------

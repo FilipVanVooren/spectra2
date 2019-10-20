@@ -55,8 +55,8 @@ yx2pi1  coc   @wbit0,config         ; Skip sprite adjustment ?
 * Adjust for Y sprite location
 * See VDP Programmers Guide, Section 9.2.1
 *--------------------------------------------------------------
-yx2pi2  sb    @bd1,tmp0             ; Adjust Y. Top of screen is at >FF
-        cb    @bd208,tmp0           ; Y position = >D0 ?
+yx2pi2  sb    @hb$01,tmp0           ; Adjust Y. Top of screen is at >FF
+        cb    @hb$d0,tmp0           ; Y position = >D0 ?
         jeq   yx2pi2                ; Yes, but that's not allowed, adjust
 yx2pi3  b     *tmp2                 ; Exit
 *--------------------------------------------------------------

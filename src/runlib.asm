@@ -79,8 +79,7 @@
         copy  "rom_bankswitch.asm"       ; Bank switch routine
     .endif
 
-        copy  "constants.asm"            ; Define constants
-        copy  "values.equ"               ; Equates for word/MSB/LSB-values
+        copy  "constants.asm"            ; Define constants & equates for word/MSB/LSB
         copy  "config.equ"               ; Equates for bits in config register
         copy  "cpu_crash_hndlr.asm"      ; CPU program crashed handler
         copy  "vdp_tables.asm"           ; Data used by runtime library

@@ -48,7 +48,7 @@ mkhex2  swpb  tmp2
 *    Set length byte
 *--------------------------------------------------------------
         mov   @waux3,tmp0           ; Get start of string buffer
-        movb  @bd4,*tmp0            ; Set lengh byte to 4
+        movb  @hb$04,*tmp0          ; Set lengh byte to 4
         inct  r11                   ; Skip Parameter P2
 *--------------------------------------------------------------
 *    Build last 2 bytes in correct order

@@ -342,7 +342,7 @@ ldfnt3  movb  tmp0,@vdpw            ; Dump byte to VRAM
         li    r15,vdpw              ; Set VDP write address
         andi  config,>7fff          ; CONFIG register bit 0=0
         b     *tmp4                 ; Exit
-ldfnt4  movb  @bd0,@vdpw            ; Insert byte >00 into VRAM
+ldfnt4  movb  @hb$00,@vdpw          ; Insert byte >00 into VRAM
         jmp   ldfnt2
 *--------------------------------------------------------------
 * Fonts pointer table

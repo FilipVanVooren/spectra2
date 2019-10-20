@@ -29,7 +29,7 @@ hcharx  srl   tmp1,8                ; Byte to write
 *--------------------------------------------------------------
 *    Do housekeeping
 *--------------------------------------------------------------
-hchar1  c     *tmp3,@whffff         ; End-Of-List marker found ?
+hchar1  c     *tmp3,@w$ffff         ; End-Of-List marker found ?
         jeq   hchar2                ; Yes, exit
         mov   tmp3,r11
         jmp   hchar                 ; Next one

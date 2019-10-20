@@ -16,6 +16,7 @@
 *     1) Speech code based on version of Mark Wills
 *     2) Number conversion based on work of Mathew Hagerty
 *     3) Bold font style based on work of sometimes99er
+*     4) dsrlnk based on MG The Smart Programmer and version of Paolo Bagnaresi
 *******************************************************************************
 * NOTE - TODOS
 * 14-03-2018    bit 10 CONFIG register reserved for alpha lock key down!
@@ -27,14 +28,16 @@
 *               Could use bit 2 instead of bit 12 and repurpose bit 12.
 * 24-11-2018    Add "fctn-quit" mini check that can be used if both
 *               virtual/real keyboard scan are skipped
-* 23-12-2018    Memory (scratchpad) layout in separate file
-*               Task Management in separate file
 * 09-01-2019    Add length check in all memory/vdp/grom copy and fill functions
 *               Also there is some weird bug in xcpy if copying 1 byte!
 *               During the second copy it crashes! Special handling
 *               if length <= 2 bytes required/useful?
 *******************************************************************************
-* v1.3    2019/04   Multiple enhancements
+* v2.0beta
+*         2019      Multiple enhancements
+*         Change    Removed equates to values in TI-99/4a OS ROMS again.
+*         New       Added functioning dsrlnk + file I/O routines. 
+*                   Added scratchpad paging functions
 *         New       All equates moved to own equate files.
 *         Bug-Fix   Removed hardwired registers in sound player prepare routine
 *         New       Added length sanity check in cpym2m and introduced 
@@ -53,7 +56,7 @@
 *         New       New cursor handling functions at, down, up, setx, ...
 *         New       CRC-16 Cyclic Redudancy Check for CPU memory
 *------------------------------------------------------------------------------
-* v1.2    2018/03   Major changes
+* v1.2    2018      Major changes
 *         Bug-fix   Virtual keyboard was missing keys for player 2. Resolved
 *                   by adding "O" (p2 up), "," (p2 down), "K" (p2 left) and
 *                   "L" (p2 right)

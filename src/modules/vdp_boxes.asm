@@ -43,7 +43,7 @@ filbo2  mov   tmp4,tmp0
         a     @w$0100,@by           ; Y=Y+1
         dec   tmp3
         jgt   filbo1                ; Process next row
-        c     *tmp4,@whffff         ; End-Of-List marker found ?
+        c     *tmp4,@w$ffff         ; End-Of-List marker found ?
         jeq   filbo3                ; Yes, exit
         mov   tmp4,r11
         jmp   filbox                ; Next one
@@ -182,7 +182,7 @@ putbo8  mov   *tmp3,tmp1            ; Get P1 into TMP1
 *  Next entry in list
 *--------------------------------------------------------------
 putbo9  mov   @waux2,r11            ; Restore R11
-        c     *r11,@whffff          ; End-Of-List marker found ?
+        c     *r11,@w$ffff          ; End-Of-List marker found ?
         jeq   putboa                ; Yes, exit
         jmp   putbox                ; Next one
 putboa  sla   config,2              ; \ clear config bits 0 & 1

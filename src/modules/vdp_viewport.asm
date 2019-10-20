@@ -84,8 +84,8 @@ view3   bl    @xpyv2m               ; Copy block from VRAM (virtual screen) to R
 *    Copy line from RAM to VRAM
 *--------------------------------------------------------------
 view4   bl    @xpym2v               ; Copy block to VRAM
-        ab    @bd1,@4(tmp4)         ; Physical screen Y=Y+1
-        ab    @bd1,@waux3           ; Virtual screen  Y=Y+1
+        ab    @hb$01,@4(tmp4)       ; Physical screen Y=Y+1
+        ab    @hb$01,@waux3         ; Virtual screen  Y=Y+1
         dec   tmp3                  ; Update row counter
         jne   view1                 ; Next line unless all rows process
 *--------------------------------------------------------------

@@ -32,7 +32,7 @@ vchar2  bl    @vdwa                 ; Setup VDP write address
         a     tmp4,tmp0             ; Next row
         dec   tmp2
         jne   vchar2
-        c     *tmp3,@whffff         ; End-Of-List marker found ?
+        c     *tmp3,@w$ffff         ; End-Of-List marker found ?
         jeq   vchar3                ; Yes, exit
         mov   *tmp3+,@wyx           ; Save YX position
         jmp   vchar1                ; Next one

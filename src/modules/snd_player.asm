@@ -44,7 +44,7 @@ sdprep  mov   *r11,@wsdlst          ; Set tune address
         mov   *r11+,@wsdtmp         ; Set tune address in temp
         andi  config,>fff8          ; Clear bits 13-14-15
         soc   *r11+,config          ; Set options
-        movb  @bd1,@r13lb           ; Set initial duration
+        movb  @hb$01,@r13lb         ; Set initial duration
         b     *r11
 
 ***************************************************************
@@ -63,7 +63,7 @@ sdplay  coc   @wbit13,config        ; Play tune ?
 * Initialisation
 *--------------------------------------------------------------
 sdpla1  dec   r13                   ; duration = duration - 1
-        cb    @r13lb,@bd0           ; R13LB == 0 ?
+        cb    @r13lb,@hb$00         ; R13LB == 0 ?
         jeq   sdpla3                ; Play next note
 sdpla2  b     *r11                  ; Note still busy, exit
 sdpla3  coc   @wbit15,config        ; Play tune from CPU memory ?
@@ -107,7 +107,7 @@ mmpla2  movb  *tmp0+,@>8400         ; Feed byte to sound generator
 sdexit  coc   @wbit14,config        ; Loop flag set ?
         jne   sdexi2                ; No, exit
         mov   @wsdlst,@wsdtmp
-        movb  @bd1,@r13lb           ; Set initial duration
+        movb  @hb$01,@r13lb          ; Set initial duration
 sdexi1  b     *r11                  ; Exit
 sdexi2  andi  config,>fff8          ; Reset music player
         b     *r11                  ; Exit

@@ -280,8 +280,8 @@ dump5   movb  tmp2,*tmp1+           ; Write byte
 *--------------------------------------------------------------
 *  Update position counters
 *--------------------------------------------------------------
-        ab    @bd1,@by              ; Y=Y+1
-        movb  @bd0,@bx              ; X=0
+        ab    @hb$01,@by            ; Y=Y+1
+        movb  @hb$01,@bx            ; X=0
         dec   r2
         jne   dump1
         mov   @memold,@memory       ; Restore current memory address

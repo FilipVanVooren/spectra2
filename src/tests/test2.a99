@@ -74,10 +74,10 @@ main
         mov   @wbit13,*tmp0+
         mov   @wbit14,*tmp0+
         mov   @wbit15,*tmp0+
-        mov   @whffff,*tmp0+
-        movb  @bd0,*tmp0+
-        movb  @bd1,*tmp0+
-        movb  @bd2,*tmp0+
+        mov   @w$ffff,*tmp0+
+        movb  @hb$00,*tmp0+
+        movb  @hb$01,*tmp0+
+        movb  @hb$02,*tmp0+
         movb  @bd3,*tmp0+
         movb  @bd4,*tmp0+
         movb  @bd5,*tmp0+
@@ -85,5 +85,5 @@ main
         movb  @bd7,*tmp0+
         movb  @bd8,*tmp0+
         movb  @bd9,*tmp0+
-        movb  @bd208,*tmp0+
+        movb  @hb$d0,*tmp0+
         b     @kernel
