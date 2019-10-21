@@ -27,9 +27,9 @@ cpym2m  mov   *r11+,tmp0            ; Memory source address
 *--------------------------------------------------------------
 * Do some checks first
 *--------------------------------------------------------------
-xpym2m  mov    tmp2,tmp2            ; Bytes to copy = 0 ?
-        jne    cpym0 
-        b      @crash               ; Yes, crash
+xpym2m  mov   tmp2,tmp2             ; Bytes to copy = 0 ?
+        jne   cpym0 
+        b     @crash_handler        ; Yes, crash
 cpym0   andi  config,>7fff          ; Clear CONFIG bit 0
         mov   tmp0,tmp3
         andi  tmp3,1

@@ -30,7 +30,7 @@ trim_left_move:
         ;----------------------------------------------------------------------
         cb    *tmp0,tmp2            ; Do we have a fill character?
         mov   tmp3,tmp3             ; String length = 0 ?
-        jeq   trim_left_panic
+        jeq   trim_left_panic       ; File length assert
    
         mov   tmp3,tmp2       
         swpb  tmp3                  ; HI <-> LO
@@ -44,6 +44,4 @@ trim_left_exit:
         b     *r11                  ; Return 
          
 trim_left_panic:
-        blwp  @0                    ; Emergency exit 
-
-        b     *r11                  ; Return
+        b     @crash_handler        ; System halted

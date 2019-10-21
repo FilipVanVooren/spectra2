@@ -1,4 +1,4 @@
-* FILE......: memsetup.equ
+* FILE......: memsetup.asm
 * Purpose...: Equates for memory setup
 
 ***************************************************************                                     

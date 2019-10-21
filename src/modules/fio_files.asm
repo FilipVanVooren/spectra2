@@ -97,9 +97,4 @@ file.error:
 ;       jeq   file.error            ; Jump to error handler 
 ;
 *--------------------------------------------------------------
-        jmp   $                     ; A File error occured
-*--------------------------------------------------------------
-* Exit
-*--------------------------------------------------------------
-file.error_exit:
-        b     *r11                  ; Return to caller
+        b     @crash_handler        ; A File error occured

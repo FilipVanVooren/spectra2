@@ -70,17 +70,17 @@
 *                       RUNLIB SETUP
 *//////////////////////////////////////////////////////////////
 
-        copy  "memsetup.equ"             ; runlib scratchpad memory setup
-        copy  "registers.equ"            ; runlib registers
-        copy  "portaddr.equ"             ; runlib hardware port addresses
-        copy  "param.equ"                ; runlib parameters
+        copy  "memsetup.asm"             ; runlib scratchpad memory setup
+        copy  "registers.asm"            ; runlib registers
+        copy  "portaddr.asm"             ; runlib hardware port addresses
+        copy  "param.asm"                ; runlib parameters
 
     .ifndef skip_rom_bankswitch
         copy  "rom_bankswitch.asm"       ; Bank switch routine
     .endif
 
         copy  "constants.asm"            ; Define constants & equates for word/MSB/LSB
-        copy  "config.equ"               ; Equates for bits in config register
+        copy  "config.asm"               ; Equates for bits in config register
         copy  "cpu_crash_hndlr.asm"      ; CPU program crashed handler
         copy  "vdp_tables.asm"           ; Data used by runtime library
         copy  "basic_cpu_vdp.asm"        ; Basic CPU & VDP functions
@@ -225,9 +225,12 @@
 *  B  @RUNLIB
 *--------------------------------------------------------------
 *  REMARKS
+*  if R0 in WS1 equals >4a4a we were called from the system
+*  crash handler so we return there after initialisation.
+
 *  If R1 in WS1 equals >FFFF we return to the TI title screen
-*  after clearing scratchpad memory.
-*  Use 'B @RUNLI1' to exit your program.
+*  after clearing scratchpad memory. This has higher priority 
+*  as crash handler flag R0.
 ********@*****@*********************@**************************
     .ifdef startup_backup_scrpad
 runlib  bl    @mem.scrpad.backup    ; Backup scratchpad memory to @>2000
@@ -251,6 +254,7 @@ runli3  clr   *r2+                  ; Clear scratchpad >8306->83FF
 *--------------------------------------------------------------
 * Exit to TI-99/4A title screen ?
 *--------------------------------------------------------------
+runli3a
         ci    r1,>ffff              ; Exit flag set ?
         jne   runli4                ; No, continue
         blwp  @0                    ; Yes, bye bye
@@ -330,7 +334,13 @@ runlic  bl    @vidtab               ; Load video mode table into VDP
         bl    @ldfnt
         data  fntadr,spfont         ; Load specified font
 *--------------------------------------------------------------
+* Did a system crash occur before runlib was called?
+*--------------------------------------------------------------
+runlid  ci    r0,>4a4a              ; Crash flag set?
+        jne   runlie                ; No, continue
+        b     @crash_handler.main   ; Yes, back to crash handler
+*--------------------------------------------------------------
 * Branch to main program
 *--------------------------------------------------------------
-runlid  ori   config,>0040          ; Enable kernel thread (bit 9 on)
+runlie  ori   config,>0040          ; Enable kernel thread (bit 9 on)
         b     @main                 ; Give control to main program

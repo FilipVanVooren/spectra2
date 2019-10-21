@@ -1,4 +1,4 @@
-* FILE......: config.equ
+* FILE......: config.asm
 * Purpose...: Equates for bits in config register
 
 ***************************************************************                                     
