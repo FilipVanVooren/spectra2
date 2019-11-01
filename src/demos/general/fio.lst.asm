@@ -1,5 +1,5 @@
 XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
-**** **** ****     > fio.asm.9391
+**** **** ****     > fio.asm.22783
 0001               ***************************************************************
 0002               *
 0003               *                          File I/O test
@@ -7,7 +7,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0005               *                (c)2018-2019 // Filip van Vooren
 0006               *
 0007               ***************************************************************
-0008               * File: fio.asm                     ; Version 191021-9391
+0008               * File: fio.asm                     ; Version 191101-22783
 0009               *--------------------------------------------------------------
 0010               * 2018-04-01   Development started
 0011               ********@*****@*********************@**************************
@@ -55,16 +55,17 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
      600C 0000 
      600E 0000 
 0050 6010 0000     prog0   data  0                     ; No more items following
-0051 6012 7182             data  runlib
-0053               
-0054 6014 1446             byte  20
-0055 6015 ....             text  'FIO TEST 191021-9391'
-0056                       even
-0057               
-0065               *--------------------------------------------------------------
-0066               * Include required files
-0067               *--------------------------------------------------------------
-0068                       copy  "/2TBHDD/bitbucket/projects/ti994a/spectra2/src/runlib.asm"
+0051 6012 71D8             data  runlib
+0052               ;       data  haltme
+0054               
+0055 6014 1546             byte  21
+0056 6015 ....             text  'FIO TEST 191101-22783'
+0057                       even
+0058               
+0066               *--------------------------------------------------------------
+0067               * Include required files
+0068               *--------------------------------------------------------------
+0069                       copy  "/2TBHDD/bitbucket/projects/ti994a/spectra2/src/runlib.asm"
 **** **** ****     > runlib.asm
 0001               *******************************************************************************
 0002               *              ___  ____  ____  ___  ____  ____    __    ___
@@ -461,34 +462,30 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0009               ***************************************************************
 0010               * crash - CPU program crashed handler
 0011               ***************************************************************
-0012               *  bl @crash_handler
-0013               *--------------------------------------------------------------
-0014               *  REMARKS
-0015               *  Is expected to be called via bl statement so that R11
-0016               *  contains address that triggered us
-0017               ********@*****@*********************@**************************
-0018               crash_handler:
-0019 6050 02E0  18         lwpi  ws1                   ; Activate workspace 1
+0012               *  b  @crash_handler
+0013               ********@*****@*********************@**************************
+0014               crash_handler:
+0015 6050 02E0  18         lwpi  ws1                   ; Activate workspace 1
      6052 8300 
-0020 6054 04E0  34         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
+0016 6054 04E0  34         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
      6056 8302 
-0021 6058 0200  20         li    r0,>4a4a              ; Note that a crash occured (Flag = >4a4a)
+0017 6058 0200  20         li    r0,>4a4a              ; Note that a crash occured (Flag = >4a4a)
      605A 4A4A 
-0022 605C 0460  28         b     @runli1               ; Initialize system again (VDP, Memory, etc.)
-     605E 718A 
-0023               
-0024               crash_handler.main:
-0025 6060 06A0  32         bl    @putat                ; Show crash message
+0018 605C 0460  28         b     @runli1               ; Initialize system again (VDP, Memory, etc.)
+     605E 71E0 
+0019               
+0020               crash_handler.main:
+0021 6060 06A0  32         bl    @putat                ; Show crash message
      6062 626E 
-0026 6064 0000             data  >0000,crash_handler.message
+0022 6064 0000             data  >0000,crash_handler.message
      6066 606A 
-0027 6068 10FF  14         jmp   $
+0023 6068 10FF  14         jmp   $
+0024               
+0025               crash_handler.message:
+0026 606A 0F53             byte  15
+0027 606B ....             text  'System crashed.'
 0028               
-0029               crash_handler.message:
-0030 606A 0F53             byte  15
-0031 606B ....             text  'System crashed.'
-0032               
-0033               
+0029               
 **** **** ****     > runlib.asm
 0085                       copy  "vdp_tables.asm"           ; Data used by runtime library
 **** **** ****     > vdp_tables.asm
@@ -1237,9 +1234,9 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0027               *--------------------------------------------------------------
 0028               * Do some checks first
 0029               *--------------------------------------------------------------
-0030 62C4 C186  18 xpym2m  mov    tmp2,tmp2            ; Bytes to copy = 0 ?
-0031 62C6 1602  14         jne    cpym0
-0032 62C8 06A0  32         bl     @crash_handler       ; Yes, crash
+0030 62C4 C186  18 xpym2m  mov   tmp2,tmp2             ; Bytes to copy = 0 ?
+0031 62C6 1602  14         jne   cpym0
+0032 62C8 0460  28         b     @crash_handler        ; Yes, crash
      62CA 6050 
 0033 62CC 0242  22 cpym0   andi  config,>7fff          ; Clear CONFIG bit 0
      62CE 7FFF 
@@ -1731,7 +1728,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0143 644A 1603  14         jne   virtk8                ; No
 0144 644C 0701  14         seto  r1                    ; Set exit flag
 0145 644E 0460  28         b     @runli1               ; Yes, reset computer
-     6450 718A 
+     6450 71E0 
 0146 6452 0286  22 virtk8  ci    tmp2,kalpha           ; Only alpha-lock pressed ?
      6454 8000 
 0147 6456 1602  14         jne   virtk9
@@ -3825,69 +3822,216 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0039      001E     io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 0040               
 0041               
-0042               
-0043               ***************************************************************
-0044               * file.open - Open File for procesing
-0045               ***************************************************************
-0046               *  bl   @file.open
-0047               *  data P0
-0048               *--------------------------------------------------------------
-0049               *  P0 = Address of PAB in CPU RAM (without +9 offset!)
-0050               *--------------------------------------------------------------
-0051               *  bl   @xfile.open
-0052               *
-0053               *  R0 = Address of PAB in CPU RAM
-0054               ********@*****@*********************@**************************
-0055               file.open:
-0056 70A6 C03B  30         mov   *r11+,r0              ; Get file descriptor (P0)
-0057               *--------------------------------------------------------------
-0058               * Initialisation
-0059               *--------------------------------------------------------------
-0060               xfile.open:
-0061 70A8 1000  14         nop
-0062               file.open_init:
-0063 70AA 0220  22         ai    r0,9                  ; Move to file descriptor length
-     70AC 0009 
-0064 70AE C800  38         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-     70B0 8356 
-0065               *--------------------------------------------------------------
-0066               * Main
-0067               *--------------------------------------------------------------
-0068               file.open_main:
-0069 70B2 0420  54         blwp  @dsrlnk               ; Call DSRLNK
-     70B4 6F90 
-0070 70B6 0008             data  8                     ;
-0071               *--------------------------------------------------------------
-0072               * Check if error occured during file open operation
-0073               *--------------------------------------------------------------
-0074 70B8 1301  14         jeq   file.error            ; Jump to error handler
+0042               ***************************************************************
+0043               * PAB  - Peripheral Access Block
+0044               ********@*****@*********************@**************************
+0045               ; my_pab:
+0046               ;       byte  io.op.open            ;  0    - OPEN
+0047               ;       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
+0048               ;       data  vrecbuf               ;  2-3  - Record buffer in VDP memory
+0049               ;       byte  80                    ;  4    - Record length (80 characters maximum)
+0050               ;       byte  80                    ;  5    - Character count
+0051               ;       data  >0000                 ;  6-7  - Seek record (only for fixed records)
+0052               ;       byte  >00                   ;  8    - Screen offset (cassette DSR only)
+0053               ; -------------------------------------------------------------
+0054               ;       byte  11                    ;  9    - File descriptor length
+0055               ;       text 'DSK1.MYFILE'          ; 10-.. - File descriptor (Device + '.' + File name)
+0056               ;       even
+0057               ***************************************************************
+0058               
+0059               
+0060               
+0061               ***************************************************************
+0062               * file.open - Open File for procesing
+0063               ***************************************************************
+0064               *  bl   @file.open
+0065               *  data P0
+0066               *--------------------------------------------------------------
+0067               *  P0 = Address of PAB in VDP RAM
+0068               *--------------------------------------------------------------
+0069               *  bl   @xfile.open
+0070               *
+0071               *  R0 = Address of PAB in VDP RAM
+0072               ********@*****@*********************@**************************
+0073               file.open:
+0074 70A6 C03B  30         mov   *r11+,r0              ; Get file descriptor (P0)
 0075               *--------------------------------------------------------------
-0076               * Exit
+0076               * Initialisation
 0077               *--------------------------------------------------------------
-0078               file.open_exit:
-0079 70BA 045B  20         b     *r11                  ; Return to caller
-0080               
-0081               
-0082               
-0083               
-0084               
-0085               
-0086               ***************************************************************
-0087               * file.error - Error handler for file errors
-0088               ********@*****@*********************@**************************
-0089               file.error:
-0090               ;
-0091               ; When errors do occur then equal bit in status register is set (1)
-0092               ; If no errors occur, the equal bit in status register is reset (0)
-0093               ;
-0094               ; So upon returning from DSRLNK in your file handling code you
-0095               ; should basically add:
-0096               ;
-0097               ;       jeq   file.error            ; Jump to error handler
-0098               ;
-0099               *--------------------------------------------------------------
-0100 70BC 0460  28         b     @crash_handler        ; A File error occured
-     70BE 6050 
+0078               xfile.open:
+0079 70A8 C04B  18         mov   r11,r1                ; Save return address
+0080 70AA C100  18         mov   r0,tmp0               ; VDP write address (PAB byte 0)
+0081 70AC 04C5  14         clr   tmp1                  ; io.op.open
+0082 70AE 06A0  32         bl    @xvputb               ; Write file opcode to VDP
+     70B0 611A 
+0083               file.open_init:
+0084 70B2 0220  22         ai    r0,9                  ; Move to file descriptor length
+     70B4 0009 
+0085 70B6 C800  38         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+     70B8 8356 
+0086               *--------------------------------------------------------------
+0087               * Main
+0088               *--------------------------------------------------------------
+0089               file.open_main:
+0090 70BA 0420  54         blwp  @dsrlnk               ; Call DSRLNK
+     70BC 6F90 
+0091 70BE 0008             data  8                     ; Level 2 IO
+0092               *--------------------------------------------------------------
+0093               * Check if error occured during file open operation
+0094               *--------------------------------------------------------------
+0095 70C0 1328  14         jeq   file.error            ; Jump to error handler
+0096               *--------------------------------------------------------------
+0097               * Exit
+0098               *--------------------------------------------------------------
+0099               file.open_exit:
+0100 70C2 0451  20         b     *r1                   ; Return to caller
+0101               
+0102               
+0103               
+0104               ***************************************************************
+0105               * file.close - Close currently open file
+0106               ***************************************************************
+0107               *  bl   @file.close
+0108               *  data P0
+0109               *--------------------------------------------------------------
+0110               *  P0 = Address of PAB in CPU RAM
+0111               *--------------------------------------------------------------
+0112               *  bl   @xfile.close
+0113               *
+0114               *  R0 = Address of PAB in CPU RAM
+0115               ********@*****@*********************@**************************
+0116               file.close:
+0117 70C4 C03B  30         mov   *r11+,r0              ; Get file descriptor (P0)
+0118               *--------------------------------------------------------------
+0119               * Initialisation
+0120               *--------------------------------------------------------------
+0121               xfile.close:
+0122 70C6 C04B  18         mov   r11,r1                ; Save return address
+0123 70C8 C100  18         mov   r0,tmp0               ; VDP write address (PAB byte 0)
+0124 70CA 0205  20         li    tmp1,io.op.close      ; io.op.close
+     70CC 0001 
+0125 70CE 06A0  32         bl    @xvputb               ; Write file opcode to VDP
+     70D0 611A 
+0126               file.close_init:
+0127 70D2 0220  22         ai    r0,9                  ; Move to file descriptor length
+     70D4 0009 
+0128 70D6 C800  38         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+     70D8 8356 
+0129               *--------------------------------------------------------------
+0130               * Main
+0131               *--------------------------------------------------------------
+0132               file.close_main:
+0133 70DA 0420  54         blwp  @dsrlnk               ; Call DSRLNK
+     70DC 6F90 
+0134 70DE 0008             data  8                     ;
+0135               *--------------------------------------------------------------
+0136               * Check if error occured during file open operation
+0137               *--------------------------------------------------------------
+0138 70E0 1318  14         jeq   file.error            ; Jump to error handler
+0139               *--------------------------------------------------------------
+0140               * Exit
+0141               *--------------------------------------------------------------
+0142               file.close_exit:
+0143 70E2 0451  20         b     *r1                   ; Return to caller
+0144               
+0145               
+0146               
+0147               
+0148               
+0149               ***************************************************************
+0150               * file.record.read - Read record from file
+0151               ***************************************************************
+0152               *  bl   @file.record.read
+0153               *  data P0
+0154               *--------------------------------------------------------------
+0155               *  P0 = Address of PAB in CPU RAM (without +9 offset!)
+0156               *--------------------------------------------------------------
+0157               *  bl   @xfile.record.read
+0158               *
+0159               *  R0 = Address of PAB in CPU RAM
+0160               ********@*****@*********************@**************************
+0161               file.record.read:
+0162 70E4 C03B  30         mov   *r11+,r0              ; Get file descriptor (P0)
+0163               *--------------------------------------------------------------
+0164               * Initialisation
+0165               *--------------------------------------------------------------
+0166               xfile.record.read:
+0167 70E6 C04B  18         mov   r11,r1                ; Save return address
+0168 70E8 C100  18         mov   r0,tmp0               ; VDP write address (PAB byte 0)
+0169 70EA 0205  20         li    tmp1,io.op.read       ; io.op.read
+     70EC 0002 
+0170 70EE 06A0  32         bl    @xvputb               ; Write file opcode to VDP
+     70F0 611A 
+0171               file.record.read_init:
+0172 70F2 0220  22         ai    r0,9                  ; Move to file descriptor length
+     70F4 0009 
+0173 70F6 C800  38         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+     70F8 8356 
+0174               *--------------------------------------------------------------
+0175               * Main
+0176               *--------------------------------------------------------------
+0177               file.record.read_main:
+0178 70FA 0420  54         blwp  @dsrlnk               ; Call DSRLNK
+     70FC 6F90 
+0179 70FE 0008             data  8                     ;
+0180               *--------------------------------------------------------------
+0181               * Check if error occured during file open operation
+0182               *--------------------------------------------------------------
+0183 7100 1308  14         jeq   file.error            ; Jump to error handler
+0184               *--------------------------------------------------------------
+0185               * Exit
+0186               *--------------------------------------------------------------
+0187               file.record.read_exit:
+0188 7102 0451  20         b     *r1                   ; Return to caller
+0189               
+0190               
+0191               
+0192               
+0193               file.record.write:
+0194 7104 1000  14         nop
+0195               
+0196               file.record.seek:
+0197 7106 1000  14         nop
+0198               
+0199               
+0200               file.image.load:
+0201 7108 1000  14         nop
+0202               
+0203               
+0204               file.image.save:
+0205 710A 1000  14         nop
+0206               
+0207               
+0208               file.delete:
+0209 710C 1000  14         nop
+0210               
+0211               
+0212               file.rename:
+0213 710E 1000  14         nop
+0214               
+0215               
+0216               file.status:
+0217 7110 1000  14         nop
+0218               
+0219               
+0220               
+0221               
+0222               ***************************************************************
+0223               * file.error - Error handler for file errors
+0224               ********@*****@*********************@**************************
+0225               file.error:
+0226               ;
+0227               ; When errors do occur then equal bit in status register is set (1)
+0228               ; If no errors occur, then equal bit in status register is reset (0)
+0229               ;
+0230               ; So upon returning from DSRLNK in your file handling code you
+0231               ; should basically add:
+0232               ;
+0233               ;       jeq   file.error            ; Jump to error handler
+0234               ;
+0235               *--------------------------------------------------------------
+0236 7112 0460  28         b     @crash_handler        ; A File error occured
+     7114 6050 
 **** **** ****     > runlib.asm
 0201               
 0202               
@@ -3917,118 +4061,118 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0017               *  TMP2  = 2nd word of slot data
 0018               *  TMP3  = Address of routine to call
 0019               ********@*****@*********************@**************************
-0020 70C0 0300  24 tmgr    limi  0                     ; No interrupt processing
-     70C2 0000 
+0020 7116 0300  24 tmgr    limi  0                     ; No interrupt processing
+     7118 0000 
 0021               *--------------------------------------------------------------
 0022               * Read VDP status register
 0023               *--------------------------------------------------------------
-0024 70C4 D360  34 tmgr1   movb  @vdps,r13             ; Save copy of VDP status register in R13
-     70C6 8802 
+0024 711A D360  34 tmgr1   movb  @vdps,r13             ; Save copy of VDP status register in R13
+     711C 8802 
 0025               *--------------------------------------------------------------
 0026               * Latch sprite collision flag
 0027               *--------------------------------------------------------------
-0028 70C8 2360  38         coc   @wbit2,r13            ; C flag on ?
-     70CA 6046 
-0029 70CC 1602  14         jne   tmgr1a                ; No, so move on
-0030 70CE E0A0  34         soc   @wbit12,config        ; Latch bit 12 in config register
-     70D0 6032 
+0028 711E 2360  38         coc   @wbit2,r13            ; C flag on ?
+     7120 6046 
+0029 7122 1602  14         jne   tmgr1a                ; No, so move on
+0030 7124 E0A0  34         soc   @wbit12,config        ; Latch bit 12 in config register
+     7126 6032 
 0031               *--------------------------------------------------------------
 0032               * Interrupt flag
 0033               *--------------------------------------------------------------
-0034 70D2 2360  38 tmgr1a  coc   @wbit0,r13            ; Interupt flag set ?
-     70D4 604A 
-0035 70D6 1311  14         jeq   tmgr4                 ; Yes, process slots 0..n
+0034 7128 2360  38 tmgr1a  coc   @wbit0,r13            ; Interupt flag set ?
+     712A 604A 
+0035 712C 1311  14         jeq   tmgr4                 ; Yes, process slots 0..n
 0036               *--------------------------------------------------------------
 0037               * Run speech player
 0038               *--------------------------------------------------------------
 0044               *--------------------------------------------------------------
 0045               * Run kernel thread
 0046               *--------------------------------------------------------------
-0047 70D8 20A0  38 tmgr2   coc   @wbit8,config         ; Kernel thread blocked ?
-     70DA 603A 
-0048 70DC 1305  14         jeq   tmgr3                 ; Yes, skip to user hook
-0049 70DE 20A0  38         coc   @wbit9,config         ; Kernel thread enabled ?
-     70E0 6038 
-0050 70E2 1602  14         jne   tmgr3                 ; No, skip to user hook
-0051 70E4 0460  28         b     @kthread              ; Run kernel thread
-     70E6 715E 
+0047 712E 20A0  38 tmgr2   coc   @wbit8,config         ; Kernel thread blocked ?
+     7130 603A 
+0048 7132 1305  14         jeq   tmgr3                 ; Yes, skip to user hook
+0049 7134 20A0  38         coc   @wbit9,config         ; Kernel thread enabled ?
+     7136 6038 
+0050 7138 1602  14         jne   tmgr3                 ; No, skip to user hook
+0051 713A 0460  28         b     @kthread              ; Run kernel thread
+     713C 71B4 
 0052               *--------------------------------------------------------------
 0053               * Run user hook
 0054               *--------------------------------------------------------------
-0055 70E8 20A0  38 tmgr3   coc   @wbit6,config         ; User hook blocked ?
-     70EA 603E 
-0056 70EC 13EB  14         jeq   tmgr1
-0057 70EE 20A0  38         coc   @wbit7,config         ; User hook enabled ?
-     70F0 603C 
-0058 70F2 16E8  14         jne   tmgr1
-0059 70F4 C120  34         mov   @wtiusr,tmp0
-     70F6 832E 
-0060 70F8 0454  20         b     *tmp0                 ; Run user hook
+0055 713E 20A0  38 tmgr3   coc   @wbit6,config         ; User hook blocked ?
+     7140 603E 
+0056 7142 13EB  14         jeq   tmgr1
+0057 7144 20A0  38         coc   @wbit7,config         ; User hook enabled ?
+     7146 603C 
+0058 7148 16E8  14         jne   tmgr1
+0059 714A C120  34         mov   @wtiusr,tmp0
+     714C 832E 
+0060 714E 0454  20         b     *tmp0                 ; Run user hook
 0061               *--------------------------------------------------------------
 0062               * Do internal housekeeping
 0063               *--------------------------------------------------------------
-0064 70FA 40A0  34 tmgr4   szc   @tmdat,config         ; Unblock kernel thread and user hook
-     70FC 715C 
-0065 70FE C10A  18         mov   r10,tmp0
-0066 7100 0244  22         andi  tmp0,>00ff            ; Clear HI byte
-     7102 00FF 
-0067 7104 20A0  38         coc   @wbit2,config         ; PAL flag set ?
-     7106 6046 
-0068 7108 1303  14         jeq   tmgr5
-0069 710A 0284  22         ci    tmp0,60               ; 1 second reached ?
-     710C 003C 
-0070 710E 1002  14         jmp   tmgr6
-0071 7110 0284  22 tmgr5   ci    tmp0,50
-     7112 0032 
-0072 7114 1101  14 tmgr6   jlt   tmgr7                 ; No, continue
-0073 7116 1001  14         jmp   tmgr8
-0074 7118 058A  14 tmgr7   inc   r10                   ; Increase tick counter
+0064 7150 40A0  34 tmgr4   szc   @tmdat,config         ; Unblock kernel thread and user hook
+     7152 71B2 
+0065 7154 C10A  18         mov   r10,tmp0
+0066 7156 0244  22         andi  tmp0,>00ff            ; Clear HI byte
+     7158 00FF 
+0067 715A 20A0  38         coc   @wbit2,config         ; PAL flag set ?
+     715C 6046 
+0068 715E 1303  14         jeq   tmgr5
+0069 7160 0284  22         ci    tmp0,60               ; 1 second reached ?
+     7162 003C 
+0070 7164 1002  14         jmp   tmgr6
+0071 7166 0284  22 tmgr5   ci    tmp0,50
+     7168 0032 
+0072 716A 1101  14 tmgr6   jlt   tmgr7                 ; No, continue
+0073 716C 1001  14         jmp   tmgr8
+0074 716E 058A  14 tmgr7   inc   r10                   ; Increase tick counter
 0075               *--------------------------------------------------------------
 0076               * Loop over slots
 0077               *--------------------------------------------------------------
-0078 711A C120  34 tmgr8   mov   @wtitab,tmp0          ; Pointer to timer table
-     711C 832C 
-0079 711E 024A  22         andi  r10,>ff00             ; Use R10LB as slot counter. Reset.
-     7120 FF00 
-0080 7122 C1D4  26 tmgr9   mov   *tmp0,tmp3            ; Is slot empty ?
-0081 7124 1316  14         jeq   tmgr11                ; Yes, get next slot
+0078 7170 C120  34 tmgr8   mov   @wtitab,tmp0          ; Pointer to timer table
+     7172 832C 
+0079 7174 024A  22         andi  r10,>ff00             ; Use R10LB as slot counter. Reset.
+     7176 FF00 
+0080 7178 C1D4  26 tmgr9   mov   *tmp0,tmp3            ; Is slot empty ?
+0081 717A 1316  14         jeq   tmgr11                ; Yes, get next slot
 0082               *--------------------------------------------------------------
 0083               *  Check if slot should be executed
 0084               *--------------------------------------------------------------
-0085 7126 05C4  14         inct  tmp0                  ; Second word of slot data
-0086 7128 0594  26         inc   *tmp0                 ; Update tick count in slot
-0087 712A C194  26         mov   *tmp0,tmp2            ; Get second word of slot data
-0088 712C 9820  54         cb    @tmp2hb,@tmp2lb       ; Slot target count = Slot internal counter ?
-     712E 830C 
-     7130 830D 
-0089 7132 1608  14         jne   tmgr10                ; No, get next slot
-0090 7134 0246  22         andi  tmp2,>ff00            ; Clear internal counter
-     7136 FF00 
-0091 7138 C506  30         mov   tmp2,*tmp0            ; Update timer table
+0085 717C 05C4  14         inct  tmp0                  ; Second word of slot data
+0086 717E 0594  26         inc   *tmp0                 ; Update tick count in slot
+0087 7180 C194  26         mov   *tmp0,tmp2            ; Get second word of slot data
+0088 7182 9820  54         cb    @tmp2hb,@tmp2lb       ; Slot target count = Slot internal counter ?
+     7184 830C 
+     7186 830D 
+0089 7188 1608  14         jne   tmgr10                ; No, get next slot
+0090 718A 0246  22         andi  tmp2,>ff00            ; Clear internal counter
+     718C FF00 
+0091 718E C506  30         mov   tmp2,*tmp0            ; Update timer table
 0092               *--------------------------------------------------------------
 0093               *  Run slot, we only need TMP0 to survive
 0094               *--------------------------------------------------------------
-0095 713A C804  38         mov   tmp0,@wtitmp          ; Save TMP0
-     713C 8330 
-0096 713E 0697  24         bl    *tmp3                 ; Call routine in slot
-0097 7140 C120  34 slotok  mov   @wtitmp,tmp0          ; Restore TMP0
-     7142 8330 
+0095 7190 C804  38         mov   tmp0,@wtitmp          ; Save TMP0
+     7192 8330 
+0096 7194 0697  24         bl    *tmp3                 ; Call routine in slot
+0097 7196 C120  34 slotok  mov   @wtitmp,tmp0          ; Restore TMP0
+     7198 8330 
 0098               *--------------------------------------------------------------
 0099               *  Prepare for next slot
 0100               *--------------------------------------------------------------
-0101 7144 058A  14 tmgr10  inc   r10                   ; Next slot
-0102 7146 9820  54         cb    @r10lb,@btihi         ; Last slot done ?
-     7148 8315 
-     714A 8314 
-0103 714C 1504  14         jgt   tmgr12                ; yes, Wait for next VDP interrupt
-0104 714E 05C4  14         inct  tmp0                  ; Offset for next slot
-0105 7150 10E8  14         jmp   tmgr9                 ; Process next slot
-0106 7152 05C4  14 tmgr11  inct  tmp0                  ; Skip 2nd word of slot data
-0107 7154 10F7  14         jmp   tmgr10                ; Process next slot
-0108 7156 024A  22 tmgr12  andi  r10,>ff00             ; Use R10LB as tick counter. Reset.
-     7158 FF00 
-0109 715A 10B4  14         jmp   tmgr1
-0110 715C 0280     tmdat   data  >0280                 ; Bit 8 (kernel thread) and bit 6 (user hook)
+0101 719A 058A  14 tmgr10  inc   r10                   ; Next slot
+0102 719C 9820  54         cb    @r10lb,@btihi         ; Last slot done ?
+     719E 8315 
+     71A0 8314 
+0103 71A2 1504  14         jgt   tmgr12                ; yes, Wait for next VDP interrupt
+0104 71A4 05C4  14         inct  tmp0                  ; Offset for next slot
+0105 71A6 10E8  14         jmp   tmgr9                 ; Process next slot
+0106 71A8 05C4  14 tmgr11  inct  tmp0                  ; Skip 2nd word of slot data
+0107 71AA 10F7  14         jmp   tmgr10                ; Process next slot
+0108 71AC 024A  22 tmgr12  andi  r10,>ff00             ; Use R10LB as tick counter. Reset.
+     71AE FF00 
+0109 71B0 10B4  14         jmp   tmgr1
+0110 71B2 0280     tmdat   data  >0280                 ; Bit 8 (kernel thread) and bit 6 (user hook)
 0111               
 **** **** ****     > runlib.asm
 0209                       copy  "timers_kthread.asm"       ; Timers / Kernel thread
@@ -4047,8 +4191,8 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0012               *  The kernel thread is responsible for running the sound
 0013               *  player and doing keyboard scan.
 0014               ********@*****@*********************@**************************
-0015 715E E0A0  34 kthread soc   @wbit8,config         ; Block kernel thread
-     7160 603A 
+0015 71B4 E0A0  34 kthread soc   @wbit8,config         ; Block kernel thread
+     71B6 603A 
 0016               *--------------------------------------------------------------
 0017               * Run sound player
 0018               *--------------------------------------------------------------
@@ -4057,17 +4201,17 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0027               * Scan virtual keyboard
 0028               *--------------------------------------------------------------
 0029               kthread_kb
-0033 7162 06A0  32         bl    @virtkb               ; Scan virtual keyboard
-     7164 63E2 
+0033 71B8 06A0  32         bl    @virtkb               ; Scan virtual keyboard
+     71BA 63E2 
 0035               *--------------------------------------------------------------
 0036               * Scan real keyboard
 0037               *--------------------------------------------------------------
-0041 7166 06A0  32         bl    @realkb               ; Scan full keyboard
-     7168 64D2 
+0041 71BC 06A0  32         bl    @realkb               ; Scan full keyboard
+     71BE 64D2 
 0043               *--------------------------------------------------------------
 0044               kthread_exit
-0045 716A 0460  28         b     @tmgr3                ; Exit
-     716C 70E8 
+0045 71C0 0460  28         b     @tmgr3                ; Exit
+     71C2 713E 
 **** **** ****     > runlib.asm
 0210                       copy  "timers_hooks.asm"         ; Timers / User hooks
 **** **** ****     > timers_hooks.asm
@@ -4087,12 +4231,12 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0014               *  The user hook gets executed after the kernel thread.
 0015               *  The user hook must always exit with "B @HOOKOK"
 0016               ********@*****@*********************@**************************
-0017 716E C83B  50 mkhook  mov   *r11+,@wtiusr         ; Set user hook address
-     7170 832E 
-0018 7172 E0A0  34         soc   @wbit7,config         ; Enable user hook
-     7174 603C 
-0019 7176 045B  20 mkhoo1  b     *r11                  ; Return
-0020      70C4     hookok  equ   tmgr1                 ; Exit point for user hook
+0017 71C4 C83B  50 mkhook  mov   *r11+,@wtiusr         ; Set user hook address
+     71C6 832E 
+0018 71C8 E0A0  34         soc   @wbit7,config         ; Enable user hook
+     71CA 603C 
+0019 71CC 045B  20 mkhoo1  b     *r11                  ; Return
+0020      711A     hookok  equ   tmgr1                 ; Exit point for user hook
 0021               
 0022               
 0023               ***************************************************************
@@ -4100,11 +4244,11 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0025               ***************************************************************
 0026               *  BL    @CLHOOK
 0027               ********@*****@*********************@**************************
-0028 7178 04E0  34 clhook  clr   @wtiusr               ; Unset user hook address
-     717A 832E 
-0029 717C 0242  22         andi  config,>feff          ; Disable user hook (bit 7=0)
-     717E FEFF 
-0030 7180 045B  20         b     *r11                  ; Return
+0028 71CE 04E0  34 clhook  clr   @wtiusr               ; Unset user hook address
+     71D0 832E 
+0029 71D2 0242  22         andi  config,>feff          ; Disable user hook (bit 7=0)
+     71D4 FEFF 
+0030 71D6 045B  20         b     *r11                  ; Return
 **** **** ****     > runlib.asm
 0211               
 0215               
@@ -4127,303 +4271,268 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0232               *  after clearing scratchpad memory. This has higher priority
 0233               *  as crash handler flag R0.
 0234               ********@*****@*********************@**************************
-0236 7182 06A0  32 runlib  bl    @mem.scrpad.backup    ; Backup scratchpad memory to @>2000
-     7184 696A 
-0237 7186 04E0  34         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
-     7188 8302 
+0236 71D8 06A0  32 runlib  bl    @mem.scrpad.backup    ; Backup scratchpad memory to @>2000
+     71DA 696A 
+0237 71DC 04E0  34         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
+     71DE 8302 
 0241               *--------------------------------------------------------------
 0242               * Alternative entry point
 0243               *--------------------------------------------------------------
-0244 718A 0300  24 runli1  limi  0                     ; Turn off interrupts
-     718C 0000 
-0245 718E 02E0  18         lwpi  ws1                   ; Activate workspace 1
-     7190 8300 
-0246 7192 C0E0  34         mov   @>83c0,r3             ; Get random seed from OS monitor
-     7194 83C0 
+0244 71E0 0300  24 runli1  limi  0                     ; Turn off interrupts
+     71E2 0000 
+0245 71E4 02E0  18         lwpi  ws1                   ; Activate workspace 1
+     71E6 8300 
+0246 71E8 C0E0  34         mov   @>83c0,r3             ; Get random seed from OS monitor
+     71EA 83C0 
 0247               *--------------------------------------------------------------
 0248               * Clear scratch-pad memory from R4 upwards
 0249               *--------------------------------------------------------------
-0250 7196 0202  20 runli2  li    r2,>8308
-     7198 8308 
-0251 719A 04F2  30 runli3  clr   *r2+                  ; Clear scratchpad >8306->83FF
-0252 719C 0282  22         ci    r2,>8400
-     719E 8400 
-0253 71A0 16FC  14         jne   runli3
+0250 71EC 0202  20 runli2  li    r2,>8308
+     71EE 8308 
+0251 71F0 04F2  30 runli3  clr   *r2+                  ; Clear scratchpad >8306->83FF
+0252 71F2 0282  22         ci    r2,>8400
+     71F4 8400 
+0253 71F6 16FC  14         jne   runli3
 0254               *--------------------------------------------------------------
 0255               * Exit to TI-99/4A title screen ?
 0256               *--------------------------------------------------------------
 0257               runli3a
-0258 71A2 0281  22         ci    r1,>ffff              ; Exit flag set ?
-     71A4 FFFF 
-0259 71A6 1602  14         jne   runli4                ; No, continue
-0260 71A8 0420  54         blwp  @0                    ; Yes, bye bye
-     71AA 0000 
+0258 71F8 0281  22         ci    r1,>ffff              ; Exit flag set ?
+     71FA FFFF 
+0259 71FC 1602  14         jne   runli4                ; No, continue
+0260 71FE 0420  54         blwp  @0                    ; Yes, bye bye
+     7200 0000 
 0261               *--------------------------------------------------------------
 0262               * Determine if VDP is PAL or NTSC
 0263               *--------------------------------------------------------------
-0264 71AC C803  38 runli4  mov   r3,@waux1             ; Store random seed
-     71AE 833C 
-0265 71B0 04C1  14         clr   r1                    ; Reset counter
-0266 71B2 0202  20         li    r2,10                 ; We test 10 times
-     71B4 000A 
-0267 71B6 C0E0  34 runli5  mov   @vdps,r3
-     71B8 8802 
-0268 71BA 20E0  38         coc   @wbit0,r3             ; Interupt flag set ?
-     71BC 604A 
-0269 71BE 1302  14         jeq   runli6
-0270 71C0 0581  14         inc   r1                    ; Increase counter
-0271 71C2 10F9  14         jmp   runli5
-0272 71C4 0602  14 runli6  dec   r2                    ; Next test
-0273 71C6 16F7  14         jne   runli5
-0274 71C8 0281  22         ci    r1,>1250              ; Max for NTSC reached ?
-     71CA 1250 
-0275 71CC 1202  14         jle   runli7                ; No, so it must be NTSC
-0276 71CE 0262  22         ori   config,palon          ; Yes, it must be PAL, set flag
-     71D0 6046 
+0264 7202 C803  38 runli4  mov   r3,@waux1             ; Store random seed
+     7204 833C 
+0265 7206 04C1  14         clr   r1                    ; Reset counter
+0266 7208 0202  20         li    r2,10                 ; We test 10 times
+     720A 000A 
+0267 720C C0E0  34 runli5  mov   @vdps,r3
+     720E 8802 
+0268 7210 20E0  38         coc   @wbit0,r3             ; Interupt flag set ?
+     7212 604A 
+0269 7214 1302  14         jeq   runli6
+0270 7216 0581  14         inc   r1                    ; Increase counter
+0271 7218 10F9  14         jmp   runli5
+0272 721A 0602  14 runli6  dec   r2                    ; Next test
+0273 721C 16F7  14         jne   runli5
+0274 721E 0281  22         ci    r1,>1250              ; Max for NTSC reached ?
+     7220 1250 
+0275 7222 1202  14         jle   runli7                ; No, so it must be NTSC
+0276 7224 0262  22         ori   config,palon          ; Yes, it must be PAL, set flag
+     7226 6046 
 0277               *--------------------------------------------------------------
 0278               * Copy machine code to scratchpad (prepare tight loop)
 0279               *--------------------------------------------------------------
-0280 71D2 0201  20 runli7  li    r1,mccode             ; Machinecode to patch
-     71D4 60A2 
-0281 71D6 0202  20         li    r2,mcloop+2           ; Scratch-pad reserved for machine code
-     71D8 8322 
-0282 71DA CCB1  46         mov   *r1+,*r2+             ; Copy 1st instruction
-0283 71DC CCB1  46         mov   *r1+,*r2+             ; Copy 2nd instruction
-0284 71DE CCB1  46         mov   *r1+,*r2+             ; Copy 3rd instruction
+0280 7228 0201  20 runli7  li    r1,mccode             ; Machinecode to patch
+     722A 60A2 
+0281 722C 0202  20         li    r2,mcloop+2           ; Scratch-pad reserved for machine code
+     722E 8322 
+0282 7230 CCB1  46         mov   *r1+,*r2+             ; Copy 1st instruction
+0283 7232 CCB1  46         mov   *r1+,*r2+             ; Copy 2nd instruction
+0284 7234 CCB1  46         mov   *r1+,*r2+             ; Copy 3rd instruction
 0285               *--------------------------------------------------------------
 0286               * Initialize registers, memory, ...
 0287               *--------------------------------------------------------------
-0288 71E0 04C1  14 runli9  clr   r1
-0289 71E2 04C2  14         clr   r2
-0290 71E4 04C3  14         clr   r3
-0291 71E6 0209  20         li    stack,>8400           ; Set stack
-     71E8 8400 
-0292 71EA 020F  20         li    r15,vdpw              ; Set VDP write address
-     71EC 8C00 
+0288 7236 04C1  14 runli9  clr   r1
+0289 7238 04C2  14         clr   r2
+0290 723A 04C3  14         clr   r3
+0291 723C 0209  20         li    stack,>8400           ; Set stack
+     723E 8400 
+0292 7240 020F  20         li    r15,vdpw              ; Set VDP write address
+     7242 8C00 
 0296               *--------------------------------------------------------------
 0297               * Setup video memory
 0298               *--------------------------------------------------------------
-0300 71EE 06A0  32         bl    @filv                 ; Clear most part of 16K VDP memory,
-     71F0 60DC 
-0301 71F2 0000             data  >0000,>00,>3fd8       ; Keep memory for 3 VDP disk buffers (>3fd8 - >3ff)
-     71F4 0000 
-     71F6 3FD8 
-0306 71F8 06A0  32         bl    @filv
-     71FA 60DC 
-0307 71FC 0FC0             data  pctadr,spfclr,16      ; Load color table
-     71FE 00C1 
-     7200 0010 
-0308               *--------------------------------------------------------------
-0309               * Check if there is a F18A present
+0300 7244 06A0  32         bl    @filv                 ; Clear 12K VDP memory
+     7246 60DC 
+0301 7248 0000             data  >0000,>00,>3000       ; Shouls keep sufficient memory for VDP
+     724A 0000 
+     724C 3000 
+0302                                                   ; disk buffers (>37d8 - >37ff) setup by
+0303                                                   ; DSR power-up routines
+0308 724E 06A0  32         bl    @filv
+     7250 60DC 
+0309 7252 0FC0             data  pctadr,spfclr,16      ; Load color table
+     7254 00C1 
+     7256 0010 
 0310               *--------------------------------------------------------------
-0314 7202 06A0  32         bl    @f18unl               ; Unlock the F18A
-     7204 6352 
-0315 7206 06A0  32         bl    @f18chk               ; Check if F18A is there
-     7208 636C 
-0316 720A 06A0  32         bl    @f18lck               ; Lock the F18A again
-     720C 6362 
-0318               *--------------------------------------------------------------
-0319               * Check if there is a speech synthesizer attached
+0311               * Check if there is a F18A present
+0312               *--------------------------------------------------------------
+0316 7258 06A0  32         bl    @f18unl               ; Unlock the F18A
+     725A 6352 
+0317 725C 06A0  32         bl    @f18chk               ; Check if F18A is there
+     725E 636C 
+0318 7260 06A0  32         bl    @f18lck               ; Lock the F18A again
+     7262 6362 
 0320               *--------------------------------------------------------------
-0322               *       <<skipped>>
-0326               *--------------------------------------------------------------
-0327               * Load video mode table & font
+0321               * Check if there is a speech synthesizer attached
+0322               *--------------------------------------------------------------
+0324               *       <<skipped>>
 0328               *--------------------------------------------------------------
-0329 720E 06A0  32 runlic  bl    @vidtab               ; Load video mode table into VDP
-     7210 6136 
-0330 7212 608E             data  spvmod                ; Equate selected video mode table
-0331 7214 0204  20         li    tmp0,spfont           ; Get font option
-     7216 000C 
-0332 7218 0544  14         inv   tmp0                  ; NOFONT (>FFFF) specified ?
-0333 721A 1304  14         jeq   runlid                ; Yes, skip it
-0334 721C 06A0  32         bl    @ldfnt
-     721E 619E 
-0335 7220 1100             data  fntadr,spfont         ; Load specified font
-     7222 000C 
-0336               *--------------------------------------------------------------
-0337               * Did a system crash occur before runlib was called?
+0329               * Load video mode table & font
+0330               *--------------------------------------------------------------
+0331 7264 06A0  32 runlic  bl    @vidtab               ; Load video mode table into VDP
+     7266 6136 
+0332 7268 608E             data  spvmod                ; Equate selected video mode table
+0333 726A 0204  20         li    tmp0,spfont           ; Get font option
+     726C 000C 
+0334 726E 0544  14         inv   tmp0                  ; NOFONT (>FFFF) specified ?
+0335 7270 1304  14         jeq   runlid                ; Yes, skip it
+0336 7272 06A0  32         bl    @ldfnt
+     7274 619E 
+0337 7276 1100             data  fntadr,spfont         ; Load specified font
+     7278 000C 
 0338               *--------------------------------------------------------------
-0339 7224 0280  22 runlid  ci    r0,>4a4a              ; Crash flag set?
-     7226 4A4A 
-0340 7228 1602  14         jne   runlie                ; No, continue
-0341 722A 0460  28         b     @crash_handler.main   ; Yes, back to crash handler
-     722C 6060 
-0342               *--------------------------------------------------------------
-0343               * Branch to main program
+0339               * Did a system crash occur before runlib was called?
+0340               *--------------------------------------------------------------
+0341 727A 0280  22 runlid  ci    r0,>4a4a              ; Crash flag set?
+     727C 4A4A 
+0342 727E 1602  14         jne   runlie                ; No, continue
+0343 7280 0460  28         b     @crash_handler.main   ; Yes, back to crash handler
+     7282 6060 
 0344               *--------------------------------------------------------------
-0345 722E 0262  22 runlie  ori   config,>0040          ; Enable kernel thread (bit 9 on)
-     7230 0040 
-0346 7232 0460  28         b     @main                 ; Give control to main program
-     7234 7236 
-**** **** ****     > fio.asm.9391
-0069               *--------------------------------------------------------------
-0070               * SPECTRA2 startup options
-0071               *--------------------------------------------------------------
-0072      00C1     spfclr  equ   >c1                   ; Foreground/Background color for font.
-0073      0001     spfbck  equ   >01                   ; Screen background color.
-0074               ;--------------------------------------------------------------
-0075               ; Video mode configuration
-0076               ;--------------------------------------------------------------
-0077      608E     spvmod  equ   tx8024                ; Video mode.   See VIDTAB for details.
-0078      000C     spfont  equ   fnopt3                ; Font to load. See LDFONT for details.
-0079      0FC0     pctadr  equ   >0fc0                 ; VDP color table base
-0080      1100     fntadr  equ   >1100                 ; VDP font start address (in PDT range)
-0081               ;--------------------------------------------------------------
-0082               ; VDP space for PAB and file buffer
-0083               ;--------------------------------------------------------------
-0084      01F0     pabadr1 equ   >01f0                 ; VDP PAB1
-0085      0200     pabadr2 equ   >0200                 ; VDP PAB2
-0086      0300     vrecbuf equ   >0300                 ; VDP Buffer
-0087               
-0088               ***************************************************************
-0089               * Main
-0090               ********@*****@*********************@**************************
-0091 7236 06A0  32 main    bl    @putat
-     7238 626E 
-0092 723A 0000             data  >0000,msg
-     723C 72DC 
-0093               
-0094 723E 06A0  32         bl    @putat
-     7240 626E 
-0095 7242 0100             data  >0100,fname
-     7244 72CB 
-0096               
-0097                       ;------------------------------------------------------
-0098                       ; Prepare VDP for PAB and page out scratchpad
-0099                       ;------------------------------------------------------
-0100 7246 06A0  32         bl    @cpym2v
-     7248 6276 
-0101 724A 01F0             data  pabadr1,dsrsub,2      ; Copy PAB for DSR call files subprogram
-     724C 72C0 
-     724E 0002 
-0102               
-0103 7250 06A0  32         bl    @cpym2v
-     7252 6276 
-0104 7254 0200             data  pabadr2,pab,25        ; Copy PAB to VDP
-     7256 72C2 
-     7258 0019 
-0105               
-0106 725A 06A0  32         bl    @cpym2v
-     725C 6276 
-0107 725E 37D7             data  >37d7,schrott,6
-     7260 72F2 
-     7262 0006 
-0108               
+0345               * Branch to main program
+0346               *--------------------------------------------------------------
+0347 7284 0262  22 runlie  ori   config,>0040          ; Enable kernel thread (bit 9 on)
+     7286 0040 
+0348 7288 0460  28         b     @main                 ; Give control to main program
+     728A 728C 
+**** **** ****     > fio.asm.22783
+0070               *--------------------------------------------------------------
+0071               * SPECTRA2 startup options
+0072               *--------------------------------------------------------------
+0073      00C1     spfclr  equ   >c1                   ; Foreground/Background color for font.
+0074      0001     spfbck  equ   >01                   ; Screen background color.
+0075               ;--------------------------------------------------------------
+0076               ; Video mode configuration
+0077               ;--------------------------------------------------------------
+0078      608E     spvmod  equ   tx8024                ; Video mode.   See VIDTAB for details.
+0079      000C     spfont  equ   fnopt3                ; Font to load. See LDFONT for details.
+0080      0FC0     pctadr  equ   >0fc0                 ; VDP color table base
+0081      1100     fntadr  equ   >1100                 ; VDP font start address (in PDT range)
+0082               ;--------------------------------------------------------------
+0083               ; VDP space for PAB and file buffer
+0084               ;--------------------------------------------------------------
+0085      01F0     pabadr1 equ   >01f0                 ; VDP PAB1
+0086      0200     pabadr2 equ   >0200                 ; VDP PAB2
+0087      0300     vrecbuf equ   >0300                 ; VDP Buffer
+0088               
+0089               ***************************************************************
+0090               * Main
+0091               ********@*****@*********************@**************************
+0092 728C 06A0  32 main    bl    @putat
+     728E 626E 
+0093 7290 0000             data  >0000,msg
+     7292 7302 
+0094               
+0095 7294 06A0  32         bl    @putat
+     7296 626E 
+0096 7298 0100             data  >0100,fname
+     729A 72F1 
+0097               
+0098                       ;------------------------------------------------------
+0099                       ; Prepare VDP for PAB and page out scratchpad
+0100                       ;------------------------------------------------------
+0101 729C 06A0  32         bl    @cpym2v
+     729E 6276 
+0102 72A0 01F0             data  pabadr1,dsrsub,2      ; Copy PAB for DSR call files subprogram
+     72A2 72E6 
+     72A4 0002 
+0103               
+0104 72A6 06A0  32         bl    @cpym2v
+     72A8 6276 
+0105 72AA 0200             data  pabadr2,pab,25        ; Copy PAB to VDP
+     72AC 72E8 
+     72AE 0019 
+0106               
+0107 72B0 06A0  32         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
+     72B2 6F6E 
+0108 72B4 A000                   data  >a000           ; Memory destination @>a000
 0109               
-0110 7264 06A0  32         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
-     7266 6F6E 
-0111 7268 A000                   data  >a000           ; Memory destination @>a000
-0112               
-0113                       ;------------------------------------------------------
-0114                       ; Set up file buffer - call files(1)
-0115                       ;------------------------------------------------------
-0116 726A 0200  20         li    r0,>0100
-     726C 0100 
-0117 726E D800  38         movb  r0,@>834c             ; Set number of disk files to 1
-     7270 834C 
-0118 7272 0200  20         li    r0,pabadr1
-     7274 01F0 
-0119 7276 C800  38         mov   r0,@>8356             ; Pass PAB to DSRLNK
-     7278 8356 
-0120 727A 0420  54         blwp  @dsrlnk               ; Call subprogram for "call files(1)"
-     727C 6F90 
-0121 727E 000A             data  >a
-0122 7280 131C  14         jeq   done1                 ; Exit on error
-0123               
-0124               
-0125                       ;------------------------------------------------------
-0126                       ; Open file
-0127                       ;------------------------------------------------------
-0128 7282 06A0  32         bl    @file.open
-     7284 70A6 
-0129 7286 0200             data  pabadr2                ; Pass file descriptor to DSRLNK
-0130               
-0131               ;        li    r0,pabadr2+9
-0132               ;        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-0133               ;        blwp  @dsrlnk
-0134               ;        data  8
+0110                       ;------------------------------------------------------
+0111                       ; Open file
+0112                       ;------------------------------------------------------
+0113 72B6 06A0  32         bl    @file.open
+     72B8 70A6 
+0114 72BA 0200             data  pabadr2                ; Pass file descriptor to DSRLNK
+0115               
+0116                       ;------------------------------------------------------
+0117                       ; Read record
+0118                       ;------------------------------------------------------
+0119               readfile
+0120 72BC 06A0  32         bl    @file.record.read
+     72BE 70E4 
+0121 72C0 0200             data  pabadr2
+0122               
+0123 72C2 130F  14         jeq   file_error
+0124 72C4 10FB  14         jmp   readfile
+0125               
+0126                       ;------------------------------------------------------
+0127                       ; Close file
+0128                       ;------------------------------------------------------
+0129               close_file
+0130 72C6 0200  20         li    r0,pabadr2+9
+     72C8 0209 
+0131 72CA C800  38         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+     72CC 8356 
+0132               
+0133 72CE 06A0  32         bl    @vputb
+     72D0 6116 
+0134 72D2 0200             data  pabadr2,io.op.close
+     72D4 0001 
 0135               
-0136                       ;------------------------------------------------------
-0137                       ; Read record
-0138                       ;------------------------------------------------------
-0139               readfile
-0140 7288 0200  20         li    r0,pabadr2+9
-     728A 0209 
-0141 728C C800  38         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-     728E 8356 
+0136 72D6 0420  54         blwp  @dsrlnk
+     72D8 6F90 
+0137 72DA 0008             data  8
+0138               
+0139 72DC 10FF  14 done0   jmp   $
+0140 72DE 10FF  14 done1   jmp   $
+0141 72E0 10FF  14 done2   jmp   $
 0142               
-0143 7290 06A0  32         bl    @vputb
-     7292 6116 
-0144 7294 0200             data  pabadr2,io.op.read
-     7296 0002 
+0143               file_error
+0144 72E2 10F1  14         jmp   close_file
 0145               
-0146 7298 0420  54         blwp  @dsrlnk
-     729A 6F90 
-0147 729C 0008             data  8
+0146               
+0147               
 0148               
-0149 729E 130F  14         jeq   file_error
-0150 72A0 10F3  14         jmp   readfile
+0149               
+0150 72E4 10FF  14 haltme  jmp   $
 0151               
-0152                       ;------------------------------------------------------
-0153                       ; Close file
-0154                       ;------------------------------------------------------
-0155               close_file
-0156 72A2 0200  20         li    r0,pabadr2+9
-     72A4 0209 
-0157 72A6 C800  38         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-     72A8 8356 
-0158               
-0159 72AA 06A0  32         bl    @vputb
-     72AC 6116 
-0160 72AE 0200             data  pabadr2,io.op.close
-     72B0 0001 
-0161               
-0162 72B2 0420  54         blwp  @dsrlnk
-     72B4 6F90 
-0163 72B6 0008             data  8
-0164               
-0165 72B8 10FF  14 done0   jmp   $
-0166 72BA 10FF  14 done1   jmp   $
-0167 72BC 10FF  14 done2   jmp   $
-0168               
-0169               file_error
-0170 72BE 10F1  14         jmp   close_file
-0171               
-0172               
-0173               
+0152               
+0153               
+0154               ***************************************************************
+0155               * DSR subprogram for call files
+0156               ***************************************************************
+0157                       even
+0158 72E6 0116     dsrsub  byte  >01,>16               ; DSR program/subprogram - set file buffers
+0159               
+0160               
+0161               ***************************************************************
+0162               * PAB for accessing file
+0163               ********@*****@*********************@**************************
+0164 72E8 0014     pab     byte  io.op.open            ;  0    - OPEN
+0165                       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
+0166 72EA 0300             data  vrecbuf               ;  2-3  - Record buffer in VDP memory
+0167 72EC 5000             byte  80                    ;  4    - Record length (80 characters maximum)
+0168                       byte  00                    ;  5    - Character count
+0169 72EE 0000             data  >0000                 ;  6-7  - Seek record (only for fixed records)
+0170 72F0 000F             byte  >00                   ;  8    - Screen offset (cassette DSR only)
+0171               fname   byte  15                    ;  9    - File descriptor length
+0172 72F2 ....             text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
+0173                       even
 0174               
 0175               
-0176               
-0177               
-0178               
-0179               
-0180               ***************************************************************
-0181               * DSR subprogram for call files
-0182               ***************************************************************
-0183                       even
-0184 72C0 0116     dsrsub  byte  >01,>16               ; DSR program/subprogram - set file buffers
-0185               
-0186               
-0187               ***************************************************************
-0188               * PAB for accessing file
-0189               ********@*****@*********************@**************************
-0190 72C2 0014     pab     byte  io.op.open            ;  0    - OPEN
-0191                       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
-0192 72C4 0300             data  vrecbuf               ;  2-3  - Record buffer in VDP memory
-0193 72C6 5050             byte  80                    ;  4    - Record length (80 characters maximum)
-0194                       byte  80                    ;  5    - Character count
-0195 72C8 0000             data  >0000                 ;  6-7  - Seek record (only for fixed records)
-0196 72CA 000F             byte  >00                   ;  8    - Screen offset (cassette DSR only)
-0197               fname   byte  15                    ;  9    - File descriptor length
-0198 72CC ....             text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
-0199                       even
-0200               
-0201               
-0202               msg
-0203 72DC 152A             byte  21
-0204 72DD ....             text  '* File reading test *'
-0205                       even
-0206               
-0207 72F2 00AA     schrott data  >00aa, >3fff, >1103
-     72F4 3FFF 
-     72F6 1103 
+0176               msg
+0177 7302 152A             byte  21
+0178 7303 ....             text  '* File reading test *'
+0179                       even
+0180               
+0181 7318 00AA     schrott data  >00aa, >3fff, >1103
+     731A 3FFF 
+     731C 1103 
+0182               
+0183               

@@ -49,6 +49,7 @@ grmhdr  byte  >aa,1,1,0,0,0
         byte  0,0,0,0,0,0,0,0
 prog0   data  0                     ; No more items following
         data  runlib
+;       data  haltme
  .ifdef debug
         #string 'FIO TEST %%build_date%%'
  .else
@@ -95,24 +96,8 @@ main    bl    @putat
         bl    @cpym2v
         data  pabadr2,pab,25        ; Copy PAB to VDP
 
-        bl    @cpym2v
-        data  >37d7,schrott,6 
-
-
         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
               data  >a000           ; Memory destination @>a000
-
-        ;------------------------------------------------------
-        ; Set up file buffer - call files(1)
-        ;------------------------------------------------------
-        li    r0,>0100 
-        movb  r0,@>834c             ; Set number of disk files to 1
-        li    r0,pabadr1
-        mov   r0,@>8356             ; Pass PAB to DSRLNK
-        blwp  @dsrlnk               ; Call subprogram for "call files(1)"
-        data  >a
-        jeq   done1                 ; Exit on error
-        
 
         ;------------------------------------------------------
         ; Open file
@@ -120,23 +105,12 @@ main    bl    @putat
         bl    @file.open
         data  pabadr2                ; Pass file descriptor to DSRLNK
 
-;        li    r0,pabadr2+9
-;        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-;        blwp  @dsrlnk
-;        data  8
-
         ;------------------------------------------------------
         ; Read record
         ;------------------------------------------------------
 readfile        
-        li    r0,pabadr2+9
-        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-
-        bl    @vputb
-        data  pabadr2,io.op.read
-
-        blwp  @dsrlnk
-        data  8
+        bl    @file.record.read
+        data  pabadr2
 
         jeq   file_error
         jmp   readfile
@@ -165,7 +139,7 @@ file_error
 
 
 
-        
+haltme  jmp   $        
 
 
 
@@ -183,7 +157,7 @@ pab     byte  io.op.open            ;  0    - OPEN
         byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
         data  vrecbuf               ;  2-3  - Record buffer in VDP memory
         byte  80                    ;  4    - Record length (80 characters maximum)
-        byte  80                    ;  5    - Character count
+        byte  00                    ;  5    - Character count
         data  >0000                 ;  6-7  - Seek record (only for fixed records)
         byte  >00                   ;  8    - Screen offset (cassette DSR only)
 fname   byte  15                    ;  9    - File descriptor length
@@ -193,3 +167,5 @@ fname   byte  15                    ;  9    - File descriptor length
 
 msg     #string '* File reading test *'
 schrott data  >00aa, >3fff, >1103
+
+

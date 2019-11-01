@@ -297,10 +297,12 @@ runli9  clr   r1
 * Setup video memory
 *--------------------------------------------------------------
     .ifdef startup_keep_vdpdiskbuf
-        bl    @filv                 ; Clear most part of 16K VDP memory, 
-        data  >0000,>00,>3fd8       ; Keep memory for 3 VDP disk buffers (>3fd8 - >3ff)
+        bl    @filv                 ; Clear 12K VDP memory
+        data  >0000,>00,>3000       ; Should keep sufficient memory for VDP
+                                    ; disk buffers (>37d8 - >37ff) setup by
+                                    ; DSR power-up routines
     .else
-        bl    @filv                 ; Clear all of 16K VDP memory
+        bl    @filv                 ; Clear 16K VDP memory
         data  >0000,>00,>3fff
     .endif
         bl    @filv

@@ -39,6 +39,24 @@ io.ft.sf.ivi     equ >1c            ; INPUT,  VARIABLE, INTERNAL
 io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 
 
+***************************************************************
+* PAB  - Peripheral Access Block
+********@*****@*********************@**************************
+; my_pab:
+;       byte  io.op.open            ;  0    - OPEN
+;       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
+;       data  vrecbuf               ;  2-3  - Record buffer in VDP memory
+;       byte  80                    ;  4    - Record length (80 characters maximum)
+;       byte  80                    ;  5    - Character count
+;       data  >0000                 ;  6-7  - Seek record (only for fixed records)
+;       byte  >00                   ;  8    - Screen offset (cassette DSR only)
+; -------------------------------------------------------------
+;       byte  11                    ;  9    - File descriptor length
+;       text 'DSK1.MYFILE'          ; 10-.. - File descriptor (Device + '.' + File name)
+;       even
+***************************************************************
+
+
 
 ***************************************************************
 * file.open - Open File for procesing
@@ -46,11 +64,11 @@ io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 *  bl   @file.open
 *  data P0
 *--------------------------------------------------------------
-*  P0 = Address of PAB in CPU RAM (without +9 offset!)
+*  P0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  bl   @xfile.open
 *
-*  R0 = Address of PAB in CPU RAM
+*  R0 = Address of PAB in VDP RAM
 ********@*****@*********************@**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -58,7 +76,10 @@ file.open:
 * Initialisation
 *--------------------------------------------------------------
 xfile.open:
-        nop
+        mov   r11,r1                ; Save return address
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
+        clr   tmp1                  ; io.op.open
+        bl    @xvputb               ; Write file opcode to VDP
 file.open_init:
         ai    r0,9                  ; Move to file descriptor length
         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
@@ -66,6 +87,49 @@ file.open_init:
 * Main 
 *--------------------------------------------------------------
 file.open_main:
+        blwp  @dsrlnk               ; Call DSRLNK 
+        data  8                     ; Level 2 IO
+*--------------------------------------------------------------
+* Check if error occured during file open operation
+*--------------------------------------------------------------        
+        jeq   file.error            ; Jump to error handler 
+*--------------------------------------------------------------
+* Exit
+*--------------------------------------------------------------
+file.open_exit:
+        b     *r1                   ; Return to caller
+
+
+
+***************************************************************
+* file.close - Close currently open file
+***************************************************************
+*  bl   @file.close
+*  data P0
+*--------------------------------------------------------------
+*  P0 = Address of PAB in CPU RAM
+*--------------------------------------------------------------
+*  bl   @xfile.close
+*
+*  R0 = Address of PAB in CPU RAM
+********@*****@*********************@**************************
+file.close:
+        mov   *r11+,r0              ; Get file descriptor (P0)
+*--------------------------------------------------------------
+* Initialisation
+*--------------------------------------------------------------
+xfile.close:
+        mov   r11,r1                ; Save return address
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
+        li    tmp1,io.op.close      ; io.op.close
+        bl    @xvputb               ; Write file opcode to VDP
+file.close_init:
+        ai    r0,9                  ; Move to file descriptor length
+        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+*--------------------------------------------------------------
+* Main 
+*--------------------------------------------------------------
+file.close_main:
         blwp  @dsrlnk               ; Call DSRLNK 
         data  8                     ; 
 *--------------------------------------------------------------
@@ -75,10 +139,82 @@ file.open_main:
 *--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
-file.open_exit:
-        b     *r11                  ; Return to caller
+file.close_exit:
+        b     *r1                   ; Return to caller
 
 
+
+
+
+***************************************************************
+* file.record.read - Read record from file
+***************************************************************
+*  bl   @file.record.read
+*  data P0
+*--------------------------------------------------------------
+*  P0 = Address of PAB in CPU RAM (without +9 offset!)
+*--------------------------------------------------------------
+*  bl   @xfile.record.read
+*
+*  R0 = Address of PAB in CPU RAM
+********@*****@*********************@**************************
+file.record.read:
+        mov   *r11+,r0              ; Get file descriptor (P0)
+*--------------------------------------------------------------
+* Initialisation
+*--------------------------------------------------------------
+xfile.record.read:
+        mov   r11,r1                ; Save return address
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
+        li    tmp1,io.op.read       ; io.op.read
+        bl    @xvputb               ; Write file opcode to VDP
+file.record.read_init:
+        ai    r0,9                  ; Move to file descriptor length
+        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+*--------------------------------------------------------------
+* Main 
+*--------------------------------------------------------------
+file.record.read_main:
+        blwp  @dsrlnk               ; Call DSRLNK 
+        data  8                     ; 
+*--------------------------------------------------------------
+* Check if error occured during file open operation
+*--------------------------------------------------------------        
+        jeq   file.error            ; Jump to error handler 
+*--------------------------------------------------------------
+* Exit
+*--------------------------------------------------------------
+file.record.read_exit:
+        b     *r1                   ; Return to caller
+
+
+
+
+file.record.write:
+        nop
+
+file.record.seek:
+        nop
+
+
+file.image.load:
+        nop
+
+
+file.image.save:
+        nop
+
+
+file.delete:
+        nop
+
+
+file.rename:
+        nop
+
+
+file.status:
+        nop
 
 
 
@@ -89,7 +225,7 @@ file.open_exit:
 file.error:
 ;
 ; When errors do occur then equal bit in status register is set (1)
-; If no errors occur, the equal bit in status register is reset (0)
+; If no errors occur, then equal bit in status register is reset (0)
 ;
 ; So upon returning from DSRLNK in your file handling code you
 ; should basically add:
