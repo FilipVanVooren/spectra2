@@ -19,7 +19,8 @@ debug                     equ  1    ; Turn on debugging
 dsrlnk.dsrlws             equ >b000 ; Address of dsrlnk workspace                                              
 dsrlnk.namsto             equ >2100 ; 8-byte RAM buffer for storing device name
 startup_backup_scrpad     equ  1    ; Backup scratchpad @>8300:>83ff to @>2000
-startup_keep_vdpdiskbuf   equ  1    ; Keep VDP memory reserved for 3 VDP disk buffers
+startup_keep_vdpmemory    equ  1    ; Do not clear VDP vram upon startup
+
 *--------------------------------------------------------------
 * Skip unused spectra2 code modules for reduced code size
 *--------------------------------------------------------------
@@ -49,7 +50,6 @@ grmhdr  byte  >aa,1,1,0,0,0
         byte  0,0,0,0,0,0,0,0
 prog0   data  0                     ; No more items following
         data  runlib
-;       data  haltme
  .ifdef debug
         #string 'FIO TEST %%build_date%%'
  .else

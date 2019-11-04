@@ -1,5 +1,5 @@
-* FILE......: fio_files.asm
-* Purpose...: File I/O support
+* FILE......: fio_level2.asm
+* Purpose...: File I/O level 2 support 
 
 ***************************************************************
 * File IO operations
@@ -45,9 +45,11 @@ io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 ; my_pab:
 ;       byte  io.op.open            ;  0    - OPEN
 ;       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
+;                                   ;         Bit 13-15 used by DSR for returning
+;                                   ;         file error details to DSRLNK
 ;       data  vrecbuf               ;  2-3  - Record buffer in VDP memory
 ;       byte  80                    ;  4    - Record length (80 characters maximum)
-;       byte  80                    ;  5    - Character count
+;       byte  0                     ;  5    - Character count (bytes read)
 ;       data  >0000                 ;  6-7  - Seek record (only for fixed records)
 ;       byte  >00                   ;  8    - Screen offset (cassette DSR only)
 ; -------------------------------------------------------------
@@ -90,14 +92,12 @@ file.open_main:
         blwp  @dsrlnk               ; Call DSRLNK 
         data  8                     ; Level 2 IO
 *--------------------------------------------------------------
-* Check if error occured during file open operation
-*--------------------------------------------------------------        
-        jeq   file.error            ; Jump to error handler 
-*--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
 file.open_exit:
-        b     *r1                   ; Return to caller
+        jmp   file.record.pab.details
+                                    ; Get status and return to caller
+                                    ; Status register bits are unaffected
 
 
 
@@ -107,11 +107,11 @@ file.open_exit:
 *  bl   @file.close
 *  data P0
 *--------------------------------------------------------------
-*  P0 = Address of PAB in CPU RAM
+*  P0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  bl   @xfile.close
 *
-*  R0 = Address of PAB in CPU RAM
+*  R0 = Address of PAB in VD RAM
 ********@*****@*********************@**************************
 file.close:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -133,14 +133,12 @@ file.close_main:
         blwp  @dsrlnk               ; Call DSRLNK 
         data  8                     ; 
 *--------------------------------------------------------------
-* Check if error occured during file open operation
-*--------------------------------------------------------------        
-        jeq   file.error            ; Jump to error handler 
-*--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
 file.close_exit:
-        b     *r1                   ; Return to caller
+        jmp   file.record.pab.details
+                                    ; Get status and return to caller
+                                    ; Status register bits are unaffected
 
 
 
@@ -152,11 +150,16 @@ file.close_exit:
 *  bl   @file.record.read
 *  data P0
 *--------------------------------------------------------------
-*  P0 = Address of PAB in CPU RAM (without +9 offset!)
+*  P0 = Address of PAB in VDP RAM (without +9 offset!)
 *--------------------------------------------------------------
 *  bl   @xfile.record.read
 *
-*  R0 = Address of PAB in CPU RAM
+*  R0 = Address of PAB in VDP RAM
+*--------------------------------------------------------------
+*  Output:
+*  tmp0 LSB = VDP PAB byte 1 (status) 
+*  tmp1 LSB = VDP PAB byte 5 (characters read)
+*  tmp2     = Status register contents upon DSRLNK return
 ********@*****@*********************@**************************
 file.record.read:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -176,22 +179,21 @@ file.record.read_init:
 *--------------------------------------------------------------
 file.record.read_main:
         blwp  @dsrlnk               ; Call DSRLNK 
-        data  8                     ; 
-*--------------------------------------------------------------
-* Check if error occured during file open operation
-*--------------------------------------------------------------        
-        jeq   file.error            ; Jump to error handler 
+        data  8                     ;         
 *--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
 file.record.read_exit:
-        b     *r1                   ; Return to caller
+        jmp   file.record.pab.details
+                                    ; Get status and return to caller
+                                    ; Status register bits are unaffected
 
 
 
 
 file.record.write:
         nop
+
 
 file.record.seek:
         nop
@@ -216,6 +218,35 @@ file.rename:
 file.status:
         nop
 
+
+
+***************************************************************
+* file.record.pab.details - Return PAB details to caller
+********@*****@*********************@**************************
+file.record.pab.details:
+        stst  tmp2                  ; Store status register contents in tmp2
+                                    ; Upon DSRLNK return status register EQ bit
+                                    ; 1 = No file error
+                                    ; 0 = File error occured
+*--------------------------------------------------------------
+* Get PAB byte 5 from VDP ram into tmp1
+*--------------------------------------------------------------        
+        mov   @>8356,tmp0           ; Get PAB VDP address + 9
+        ai    tmp0,-4               ; Get address of PAB + 5
+        bl    @xvgetb               ; VDP read PAB status byte into tmp0
+        mov   tmp0,tmp1             ; Move to destination
+*--------------------------------------------------------------
+* Get PAB status byte from VDP ram into tmp0
+*--------------------------------------------------------------        
+        mov   @>8356,tmp0           ; Get PAB VDP address + 9
+        ai    tmp0,-8               ; Get address of PAB + 1
+        bl    @xvgetb               ; VDP read PAB status byte into tmp0
+*--------------------------------------------------------------
+* Check if error occured during file open operation
+*--------------------------------------------------------------        
+        coc   @wbit2,tmp2           ; Equal bit set?
+        jeq   file.error            ; Jump to error handler 
+        b     *r1                   ; Return to caller
 
 
 

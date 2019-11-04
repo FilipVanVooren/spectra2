@@ -63,7 +63,7 @@
 *
 * == Startup behaviour 
 * startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300:>83ff to @>2000
-* startup_keep_vdpdiskbuf   equ  1  ; Keep VDP memory reseved for 3 VDP disk buffers
+* startup_keep_vdpmemory    equ  1  ; Do not clear VDP vram upon startup
 *******************************************************************************
 
 *//////////////////////////////////////////////////////////////
@@ -196,7 +196,7 @@
 
     .ifndef skip_iosupport
         copy  "dsrlnk.asm"               ; DSRLNK for peripheral communication 
-        copy  "fio_files.asm"            ; Files I/O support
+        copy  "fio_level2.asm"           ; File I/O level 2 support
     .endif
 
 
@@ -296,16 +296,16 @@ runli9  clr   r1
 *--------------------------------------------------------------
 * Setup video memory
 *--------------------------------------------------------------
-    .ifdef startup_keep_vdpdiskbuf
-        bl    @filv                 ; Clear 12K VDP memory
-        data  >0000,>00,>3000       ; Should keep sufficient memory for VDP
-                                    ; disk buffers (>37d8 - >37ff) setup by
-                                    ; DSR power-up routines
+    .ifdef startup_keep_vdpmemory
+        ci    r0,>4a4a              ; Crash flag set?
+        jne   runlia                 
+        bl    @filv                 ; Clear 12K VDP memory instead
+        data  >0000,>00,>3fff       ; of 16K, so that PABs survive
     .else
         bl    @filv                 ; Clear 16K VDP memory
         data  >0000,>00,>3fff
     .endif
-        bl    @filv
+runlia  bl    @filv
         data  pctadr,spfclr,16      ; Load color table
 *--------------------------------------------------------------
 * Check if there is a F18A present
