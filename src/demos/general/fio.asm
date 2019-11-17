@@ -41,6 +41,7 @@ skip_tms52xx_detection    equ  1    ; Skip speech synthesizer detection
 skip_tms52xx_player       equ  1    ; Skip inclusion of speech player code
 skip_random_generator     equ  1    ; Skip random functions 
 skip_timer_alloc          equ  1    ; Skip support for timers allocation
+skip_cpu_crc16            equ  1    ; Skip CPU memory CRC-16 calculation
 
 *--------------------------------------------------------------
 * Cartridge header
@@ -51,9 +52,9 @@ grmhdr  byte  >aa,1,1,0,0,0
 prog0   data  0                     ; No more items following
         data  runlib
  .ifdef debug
-        #string 'FIO TEST %%build_date%%'
+        #string 'FIOT %%build_date%%'
  .else
-        #string 'FIO TEST'
+        #string 'FIOT'
  .endif
 *--------------------------------------------------------------
 * Include required files
@@ -74,9 +75,8 @@ fntadr  equ   >1100                 ; VDP font start address (in PDT range)
 ;--------------------------------------------------------------
 ; VDP space for PAB and file buffer
 ;--------------------------------------------------------------
-pabadr1 equ   >01f0                 ; VDP PAB1
-pabadr2 equ   >0200                 ; VDP PAB2
-vrecbuf equ   >0300                 ; VDP Buffer
+vpab    equ   >0200                 ; VDP PAB    @>0200
+vrecbuf equ   >0300                 ; VDP Buffer @>0300
 
 ***************************************************************
 * Main
@@ -91,10 +91,7 @@ main    bl    @putat
         ; Prepare VDP for PAB and page out scratchpad
         ;------------------------------------------------------
         bl    @cpym2v
-        data  pabadr1,dsrsub,2      ; Copy PAB for DSR call files subprogram
-
-        bl    @cpym2v
-        data  pabadr2,pab,25        ; Copy PAB to VDP
+        data  vpab,pab,25           ; Copy PAB to VDP
 
         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
               data  >a000           ; Memory destination @>a000
@@ -103,51 +100,41 @@ main    bl    @putat
         ; Open file
         ;------------------------------------------------------
         bl    @file.open
-        data  pabadr2                ; Pass file descriptor to DSRLNK
-
+        data  vpab                  ; Pass file descriptor to DSRLNK
+        coc   @wbit2,tmp2           ; Equal bit set?
+        jeq   file.error            ; Yes, IO error occured
         ;------------------------------------------------------
-        ; Read record
+        ; Read records
         ;------------------------------------------------------
 readfile        
-        bl    @file.record.read
-        data  pabadr2
+        bl    @file.record.read     ; Read record
+        data  vpab
 
-        jeq   file_error
-        jmp   readfile
+        coc   @wbit2,tmp2           ; IO error occured?
+        jeq   file.error            ; Yes, so handle file error
 
+        jmp   readfile              ; Next record
         ;------------------------------------------------------
         ; Close file
         ;------------------------------------------------------
-close_file        
-        li    r0,pabadr2+9
-        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-
-        bl    @vputb
-        data  pabadr2,io.op.close
-
-        blwp  @dsrlnk
-        data  8
-
-done0   jmp   $
-done1   jmp   $
-done2   jmp   $
-
-file_error 
-        jmp   close_file
+close_file                
+        bl    @file.close           ; Close file
+        data  vpab 
 
 
+        ;------------------------------------------------------
+        ; Error handler
+        ;------------------------------------------------------     
+file.error        
+        srl   tmp0,8                ; Right align VDP PAB 1 status byte
+        ci    tmp0,io.err.eof       ; EOF reached ?
+        jeq   exit_ok               ; All good. File closed by DSRLNK 
+        b     @crash_handler        ; A File error occured. System crashed
 
 
+exit_ok
+        blwp  @0
 
-haltme  jmp   $        
-
-
-
-***************************************************************
-* DSR subprogram for call files
-***************************************************************
-        even
-dsrsub  byte  >01,>16               ; DSR program/subprogram - set file buffers
 
 
 ***************************************************************
@@ -160,12 +147,17 @@ pab     byte  io.op.open            ;  0    - OPEN
         byte  00                    ;  5    - Character count
         data  >0000                 ;  6-7  - Seek record (only for fixed records)
         byte  >00                   ;  8    - Screen offset (cassette DSR only)
+
+;fname   byte  12                    ;  9    - File descriptor length
+;        text 'DSK2.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name) 
+
 fname   byte  15                    ;  9    - File descriptor length
         text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
+
+
         even
 
 
 msg     #string '* File reading test *'
-schrott data  >00aa, >3fff, >1103
 
 

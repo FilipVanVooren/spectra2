@@ -151,7 +151,7 @@ vdra    swpb  tmp0
         movb  tmp0,@vdpa
         swpb  tmp0
         movb  tmp0,@vdpa            ; Set VDP address
-        b     *r11
+        b     *r11                  ; Exit
 
 ***************************************************************
 * VPUTB - VDP put single byte
@@ -163,31 +163,53 @@ vdra    swpb  tmp0
 *  P1 = Byte to write
 ********@*****@*********************@**************************
 vputb   mov   *r11+,tmp0            ; Get VDP target address
-        mov   *r11+,tmp1
-xvputb  mov   r11,tmp2              ; Save R11
-        bl    @vdwa                 ; Set VDP write address
-
-        swpb  tmp1                  ; Get byte to write
+        mov   *r11+,tmp1            ; Get byte to write
+*--------------------------------------------------------------
+* Set VDP write address 
+*--------------------------------------------------------------
+xvputb  ori   tmp0,>4000            ; Prepare VDP address for write
+        swpb  tmp0                  ; \
+        movb  tmp0,@vdpa            ; | Set VDP write address
+        swpb  tmp0                  ; | inlined @vdwa call
+        movb  tmp0,@vdpa            ; / 
+*--------------------------------------------------------------
+* Write byte
+*--------------------------------------------------------------
+        swpb  tmp1                  ; LSB to MSB
         movb  tmp1,*r15             ; Write byte
-        b     *tmp2                 ; Exit
+        b     *r11                  ; Exit
 
 
 ***************************************************************
 * VGETB - VDP get single byte
 ***************************************************************
-*  BL @VGETB
-*  DATA P0
+*  bl   @vgetb
+*  data p0
 *--------------------------------------------------------------
 *  P0 = VDP source address
+*--------------------------------------------------------------
+*  bl   @xvgetb
+*
+*  tmp0 = VDP source address
+*--------------------------------------------------------------
+*  Output:
+*  tmp0 MSB = >00
+*  tmp0 LSB = VDP byte read
 ********@*****@*********************@**************************
-vgetb   mov   *r11+,tmp0            ; Get VDP source address
-xvgetb  mov   r11,tmp2              ; Save R11
-        bl    @vdra                 ; Set VDP read address
-
+vgetb   mov   *r11+,tmp0            ; Get VDP source address  
+*--------------------------------------------------------------
+* Set VDP read address 
+*--------------------------------------------------------------
+xvgetb  swpb  tmp0                  ; \
+        movb  tmp0,@vdpa            ; | Set VDP read address
+        swpb  tmp0                  ; | inlined @vdra call
+        movb  tmp0,@vdpa            ; / 
+*--------------------------------------------------------------
+* Read byte
+*--------------------------------------------------------------
         movb  @vdpr,tmp0            ; Read byte
-
         srl   tmp0,8                ; Right align
-        b     *tmp2                 ; Exit
+        b     *r11                  ; Exit
 
 
 ***************************************************************

@@ -14,6 +14,9 @@
 *--------------------------------------------------------------
 *  P0 = 8 or 10 (a)
 *--------------------------------------------------------------
+*  Output:
+*  r0 LSB = Bit 13-15 from VDP PAB byte 1, right aligned 
+*--------------------------------------------------------------
 ; Spectra2 scratchpad memory needs to be paged out before.
 ; You need to specify following equates in main program
 ;
@@ -201,10 +204,10 @@ dsrlnk.dsrscan.call_dsr:
         jeq   dsrlnk.dsrscan.dsr.8  ; yes, jump: normal dsrlnk
         movb  @>8350,r1             ; no, we have a data >a.
                                     ; Get error byte from @>8350
-        jmp   dsrlnk.dsrscan.dsr.8  ; go and return error byte to the caller
+        jmp   dsrlnk.dsrscan.dsr.a  ; go and return error byte to the caller
 
         ;------------------------------------------------------
-        ; Read PAB status flag after DSR call completed
+        ; Read VDP PAB byte 1 after DSR call completed (status)
         ;------------------------------------------------------
 dsrlnk.dsrscan.dsr.8:
         ;---------------------------; Inline VSBR start

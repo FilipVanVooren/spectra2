@@ -12,6 +12,7 @@ io.op.rewind     equ >04            ; RESTORE/REWIND
 io.op.load       equ >05            ; LOAD
 io.op.save       equ >06            ; SAVE
 io.op.delfile    equ >07            ; DELETE FILE
+io.op.scratch    equ >08            ; SCRATCH 
 io.op.status     equ >09            ; STATUS
 ***************************************************************
 * File types - All relative files are fixed length
@@ -38,6 +39,51 @@ io.ft.sf.ovi     equ >1a            ; OUTPUT, VARIABLE, INTERNAL
 io.ft.sf.ivi     equ >1c            ; INPUT,  VARIABLE, INTERNAL
 io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 
+***************************************************************
+* File error codes - Bits 13-15 in PAB byte 1
+************************************@**************************
+io.err.no_error_occured             equ 0
+        ; Error code 0 with condition bit reset, indicates that
+        ; no error has occured
+
+io.err.bad_device_name              equ 0
+        ; Device indicated not in system
+        ; Error code 0 with condition bit set, indicates a
+        ; device not present in system
+
+io.err.device_write_prottected      equ 1   
+        ; Device is write protected
+
+io.err.bad_open_attribute           equ 2   
+        ; One or more of the OPEN attributes are illegal or do
+        ; not match the file's actual characteristics.
+        ; This could be:
+        ;   * File type
+        ;   * Record length
+        ;   * I/O mode
+        ;   * File organization
+
+io.err.illegal_operation            equ 3
+        ; Either an issued I/O command was not supported, or a 
+        ; conflict with the OPEN mode has occured
+
+io.err.out_of_table_buffer_space    equ 4
+        ; The amount of space left on the device is insufficient
+        ; for the requested operation
+
+io.err.eof                          equ 5
+        ; Attempt to read past end of file.
+        ; This error may also be given for non-existing records
+        ; in a relative record file
+
+io.err.device_error                 equ 6
+        ; Covers all hard device errors, such as parity and
+        ; bad medium errors
+
+io.err.file_error                   equ 7
+        ; Covers all file-related error like: program/data
+        ; file mismatch, non-existing file opened for input mode, etc.
+
 
 ***************************************************************
 * PAB  - Peripheral Access Block
@@ -54,10 +100,9 @@ io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 ;       byte  >00                   ;  8    - Screen offset (cassette DSR only)
 ; -------------------------------------------------------------
 ;       byte  11                    ;  9    - File descriptor length
-;       text 'DSK1.MYFILE'          ; 10-.. - File descriptor (Device + '.' + File name)
+;       text 'DSK1.MYFILE'          ; 10-.. - File descriptor name (Device + '.' + File name)
 ;       even
 ***************************************************************
-
 
 
 ***************************************************************
@@ -71,6 +116,11 @@ io.ft.sf.avi     equ >1e            ; APPEND, VARIABLE, INTERNAL
 *  bl   @xfile.open
 *
 *  R0 = Address of PAB in VDP RAM
+*--------------------------------------------------------------
+*  Output:
+*  tmp0 LSB = VDP PAB byte 1 (status) 
+*  tmp1 LSB = VDP PAB byte 5 (characters read)
+*  tmp2     = Status register contents upon DSRLNK return
 ********@*****@*********************@**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -90,7 +140,7 @@ file.open_init:
 *--------------------------------------------------------------
 file.open_main:
         blwp  @dsrlnk               ; Call DSRLNK 
-        data  8                     ; Level 2 IO
+        data  8                     ; Level 2 IO call
 *--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
@@ -112,6 +162,11 @@ file.open_exit:
 *  bl   @xfile.close
 *
 *  R0 = Address of PAB in VD RAM
+*--------------------------------------------------------------
+*  Output:
+*  tmp0 LSB = VDP PAB byte 1 (status) 
+*  tmp1 LSB = VDP PAB byte 5 (characters read)
+*  tmp2     = Status register contents upon DSRLNK return
 ********@*****@*********************@**************************
 file.close:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -222,6 +277,15 @@ file.status:
 
 ***************************************************************
 * file.record.pab.details - Return PAB details to caller
+***************************************************************
+* Called internally via JMP/B by file operations
+*--------------------------------------------------------------
+*  Output:
+*  tmp0 LSB = VDP PAB byte 1 (status) 
+*  tmp1 LSB = VDP PAB byte 5 (characters read)
+*  tmp2     = Status register contents upon DSRLNK return
+********@*****@*********************@**************************
+
 ********@*****@*********************@**************************
 file.record.pab.details:
         stst  tmp2                  ; Store status register contents in tmp2
@@ -229,39 +293,37 @@ file.record.pab.details:
                                     ; 1 = No file error
                                     ; 0 = File error occured
 *--------------------------------------------------------------
-* Get PAB byte 5 from VDP ram into tmp1
+* Get PAB byte 5 from VDP ram into tmp1 (character count)
 *--------------------------------------------------------------        
         mov   @>8356,tmp0           ; Get PAB VDP address + 9
         ai    tmp0,-4               ; Get address of PAB + 5
         bl    @xvgetb               ; VDP read PAB status byte into tmp0
         mov   tmp0,tmp1             ; Move to destination
 *--------------------------------------------------------------
-* Get PAB status byte from VDP ram into tmp0
+* Get PAB byte 1 from VDP ram into tmp0 (status)
 *--------------------------------------------------------------        
-        mov   @>8356,tmp0           ; Get PAB VDP address + 9
-        ai    tmp0,-8               ; Get address of PAB + 1
-        bl    @xvgetb               ; VDP read PAB status byte into tmp0
+        mov   r0,tmp0               ; VDP PAB byte 1 (status) 
+                                    ; as returned by DSRLNK                                    
 *--------------------------------------------------------------
-* Check if error occured during file open operation
-*--------------------------------------------------------------        
-        coc   @wbit2,tmp2           ; Equal bit set?
-        jeq   file.error            ; Jump to error handler 
+* Exit
+*--------------------------------------------------------------
+; If an error occured during the IO operation, then the 
+; equal bit in the saved status register (=R2) is set to 1.
+; 
+; If no error occured during the IO operation, then the 
+; equal bit in the saved status register (=R2) is set to 0.
+;
+; Upon return from this IO call you should basically test with:
+;       coc   @wbit2,tmp2           ; Equal bit set?
+;       jeq   my_file_io_handler    ; Yes, IO error occured
+;
+; Then look for further details in the copy of VDP PAB byte 1
+; in register tmp0, bits 13-15
+;
+;       srl   tmp0,8                ; Right align (only for DSR type >8
+;                                   ; calls, skip for type >A subprograms!)
+;       ci    tmp0,io.err.<code>    ; Check for error pattern
+;       jeq   my_error_handler      
+*--------------------------------------------------------------
+file.record.pab.details.exit:
         b     *r1                   ; Return to caller
-
-
-
-***************************************************************
-* file.error - Error handler for file errors
-********@*****@*********************@**************************
-file.error:
-;
-; When errors do occur then equal bit in status register is set (1)
-; If no errors occur, then equal bit in status register is reset (0)
-;
-; So upon returning from DSRLNK in your file handling code you
-; should basically add:
-;
-;       jeq   file.error            ; Jump to error handler 
-;
-*--------------------------------------------------------------
-        b     @crash_handler        ; A File error occured
