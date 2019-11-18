@@ -1,5 +1,5 @@
 * FILE......: memsetup.asm
-* Purpose...: Equates for memory setup
+* Purpose...: Equates for spectra2 memory layout
 
 ***************************************************************                                     
 * >8300 - >8341     Scratchpad memory layout (66 bytes)                                             

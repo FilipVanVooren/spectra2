@@ -28,7 +28,7 @@ mem.scrpad.pgout:
 xmem.scrpad.pgout:
         li    tmp0,>8300            ; tmp0 = Memory source address
         mov   tmp1,tmp3             ; tmp3 = copy of tmp1
-        li    tmp2,128              ; tmp2 = Bytes to copy
+        li    tmp2,128              ; tmp2 = Words to copy
         ;------------------------------------------------------
         ; Copy memory
         ;------------------------------------------------------
@@ -58,3 +58,41 @@ mem.scrpad.pgout.after.rtwp:
         ;------------------------------------------------------
 mem.scrpad.pgout.$$:
         b     *r11                  ; Return to caller
+
+
+***************************************************************
+* mem.scrpad.pgin - Page in scratchpad memory
+***************************************************************
+*  bl   @mem.scrpad.pgin
+*  DATA p0
+*  P0 = CPU memory source
+*--------------------------------------------------------------
+*  bl   @memx.scrpad.pgin
+*  TMP1 = CPU memory source
+*--------------------------------------------------------------
+*  Register usage
+*  tmp0-tmp2 = Used as temporary registers
+********@*****@*********************@**************************
+mem.scrpad.pgin:
+        mov   *r11+,tmp0            ; tmp0 = Memory source address
+        ;------------------------------------------------------
+        ; Copy scratchpad memory to destination
+        ;------------------------------------------------------
+xmem.scrpad.pgin:
+        li    tmp1,>8300            ; tmp1 = Memory destination address
+        li    tmp2,128              ; tmp2 = Words to copy
+        ;------------------------------------------------------
+        ; Copy memory
+        ;------------------------------------------------------
+!       mov   *tmp0+,*tmp1+         ; Copy word
+        dec   tmp2
+        jne   -!                    ; Loop until done
+        ;------------------------------------------------------
+        ; Switch workspace to scratchpad memory
+        ;------------------------------------------------------
+        lwpi  >8300                 ; Activate copied workspace
+        ;------------------------------------------------------
+        ; Exit
+        ;------------------------------------------------------
+mem.scrpad.pgin.$$:
+        b     *r11                  ; Return to caller 

@@ -78,6 +78,7 @@ fntadr  equ   >1100                 ; VDP font start address (in PDT range)
 vpab    equ   >0200                 ; VDP PAB    @>0200
 vrecbuf equ   >0300                 ; VDP Buffer @>0300
 
+
 ***************************************************************
 * Main
 ********@*****@*********************@**************************
@@ -87,31 +88,52 @@ main    bl    @putat
         bl    @putat
         data  >0100,fname
 
+        li    tmp4,>b000 
+
         ;------------------------------------------------------
         ; Prepare VDP for PAB and page out scratchpad
         ;------------------------------------------------------
         bl    @cpym2v
-        data  vpab,pab,25           ; Copy PAB to VDP
-
-        bl    @mem.scrpad.pgout     ; Page out scratchpad memory
-              data  >a000           ; Memory destination @>a000
-
+              data vpab,pab,25      ; Copy PAB to VDP
+        ;------------------------------------------------------
+        ; Load GPL scratchpad layout
+        ;------------------------------------------------------
+        bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
+              data >a000            ; / 8300->a000, 2000->8300
         ;------------------------------------------------------
         ; Open file
         ;------------------------------------------------------
         bl    @file.open
-        data  vpab                  ; Pass file descriptor to DSRLNK
+              data vpab             ; Pass file descriptor to DSRLNK
         coc   @wbit2,tmp2           ; Equal bit set?
         jeq   file.error            ; Yes, IO error occured
         ;------------------------------------------------------
-        ; Read records
+        ; Read file records
         ;------------------------------------------------------
 readfile        
         bl    @file.record.read     ; Read record
-        data  vpab
-
+              data vpab             ; tmp1=Status byte, tmp2=Bytes read
         coc   @wbit2,tmp2           ; IO error occured?
         jeq   file.error            ; Yes, so handle file error
+        ;------------------------------------------------------
+        ; Load spectra scratchpad layout
+        ;------------------------------------------------------
+        bl    @mem.scrpad.backup    ; Backup GPL layout to >2000
+        bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
+              data >a000            ; / >a000->8300
+        ;------------------------------------------------------
+        ; Copy record to CPU memory
+        ;------------------------------------------------------
+        li    tmp0,vrecbuf          ; VDP source address
+        mov   tmp4,tmp1             ; RAM target address 
+        li    tmp2,80
+        a     tmp2,tmp4
+        bl    @xpyv2m               ; Copy memory
+        ;------------------------------------------------------
+        ; Load GPL scratchpad layout again
+        ;------------------------------------------------------
+        bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
+              data >a000            ; / 8300->a000, 2000->8300
 
         jmp   readfile              ; Next record
         ;------------------------------------------------------
@@ -119,7 +141,7 @@ readfile
         ;------------------------------------------------------
 close_file                
         bl    @file.close           ; Close file
-        data  vpab 
+              data vpab 
 
 
         ;------------------------------------------------------
