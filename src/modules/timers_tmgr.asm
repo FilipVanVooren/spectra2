@@ -36,7 +36,7 @@ tmgr1a  coc   @wbit0,r13            ; Interupt flag set ?
 *--------------------------------------------------------------
 * Run speech player
 *--------------------------------------------------------------
-    .ifndef skip_tms52xx_player
+    .ifndef skip_speech_player
         coc   @wbit3,config         ; Speech player on ?
         jne   tmgr2
         bl    @sppla1               ; Run speech player

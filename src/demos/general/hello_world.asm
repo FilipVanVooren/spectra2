@@ -38,8 +38,8 @@ startup_keep_vdpdiskbuf   equ  1    ; Keep VDP memory reserved for 3 VDP disk bu
 ;skip_vdp_px2yx_calc     equ  1      ; Skip pixel to YX calculation
 ;skip_vdp_sprites        equ  1      ; Skip sprites support
 ;skip_sound_player       equ  1      ; Skip inclusion of sound player code
-;skip_tms52xx_detection  equ  1      ; Skip speech synthesizer detection
-;skip_tms52xx_player     equ  1      ; Skip inclusion of speech player code
+;skip_speech_detection   equ  1      ; Skip speech synthesizer detection
+;skip_speech_player      equ  1      ; Skip inclusion of speech player code
 ;skip_random_generator   equ  1      ; Skip random functions 
 ;skip_timer_alloc        equ  1      ; Skip support for timers allocation
 

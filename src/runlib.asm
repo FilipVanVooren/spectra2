@@ -43,8 +43,8 @@
 *
 * == Sound & speech
 * skip_snd_player           equ  1  ; Skip inclusionm of sound player code
-* skip_tms52xx_detection    equ  1  ; Skip speech synthesizer detection
-* skip_tms52xx_player       equ  1  ; Skip inclusion of speech player code
+* skip_speech_detection     equ  1  ; Skip speech synthesizer detection
+* skip_speech_player        equ  1  ; Skip inclusion of speech player code
 *
 * ==  Keyboard 
 * skip_virtual_keyboard     equ  1  ; Skip virtual keyboard scann
@@ -157,12 +157,12 @@
         copy  "snd_player.asm"           ; Sound player
     .endif
 
-    .ifndef skip_tms52xx_detection
-        copy  "tms52xx_detect.asm"       ; Detect speech synthesizer
+    .ifndef skip_speech_detection
+        copy  "speech_detect.asm"        ; Detect speech synthesizer
     .endif
 
-    .ifndef skip_tms52xx_player
-        copy  "tms52xx_player.asm"       ; Speech synthesizer player
+    .ifndef skip_speech_player
+        copy  "speech_player.asm"        ; Speech synthesizer player
     .endif
 
     .ifndef skip_virtual_keyboard

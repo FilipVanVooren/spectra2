@@ -213,8 +213,8 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0150               * skip_vdp_sprites          equ  1       ; Skip sprites support
 0151               * skip_vdp_cursor           equ  1       ; Skip cursor support
 0152               * skip_snd_player           equ  1       ; Skip inclusionm of sound player code
-0153               * skip_tms52xx_detection    equ  1       ; Skip speech synthesizer detection
-0154               * skip_tms52xx_player       equ  1       ; Skip inclusion of speech player code
+0153               * skip_speech_detection     equ  1       ; Skip speech synthesizer detection
+0154               * skip_speech_player        equ  1       ; Skip inclusion of speech player code
 0155               * skip_virtual_keyboard     equ  1       ; Skip virtual keyboard scann
 0156               * skip_real_keyboard        equ  1       ; Skip real keyboard scan
 0157               * skip_random_generator     equ  1       ; Skip random generator functions

@@ -26,8 +26,7 @@
 ********@*****@*********************@**************************                                     
 palon   equ   wbit2                 ; bit 2=1   (VDP9918 PAL version)                               
 enusr   equ   wbit7                 ; bit 7=1   (Enable user hook)                                  
-enknl   equ   wbit9                 ; bit 9=1   (Enable kernel thread)                              
-tms5200 equ   wbit10                ; bit 10=1  (Speech Synthesizer present)                        
+enknl   equ   wbit9                 ; bit 9=1   (Enable kernel thread)                                                     
 anykey  equ   wbit11                ; BIT 11 in the CONFIG register                                 
 ***************************************************************                                     
 

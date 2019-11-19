@@ -1,4 +1,4 @@
-* FILE......: tms52xx_detect.asm
+* FILE......: speech_detect.asm
 * Purpose...: Check if speech synthesizer is connected
 
 
