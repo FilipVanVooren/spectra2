@@ -170,8 +170,8 @@ pab     byte  io.op.open            ;  0    - OPEN
         data  >0000                 ;  6-7  - Seek record (only for fixed records)
         byte  >00                   ;  8    - Screen offset (cassette DSR only)
 
-;fname   byte  12                    ;  9    - File descriptor length
-;        text 'DSK2.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name) 
+; fname  byte  12                    ;  9    - File descriptor length
+;        text 'DSK1.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name) 
 
 fname   byte  15                    ;  9    - File descriptor length
         text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)

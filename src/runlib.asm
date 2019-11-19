@@ -70,17 +70,17 @@
 *                       RUNLIB SETUP
 *//////////////////////////////////////////////////////////////
 
-        copy  "memsetup.asm"             ; runlib scratchpad memory setup
-        copy  "registers.asm"            ; runlib registers
-        copy  "portaddr.asm"             ; runlib hardware port addresses
-        copy  "param.asm"                ; runlib parameters
+        copy  "equ_memsetup.asm"         ; Equates for runlib scratchpad memory setup
+        copy  "equ_registers.asm"        ; Equates for runlib registers
+        copy  "equ_portaddr.asm"         ; Equates for runlib hardware port addresses
+        copy  "equ_param.asm"            ; Equates for runlib parameters
 
     .ifndef skip_rom_bankswitch
         copy  "rom_bankswitch.asm"       ; Bank switch routine
     .endif
 
         copy  "constants.asm"            ; Define constants & equates for word/MSB/LSB
-        copy  "config.asm"               ; Equates for bits in config register
+        copy  "equ_config.asm"           ; Equates for bits in config register
         copy  "cpu_crash_hndlr.asm"      ; CPU program crashed handler
         copy  "vdp_tables.asm"           ; Data used by runtime library
         copy  "basic_cpu_vdp.asm"        ; Basic CPU & VDP functions
@@ -195,6 +195,7 @@
     .endif
 
     .ifndef skip_iosupport
+        copy  "equ_file_io.asm"          ; File I/O equates
         copy  "dsrlnk.asm"               ; DSRLNK for peripheral communication 
         copy  "fio_level2.asm"           ; File I/O level 2 support
     .endif
@@ -320,7 +321,7 @@ runlia  bl    @filv
 *--------------------------------------------------------------
 * Check if there is a speech synthesizer attached
 *--------------------------------------------------------------
-    .ifdef skip_tms52xx_detection
+    .ifdef skip_speech_detection
 *       <<skipped>>
     .else
         bl    @spconn 
