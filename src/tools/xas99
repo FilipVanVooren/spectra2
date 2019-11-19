@@ -126,10 +126,11 @@ function preprocess() {
   #-------
   # Copy all sources to preprocessing directory
   #-------
-  cp $g_source               ${g_prepdir}/$g_source.$$
-  cp ${g_spectra2}/data/*    ${g_prepdir}/ 
-  cp ${g_spectra2}/modules/* ${g_prepdir}/ 
-  cp ./modules/*             ${g_prepdir}/ 
+  cp $g_source                 ${g_prepdir}/$g_source.$$
+  cp ${g_spectra2}/equates/*   ${g_prepdir}/ 
+  cp ${g_spectra2}/data/*      ${g_prepdir}/ 
+  cp ${g_spectra2}/modules/*   ${g_prepdir}/ 
+  cp ./modules/*               ${g_prepdir}/ 
 
 
   #-------
