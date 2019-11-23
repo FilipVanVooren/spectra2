@@ -15,7 +15,7 @@
 *  P0 = 8 or 10 (a)
 *--------------------------------------------------------------
 *  Output:
-*  r0 LSB = Bit 13-15 from VDP PAB byte 1, right aligned 
+*  r0 LSB = Bits 13-15 from VDP PAB byte 1, right aligned 
 *--------------------------------------------------------------
 ; Spectra2 scratchpad memory needs to be paged out before.
 ; You need to specify following equates in main program

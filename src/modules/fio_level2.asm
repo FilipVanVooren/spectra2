@@ -41,6 +41,7 @@
 ********@*****@*********************@**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
+        mov   r0,cpupab             ; Backup of pointer to current VDP PAB
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
@@ -212,8 +213,8 @@ file.record.pab.details:
 *--------------------------------------------------------------
 * Get PAB byte 5 from VDP ram into tmp1 (character count)
 *--------------------------------------------------------------        
-        mov   @>8356,tmp0           ; Get PAB VDP address + 9
-        ai    tmp0,-4               ; Get address of PAB + 5
+        mov   cpupab,tmp0           ; Get VDP address of current PAB
+        ai    tmp0,5                ; Get address of VDP PAB byte 5
         bl    @xvgetb               ; VDP read PAB status byte into tmp0
         mov   tmp0,tmp1             ; Move to destination
 *--------------------------------------------------------------

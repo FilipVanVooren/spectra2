@@ -1,5 +1,5 @@
 XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
-**** **** ****     > fio.asm.16630
+**** **** ****     > fio.asm.17997
 0001               ***************************************************************
 0002               *
 0003               *                          File I/O test
@@ -7,7 +7,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0005               *                (c)2018-2019 // Filip van Vooren
 0006               *
 0007               ***************************************************************
-0008               * File: fio.asm                     ; Version 191119-16630
+0008               * File: fio.asm                     ; Version 191123-17997
 0009               *--------------------------------------------------------------
 0010               * 2018-04-01   Development started
 0011               ********@*****@*********************@**************************
@@ -60,7 +60,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0053 6012 6FC2             data  runlib
 0055               
 0056 6014 1146             byte  17
-0057 6015 ....             text  'FIOT 191119-16630'
+0057 6015 ....             text  'FIOT 191123-17997'
 0058                       even
 0059               
 0067               *--------------------------------------------------------------
@@ -129,7 +129,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0059               * == Kernel/Multitasking
 0060               * skip_timer_alloc          equ  1  ; Skip support for timers allocation
 0061               * skip_mem_paging           equ  1  ; Skip support for memory paging
-0062               * skip_iosupport            equ  1  ; Skip support for file I/O, dsrlnk
+0062               * skip_fio                  equ  1  ; Skip support for file I/O, dsrlnk
 0063               *
 0064               * == Startup behaviour
 0065               * startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300:>83ff to @>2000
@@ -3199,9 +3199,9 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0098 6D6E 045B  20         b     *r11                  ; Return to caller
 **** **** ****     > runlib.asm
 0196               
-0198                       copy  "equ_file_io.asm"          ; File I/O equates
-**** **** ****     > equ_file_io.asm
-0001               * FILE......: equ_file_io.asm
+0198                       copy  "equ_fio.asm"              ; File I/O equates
+**** **** ****     > equ_fio.asm
+0001               * FILE......: equ_fio.asm
 0002               * Purpose...: Equates for file I/O operations
 0003               
 0004               ***************************************************************
@@ -3306,7 +3306,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0015               *  P0 = 8 or 10 (a)
 0016               *--------------------------------------------------------------
 0017               *  Output:
-0018               *  r0 LSB = Bit 13-15 from VDP PAB byte 1, right aligned
+0018               *  r0 LSB = Bits 13-15 from VDP PAB byte 1, right aligned
 0019               *--------------------------------------------------------------
 0020               ; Spectra2 scratchpad memory needs to be paged out before.
 0021               ; You need to specify following equates in main program
@@ -3810,7 +3810,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0214               *--------------------------------------------------------------
 0215 6EEE C120  34         mov   @>8356,tmp0           ; Get PAB VDP address + 9
      6EF0 8356 
-0216 6EF2 0224  22         ai    tmp0,-4               ; Get address of PAB + 5
+0216 6EF2 0224  22         ai    tmp0,-4               ; Get address of VDP PAB byte 5
      6EF4 FFFC 
 0217 6EF6 06A0  32         bl    @xvgetb               ; VDP read PAB status byte into tmp0
      6EF8 612E 
@@ -4213,7 +4213,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
      7076 0040 
 0349 7078 0460  28         b     @main                 ; Give control to main program
      707A 707C 
-**** **** ****     > fio.asm.16630
+**** **** ****     > fio.asm.17997
 0071               *--------------------------------------------------------------
 0072               * SPECTRA2 startup options
 0073               *--------------------------------------------------------------
@@ -4233,134 +4233,206 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0087      0300     vrecbuf equ   >0300                 ; VDP Buffer @>0300
 0088               
 0089               
-0090               ***************************************************************
-0091               * Main
-0092               ********@*****@*********************@**************************
-0093 707C 06A0  32 main    bl    @putat
+0090               ;--------------------------------------------------------------
+0091               ; Variables
+0092               ;--------------------------------------------------------------
+0093      C000     records equ   >c000                 ; Records processed so far
+0094      C002     reclen  equ   >c002                 ; Current record length
+0095      C004     rambuf  equ   >c004                 ; 5 byte RAM-buffer
+0096               
+0097               
+0098               ***************************************************************
+0099               * Main
+0100               ********@*****@*********************@**************************
+0101 707C 06A0  32 main    bl    @putat
      707E 627A 
-0094 7080 0000             data  >0000,msg
-     7082 710A 
-0095               
-0096 7084 06A0  32         bl    @putat
+0102 7080 0000             data  >0000,msg
+     7082 7150 
+0103               
+0104 7084 06A0  32         bl    @putat
      7086 627A 
-0097 7088 0100             data  >0100,fname
-     708A 70F9 
-0098               
-0099 708C 0208  20         li    tmp4,>b000
-     708E B000 
-0100               
-0101                       ;------------------------------------------------------
-0102                       ; Prepare VDP for PAB and page out scratchpad
-0103                       ;------------------------------------------------------
-0104 7090 06A0  32         bl    @cpym2v
-     7092 6282 
-0105 7094 0200                   data vpab,pab,25      ; Copy PAB to VDP
-     7096 70F0 
-     7098 0019 
-0106                       ;------------------------------------------------------
-0107                       ; Load GPL scratchpad layout
-0108                       ;------------------------------------------------------
-0109 709A 06A0  32         bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
-     709C 6D38 
-0110 709E A000                   data >a000            ; / 8300->a000, 2000->8300
-0111                       ;------------------------------------------------------
-0112                       ; Open file
+0105 7088 0100             data  >0100,fname
+     708A 713F 
+0106               
+0107 708C 06A0  32         bl    @putat
+     708E 627A 
+0108 7090 0300             data  >0300,rec1
+     7092 7166 
+0109               
+0110 7094 06A0  32         bl    @putat
+     7096 627A 
+0111 7098 0400             data  >0400,rec2
+     709A 717A 
+0112               
 0113                       ;------------------------------------------------------
-0114 70A0 06A0  32         bl    @file.open
-     70A2 6E86 
-0115 70A4 0200                   data vpab             ; Pass file descriptor to DSRLNK
-0116 70A6 21A0  38         coc   @wbit2,tmp2           ; Equal bit set?
-     70A8 6042 
-0117 70AA 131A  14         jeq   file.error            ; Yes, IO error occured
-0118                       ;------------------------------------------------------
-0119                       ; Read file records
-0120                       ;------------------------------------------------------
-0121               readfile
-0122 70AC 06A0  32         bl    @file.record.read     ; Read record
-     70AE 6EC0 
-0123 70B0 0200                   data vpab             ; tmp1=Status byte, tmp2=Bytes read
-0124 70B2 21A0  38         coc   @wbit2,tmp2           ; IO error occured?
-     70B4 6042 
-0125 70B6 1314  14         jeq   file.error            ; Yes, so handle file error
-0126                       ;------------------------------------------------------
-0127                       ; Load spectra scratchpad layout
-0128                       ;------------------------------------------------------
-0129 70B8 06A0  32         bl    @mem.scrpad.backup    ; Backup GPL layout to >2000
-     70BA 6734 
-0130 70BC 06A0  32         bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
-     70BE 6D5A 
-0131 70C0 A000                   data >a000            ; / >a000->8300
-0132                       ;------------------------------------------------------
-0133                       ; Copy record to CPU memory
+0114                       ; Initialization
+0115                       ;------------------------------------------------------
+0116               main.init:
+0117 709C 04E0  34         clr   @records              ; Reset record counter
+     709E C000 
+0118 70A0 0208  20         li    tmp4,>b000            ; CPU destination for memory copy
+     70A2 B000 
+0119               
+0120 70A4 06A0  32         bl    @cpym2v
+     70A6 6282 
+0121 70A8 0200                   data vpab,pab,25      ; Copy PAB to VDP
+     70AA 7136 
+     70AC 0019 
+0122                       ;------------------------------------------------------
+0123                       ; Load GPL scratchpad layout
+0124                       ;------------------------------------------------------
+0125 70AE 06A0  32         bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
+     70B0 6D38 
+0126 70B2 A000                   data >a000            ; / 8300->a000, 2000->8300
+0127                       ;------------------------------------------------------
+0128                       ; Open file
+0129                       ;------------------------------------------------------
+0130 70B4 06A0  32         bl    @file.open
+     70B6 6E86 
+0131 70B8 0200                   data vpab             ; Pass file descriptor to DSRLNK
+0132 70BA 21A0  38         coc   @wbit2,tmp2           ; Equal bit set?
+     70BC 6042 
+0133 70BE 132C  14         jeq   file.error            ; Yes, IO error occured
 0134                       ;------------------------------------------------------
-0135 70C2 0204  20         li    tmp0,vrecbuf          ; VDP source address
-     70C4 0300 
-0136 70C6 C148  18         mov   tmp4,tmp1             ; RAM target address
-0137 70C8 0206  20         li    tmp2,80
-     70CA 0050 
-0138 70CC A206  18         a     tmp2,tmp4
-0139 70CE 06A0  32         bl    @xpyv2m               ; Copy memory
-     70D0 62AE 
-0140                       ;------------------------------------------------------
-0141                       ; Load GPL scratchpad layout again
-0142                       ;------------------------------------------------------
-0143 70D2 06A0  32         bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
-     70D4 6D38 
-0144 70D6 A000                   data >a000            ; / 8300->a000, 2000->8300
-0145               
-0146 70D8 10E9  14         jmp   readfile              ; Next record
-0147                       ;------------------------------------------------------
-0148                       ; Close file
+0135                       ; Read file records
+0136                       ;------------------------------------------------------
+0137               main.readfile:
+0138 70C0 05A0  34         inc   @records              ; Update counter
+     70C2 C000 
+0139 70C4 04E0  34         clr   @reclen               ; Reset record length
+     70C6 C002 
+0140               
+0141 70C8 06A0  32         bl    @file.record.read     ; Read record
+     70CA 6EC0 
+0142 70CC 0200                   data vpab             ; tmp0=Status byte, tmp1=Bytes read
+0143                                                   ; tmp2=Status register contents upon DSRLNK return
+0144               
+0145 70CE C805  38         mov   tmp1,@reclen          ; Save bytes read
+     70D0 C002 
+0146               
+0147 70D2 21A0  38         coc   @wbit2,tmp2           ; IO error occured?
+     70D4 6042 
+0148 70D6 1320  14         jeq   file.error            ; Yes, so handle file error
 0149                       ;------------------------------------------------------
-0150               close_file
-0151 70DA 06A0  32         bl    @file.close           ; Close file
-     70DC 6EA2 
-0152 70DE 0200                   data vpab
-0153               
-0154               
+0150                       ; Load spectra scratchpad layout
+0151                       ;------------------------------------------------------
+0152 70D8 06A0  32         bl    @mem.scrpad.backup    ; Backup GPL layout to >2000
+     70DA 6734 
+0153 70DC 06A0  32         bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
+     70DE 6D5A 
+0154 70E0 A000                   data >a000            ; / >a000->8300
 0155                       ;------------------------------------------------------
-0156                       ; Error handler
+0156                       ; Display results
 0157                       ;------------------------------------------------------
-0158               file.error
-0159 70E0 0984  56         srl   tmp0,8                ; Right align VDP PAB 1 status byte
-0160 70E2 0284  22         ci    tmp0,io.err.eof       ; EOF reached ?
-     70E4 0005 
-0161 70E6 1302  14         jeq   exit_ok               ; All good. File closed by DSRLNK
-0162 70E8 0460  28         b     @crash_handler        ; A File error occured. System crashed
-     70EA 604C 
-0163               
-0164               
-0165               exit_ok
-0166 70EC 0420  54         blwp  @0
-     70EE 0000 
-0167               
-0168               
-0169               
-0170               ***************************************************************
-0171               * PAB for accessing file
-0172               ********@*****@*********************@**************************
-0173 70F0 0014     pab     byte  io.op.open            ;  0    - OPEN
-0174                       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
-0175 70F2 0300             data  vrecbuf               ;  2-3  - Record buffer in VDP memory
-0176 70F4 5000             byte  80                    ;  4    - Record length (80 characters maximum)
-0177                       byte  00                    ;  5    - Character count
-0178 70F6 0000             data  >0000                 ;  6-7  - Seek record (only for fixed records)
-0179 70F8 000F             byte  >00                   ;  8    - Screen offset (cassette DSR only)
-0180               
-0181               ; fname  byte  12                    ;  9    - File descriptor length
-0182               ;        text 'DSK1.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name)
-0183               
-0184               fname   byte  15                    ;  9    - File descriptor length
-0185 70FA ....             text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
-0186               
+0158 70E2 06A0  32         bl    @putnum
+     70E4 672A 
+0159 70E6 0314                   byte 03,20
+0160 70E8 C000                   data records,rambuf,>3020
+     70EA C004 
+     70EC 3020 
+0161               
+0162 70EE 06A0  32         bl    @putnum
+     70F0 672A 
+0163 70F2 0414                   byte 04,20
+0164 70F4 C002                   data reclen,rambuf,>3020
+     70F6 C004 
+     70F8 3020 
+0165               
+0166                       ;------------------------------------------------------
+0167                       ; Copy record to CPU memory
+0168                       ;------------------------------------------------------
+0169 70FA 0204  20         li    tmp0,vrecbuf          ; VDP source address
+     70FC 0300 
+0170 70FE C148  18         mov   tmp4,tmp1             ; RAM target address
+0171 7100 0206  20         li    tmp2,80
+     7102 0050 
+0172 7104 A206  18         a     tmp2,tmp4
+0173 7106 06A0  32         bl    @xpyv2m               ; Copy memory
+     7108 62AE 
+0174                       ;------------------------------------------------------
+0175                       ; Load GPL scratchpad layout again
+0176                       ;------------------------------------------------------
+0177 710A 06A0  32         bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
+     710C 6D38 
+0178 710E A000                   data >a000            ; / 8300->a000, 2000->8300
+0179               
+0180 7110 10D7  14         jmp   main.readfile         ; Next record
+0181                       ;------------------------------------------------------
+0182                       ; Close file
+0183                       ;------------------------------------------------------
+0184               close_file
+0185 7112 06A0  32         bl    @file.close           ; Close file
+     7114 6EA2 
+0186 7116 0200                   data vpab
 0187               
-0188                       even
-0189               
-0190               
-0191               msg
-0192 710A 152A             byte  21
-0193 710B ....             text  '* File reading test *'
-0194                       even
-0195               
-0196               
+0188               
+0189                       ;------------------------------------------------------
+0190                       ; Error handler
+0191                       ;------------------------------------------------------
+0192               file.error
+0193 7118 0984  56         srl   tmp0,8                ; Right align VDP PAB 1 status byte
+0194 711A 0284  22         ci    tmp0,io.err.eof       ; EOF reached ?
+     711C 0005 
+0195 711E 1302  14         jeq   eof_reached           ; All good. File closed by DSRLNK
+0196 7120 0460  28         b     @crash_handler        ; A File error occured. System crashed
+     7122 604C 
 0197               
+0198               
+0199               eof_reached:
+0200 7124 06A0  32         bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
+     7126 6D5A 
+0201 7128 A000                   data >a000            ; / >a000->8300
+0202               
+0203 712A 06A0  32         bl    @putat
+     712C 627A 
+0204 712E 0600             data  >0600,eof
+     7130 718E 
+0205               
+0206 7132 0460  28         b     @tmgr
+     7134 6F00 
+0207               
+0208               
+0209               
+0210               
+0211               ***************************************************************
+0212               * PAB for accessing file
+0213               ********@*****@*********************@**************************
+0214 7136 0014     pab     byte  io.op.open            ;  0    - OPEN
+0215                       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
+0216 7138 0300             data  vrecbuf               ;  2-3  - Record buffer in VDP memory
+0217 713A 5000             byte  80                    ;  4    - Record length (80 characters maximum)
+0218                       byte  00                    ;  5    - Character count
+0219 713C 0000             data  >0000                 ;  6-7  - Seek record (only for fixed records)
+0220 713E 000F             byte  >00                   ;  8    - Screen offset (cassette DSR only)
+0221               
+0222               ; fname  byte  12                    ;  9    - File descriptor length
+0223               ;        text 'DSK1.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name)
+0224               
+0225               fname   byte  15                    ;  9    - File descriptor length
+0226 7140 ....             text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
+0227               
+0228               
+0229                       even
+0230               
+0231               
+0232               msg
+0233 7150 152A             byte  21
+0234 7151 ....             text  '* File reading test *'
+0235                       even
+0236               
+0237               rec1
+0238 7166 1352             byte  19
+0239 7167 ....             text  'Records read......:'
+0240                       even
+0241               
+0242               rec2
+0243 717A 1343             byte  19
+0244 717B ....             text  'Characters read...:'
+0245                       even
+0246               
+0247               eof
+0248 718E 1B45             byte  27
+0249 718F ....             text  'EOF reached. FCTN+Q to quit'
+0250                       even
+0251               
+0252               

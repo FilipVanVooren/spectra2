@@ -59,7 +59,7 @@
 * == Kernel/Multitasking
 * skip_timer_alloc          equ  1  ; Skip support for timers allocation
 * skip_mem_paging           equ  1  ; Skip support for memory paging 
-* skip_iosupport            equ  1  ; Skip support for file I/O, dsrlnk
+* skip_fio                  equ  1  ; Skip support for file I/O, dsrlnk
 *
 * == Startup behaviour 
 * startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300:>83ff to @>2000
@@ -194,8 +194,8 @@
         copy  "mem_scrpad_paging.asm"    ; Scratchpad memory paging
     .endif
 
-    .ifndef skip_iosupport
-        copy  "equ_file_io.asm"          ; File I/O equates
+    .ifndef skip_fio
+        copy  "equ_fio.asm"              ; File I/O equates
         copy  "dsrlnk.asm"               ; DSRLNK for peripheral communication 
         copy  "fio_level2.asm"           ; File I/O level 2 support
     .endif

@@ -1,4 +1,4 @@
-* FILE......: equ_file_io.asm
+* FILE......: equ_fio.asm
 * Purpose...: Equates for file I/O operations
 
 ***************************************************************

@@ -79,6 +79,15 @@ vpab    equ   >0200                 ; VDP PAB    @>0200
 vrecbuf equ   >0300                 ; VDP Buffer @>0300
 
 
+;--------------------------------------------------------------
+; Variables
+;--------------------------------------------------------------
+cpupab  equ   >c000                 ; Pointer to VDP PAB, required by level 2 FIO
+records equ   >c000                 ; Records processed so far
+reclen  equ   >c002                 ; Current record length
+rambuf  equ   >c004                 ; 5 byte RAM-buffer
+
+
 ***************************************************************
 * Main
 ********@*****@*********************@**************************
@@ -88,11 +97,19 @@ main    bl    @putat
         bl    @putat
         data  >0100,fname
 
-        li    tmp4,>b000 
+        bl    @putat
+        data  >0300,rec1
+
+        bl    @putat
+        data  >0400,rec2
 
         ;------------------------------------------------------
-        ; Prepare VDP for PAB and page out scratchpad
+        ; Initialization
         ;------------------------------------------------------
+main.init:        
+        clr   @records              ; Reset record counter
+        li    tmp4,>b000            ; CPU destination for memory copy
+
         bl    @cpym2v
               data vpab,pab,25      ; Copy PAB to VDP
         ;------------------------------------------------------
@@ -110,9 +127,16 @@ main    bl    @putat
         ;------------------------------------------------------
         ; Read file records
         ;------------------------------------------------------
-readfile        
+main.readfile:        
+        inc   @records              ; Update counter        
+        clr   @reclen               ; Reset record length
+
         bl    @file.record.read     ; Read record
-              data vpab             ; tmp1=Status byte, tmp2=Bytes read
+              data vpab             ; tmp0=Status byte, tmp1=Bytes read
+                                    ; tmp2=Status register contents upon DSRLNK return
+
+        mov   tmp1,@reclen          ; Save bytes read
+
         coc   @wbit2,tmp2           ; IO error occured?
         jeq   file.error            ; Yes, so handle file error
         ;------------------------------------------------------
@@ -121,6 +145,17 @@ readfile
         bl    @mem.scrpad.backup    ; Backup GPL layout to >2000
         bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
               data >a000            ; / >a000->8300
+        ;------------------------------------------------------
+        ; Display results
+        ;------------------------------------------------------
+        bl    @putnum
+              byte 03,20
+              data records,rambuf,>3020
+
+        bl    @putnum
+              byte 04,20
+              data reclen,rambuf,>3020
+
         ;------------------------------------------------------
         ; Copy record to CPU memory
         ;------------------------------------------------------
@@ -135,7 +170,7 @@ readfile
         bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
               data >a000            ; / 8300->a000, 2000->8300
 
-        jmp   readfile              ; Next record
+        jmp   main.readfile         ; Next record
         ;------------------------------------------------------
         ; Close file
         ;------------------------------------------------------
@@ -150,12 +185,19 @@ close_file
 file.error        
         srl   tmp0,8                ; Right align VDP PAB 1 status byte
         ci    tmp0,io.err.eof       ; EOF reached ?
-        jeq   exit_ok               ; All good. File closed by DSRLNK 
+        jeq   eof_reached           ; All good. File closed by DSRLNK 
         b     @crash_handler        ; A File error occured. System crashed
 
 
-exit_ok
-        blwp  @0
+eof_reached:
+        bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
+              data >a000            ; / >a000->8300
+
+        bl    @putat
+        data  >0600,eof
+
+        b     @tmgr
+
 
 
 
@@ -181,5 +223,7 @@ fname   byte  15                    ;  9    - File descriptor length
 
 
 msg     #string '* File reading test *'
-
+rec1    #string 'Records read......:'
+rec2    #string 'Characters read...:'
+eof     #string 'EOF reached. FCTN+Q to quit'
 
