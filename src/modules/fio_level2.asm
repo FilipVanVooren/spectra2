@@ -228,10 +228,10 @@ file.record.pab.details:
 * Exit
 *--------------------------------------------------------------
 ; If an error occured during the IO operation, then the 
-; equal bit in the saved status register (=R2) is set to 1.
+; equal bit in the saved status register (=tmp2) is set to 1.
 ; 
 ; If no error occured during the IO operation, then the 
-; equal bit in the saved status register (=R2) is set to 0.
+; equal bit in the saved status register (=tmp2) is set to 0.
 ;
 ; Upon return from this IO call you should basically test with:
 ;       coc   @wbit2,tmp2           ; Equal bit set?
