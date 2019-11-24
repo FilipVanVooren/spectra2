@@ -1,5 +1,5 @@
 XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
-**** **** ****     > fio.asm.17168
+**** **** ****     > fio.asm.20306
 0001               ***************************************************************
 0002               *
 0003               *                          File I/O test
@@ -7,7 +7,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0005               *                (c)2018-2019 // Filip van Vooren
 0006               *
 0007               ***************************************************************
-0008               * File: fio.asm                     ; Version 191124-17168
+0008               * File: fio.asm                     ; Version 191124-20306
 0009               *--------------------------------------------------------------
 0010               * 2018-04-01   Development started
 0011               ********@*****@*********************@**************************
@@ -61,7 +61,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0054 6012 6FE6             data  runlib
 0056               
 0057 6014 1146             byte  17
-0058 6015 ....             text  'FIOT 191124-17168'
+0058 6015 ....             text  'FIOT 191124-20306'
 0059                       even
 0060               
 0068               *--------------------------------------------------------------
@@ -4221,7 +4221,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
      709A 0040 
 0349 709C 0460  28         b     @main                 ; Give control to main program
      709E 70A0 
-**** **** ****     > fio.asm.17168
+**** **** ****     > fio.asm.20306
 0072               *--------------------------------------------------------------
 0073               * SPECTRA2 startup options
 0074               *--------------------------------------------------------------
@@ -4257,7 +4257,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0104 70A0 06A0  32 main    bl    @putat
      70A2 6292 
 0105 70A4 0000             data  >0000,msg
-     70A6 71AE 
+     70A6 71B2 
 0106               
 0107 70A8 06A0  32         bl    @putat
      70AA 6292 
@@ -4267,17 +4267,17 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0110 70B0 06A0  32         bl    @putat
      70B2 6292 
 0111 70B4 0300             data  >0300,rec1
-     70B6 71C4 
+     70B6 71C8 
 0112               
 0113 70B8 06A0  32         bl    @putat
      70BA 6292 
 0114 70BC 0400             data  >0400,rec2
-     70BE 71D8 
+     70BE 71DC 
 0115               
 0116 70C0 06A0  32         bl    @putat
      70C2 6292 
 0117 70C4 0500             data  >0500,rec3
-     70C6 71EC 
+     70C6 71F0 
 0118               
 0119               
 0120                       ;------------------------------------------------------
@@ -4431,7 +4431,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0225 718C 06A0  32         bl    @putat
      718E 6292 
 0226 7190 0700             data  >0700,eof             ; Display EOF message
-     7192 7200 
+     7192 7204 
 0227               
 0228 7194 0460  28         b     @tmgr                 ; FCTN-+ to quit
      7196 6F24 
@@ -4447,41 +4447,41 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0238 719C 5000             byte  80                    ;  4    - Record length (80 characters maximum)
 0239                       byte  00                    ;  5    - Character count
 0240 719E 0000             data  >0000                 ;  6-7  - Seek record (only for fixed records)
-0241 71A0 000C             byte  >00                   ;  8    - Screen offset (cassette DSR only)
+0241 71A0 000F             byte  >00                   ;  8    - Screen offset (cassette DSR only)
 0242               
-0243               fname   byte  12                    ;  9    - File descriptor length
-0244 71A2 ....             text 'DSK2.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name)
+0243               ;fname   byte  12                    ;  9    - File descriptor length
+0244               ;        text 'DSK2.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name)
 0245               
-0246               ;fname   byte  15                    ;  9    - File descriptor length
-0247               ;        text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
+0246               fname   byte  15                    ;  9    - File descriptor length
+0247 71A2 ....             text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
 0248               
 0249               
 0250                       even
 0251               
 0252               
 0253               msg
-0254 71AE 152A             byte  21
-0255 71AF ....             text  '* File reading test *'
+0254 71B2 152A             byte  21
+0255 71B3 ....             text  '* File reading test *'
 0256                       even
 0257               
 0258               rec1
-0259 71C4 1352             byte  19
-0260 71C5 ....             text  'Records read......:'
+0259 71C8 1352             byte  19
+0260 71C9 ....             text  'Records read......:'
 0261                       even
 0262               
 0263               rec2
-0264 71D8 1343             byte  19
-0265 71D9 ....             text  'Characters read...:'
+0264 71DC 1343             byte  19
+0265 71DD ....             text  'Characters read...:'
 0266                       even
 0267               
 0268               rec3
-0269 71EC 134B             byte  19
-0270 71ED ....             text  'Kilobytes read....:'
+0269 71F0 134B             byte  19
+0270 71F1 ....             text  'Kilobytes read....:'
 0271                       even
 0272               
 0273               eof
-0274 7200 1B45             byte  27
-0275 7201 ....             text  'EOF reached. FCTN-+ to quit'
+0274 7204 1B45             byte  27
+0275 7205 ....             text  'EOF reached. FCTN-+ to quit'
 0276                       even
 0277               
 0278               
