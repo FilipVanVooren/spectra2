@@ -1,4 +1,4 @@
-* FILE......: cpu_crash_hndlr.asm
+* FILE......: cpu_crash_handler.asm
 * Purpose...: Custom crash handler module
 
 
@@ -20,10 +20,10 @@ crash_handler:
 crash_handler.main:
         bl    @putat                ; Show crash message
         data  >0000,crash_handler.message
-        jmp   $
+        b     @tmgr                 ; FNCTN-+ to quit
         
 crash_handler.message:
-        byte  15
-        text  'System crashed.'        
+        byte  37
+        text  'System crashed. Press FNCTN-+ to quit'        
 
 

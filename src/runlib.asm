@@ -81,7 +81,7 @@
 
         copy  "constants.asm"            ; Define constants & equates for word/MSB/LSB
         copy  "equ_config.asm"           ; Equates for bits in config register
-        copy  "cpu_crash_hndlr.asm"      ; CPU program crashed handler
+        copy  "cpu_crash_handler.asm"    ; CPU program crashed handler
         copy  "vdp_tables.asm"           ; Data used by runtime library
         copy  "basic_cpu_vdp.asm"        ; Basic CPU & VDP functions
 

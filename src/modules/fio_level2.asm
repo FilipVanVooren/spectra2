@@ -41,12 +41,12 @@
 ********@*****@*********************@**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
-        mov   r0,cpupab             ; Backup of pointer to current VDP PAB
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
 xfile.open:
         mov   r11,r1                ; Save return address
+        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
         clr   tmp1                  ; io.op.open
         bl    @xvputb               ; Write file opcode to VDP
@@ -93,6 +93,7 @@ file.close:
 *--------------------------------------------------------------
 xfile.close:
         mov   r11,r1                ; Save return address
+        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB                        
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
         li    tmp1,io.op.close      ; io.op.close
         bl    @xvputb               ; Write file opcode to VDP
@@ -141,6 +142,7 @@ file.record.read:
 *--------------------------------------------------------------
 xfile.record.read:
         mov   r11,r1                ; Save return address
+        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB        
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
         li    tmp1,io.op.read       ; io.op.read
         bl    @xvputb               ; Write file opcode to VDP
@@ -213,7 +215,7 @@ file.record.pab.details:
 *--------------------------------------------------------------
 * Get PAB byte 5 from VDP ram into tmp1 (character count)
 *--------------------------------------------------------------        
-        mov   cpupab,tmp0           ; Get VDP address of current PAB
+        mov   @file.pab.ptr,tmp0    ; Get VDP address of current PAB
         ai    tmp0,5                ; Get address of VDP PAB byte 5
         bl    @xvgetb               ; VDP read PAB status byte into tmp0
         mov   tmp0,tmp1             ; Move to destination

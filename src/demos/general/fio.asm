@@ -14,9 +14,10 @@
 *--------------------------------------------------------------
 debug                     equ  1    ; Turn on debugging
 ;--------------------------------------------------------------
-; Equates for spectra2 DSRLNK 
+; Equates for spectra2 file IO and DSRLNK usage
 ;--------------------------------------------------------------
-dsrlnk.dsrlws             equ >b000 ; Address of dsrlnk workspace                                              
+file.pab.ptr              equ >b000 ; Pointer to VDP PAB, required by level 2 FIO
+dsrlnk.dsrlws             equ >b002 ; Address of dsrlnk workspace                                              
 dsrlnk.namsto             equ >2100 ; 8-byte RAM buffer for storing device name
 startup_backup_scrpad     equ  1    ; Backup scratchpad @>8300:>83ff to @>2000
 startup_keep_vdpmemory    equ  1    ; Do not clear VDP vram upon startup
@@ -75,17 +76,18 @@ fntadr  equ   >1100                 ; VDP font start address (in PDT range)
 ;--------------------------------------------------------------
 ; VDP space for PAB and file buffer
 ;--------------------------------------------------------------
-vpab    equ   >0200                 ; VDP PAB    @>0200
-vrecbuf equ   >0300                 ; VDP Buffer @>0300
-
-
+vpab    equ   >0300                 ; VDP PAB    @>0300
+vrecbuf equ   >0400                 ; VDP Buffer @>0400
 ;--------------------------------------------------------------
 ; Variables
 ;--------------------------------------------------------------
-cpupab  equ   >c000                 ; Pointer to VDP PAB, required by level 2 FIO
-records equ   >c000                 ; Records processed so far
-reclen  equ   >c002                 ; Current record length
-rambuf  equ   >c004                 ; 5 byte RAM-buffer
+records       equ   >c000           ; Records processed so far
+iostat        equ   >c002           ; PAB status byte
+reclen        equ   >c004           ; Current record length
+ioresult      equ   >c006           ; DSRLNK IO-status after file read operation
+kbread        equ   >c008           ; Kilobytes read
+counter       equ   >c00a           ; Counter
+rambuf        equ   >c00c           ; 5 byte RAM-buffer
 
 
 ***************************************************************
@@ -103,11 +105,17 @@ main    bl    @putat
         bl    @putat
         data  >0400,rec2
 
+        bl    @putat
+        data  >0500,rec3
+
+
         ;------------------------------------------------------
         ; Initialization
         ;------------------------------------------------------
 main.init:        
         clr   @records              ; Reset record counter
+        clr   @kbread               ; Reset kilobytes read
+        clr   @counter              ; Reset internal counter for kilobytes read
         li    tmp4,>b000            ; CPU destination for memory copy
 
         bl    @cpym2v
@@ -135,13 +143,23 @@ main.readfile:
               data vpab             ; tmp0=Status byte, tmp1=Bytes read
                                     ; tmp2=Status register contents upon DSRLNK return
 
+        mov   tmp0,@iostat          ; Save status byte
         mov   tmp1,@reclen          ; Save bytes read
-
-        coc   @wbit2,tmp2           ; IO error occured?
-        jeq   file.error            ; Yes, so handle file error
+        mov   tmp2,@ioresult        ; Save status register contents
+        ;------------------------------------------------------
+        ; Adjust counters
+        ;------------------------------------------------------
+        a     tmp1,@counter    
+        a     @counter,tmp1
+        ci    tmp1,1024
+        jlt   main.readfile.display
+        inc   @kbread
+        ai    tmp1,-1024            ; Remove KB portion and keep bytes
+        mov   tmp1,@counter
         ;------------------------------------------------------
         ; Load spectra scratchpad layout
         ;------------------------------------------------------
+main.readfile.display:        
         bl    @mem.scrpad.backup    ; Backup GPL layout to >2000
         bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
               data >a000            ; / >a000->8300
@@ -156,13 +174,22 @@ main.readfile:
               byte 04,20
               data reclen,rambuf,>3020
 
+        bl    @putnum
+              byte 05,20
+              data kbread,rambuf,>3020
+        ;------------------------------------------------------
+        ; Check if a file error occured
+        ;------------------------------------------------------
+main.readfile.check:     
+        mov   @ioresult,tmp2   
+        coc   @wbit2,tmp2           ; IO error occured?
+        jeq   file.error            ; Yes, so handle file error
         ;------------------------------------------------------
         ; Copy record to CPU memory
         ;------------------------------------------------------
         li    tmp0,vrecbuf          ; VDP source address
         mov   tmp4,tmp1             ; RAM target address 
-        li    tmp2,80
-        a     tmp2,tmp4
+        mov   @reclen,tmp2          ; Number of bytes to copy
         bl    @xpyv2m               ; Copy memory
         ;------------------------------------------------------
         ; Load GPL scratchpad layout again
@@ -172,32 +199,25 @@ main.readfile:
 
         jmp   main.readfile         ; Next record
         ;------------------------------------------------------
-        ; Close file
-        ;------------------------------------------------------
-close_file                
-        bl    @file.close           ; Close file
-              data vpab 
-
-
-        ;------------------------------------------------------
         ; Error handler
         ;------------------------------------------------------     
-file.error        
+file.error:        
+        mov   @iostat,tmp0          ; Get status byte
         srl   tmp0,8                ; Right align VDP PAB 1 status byte
         ci    tmp0,io.err.eof       ; EOF reached ?
         jeq   eof_reached           ; All good. File closed by DSRLNK 
         b     @crash_handler        ; A File error occured. System crashed
-
-
+        ;------------------------------------------------------
+        ; End-Of-File reached
+        ;------------------------------------------------------     
 eof_reached:
         bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
               data >a000            ; / >a000->8300
 
         bl    @putat
-        data  >0600,eof
+        data  >0700,eof             ; Display EOF message
 
-        b     @tmgr
-
+        b     @tmgr                 ; FCTN-+ to quit
 
 
 
@@ -212,11 +232,11 @@ pab     byte  io.op.open            ;  0    - OPEN
         data  >0000                 ;  6-7  - Seek record (only for fixed records)
         byte  >00                   ;  8    - Screen offset (cassette DSR only)
 
-; fname  byte  12                    ;  9    - File descriptor length
-;        text 'DSK1.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name) 
+fname   byte  12                    ;  9    - File descriptor length
+        text 'DSK2.XBEADOC'         ; 10-.. - File descriptor (Device + '.' + File name) 
 
-fname   byte  15                    ;  9    - File descriptor length
-        text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
+;fname   byte  15                    ;  9    - File descriptor length
+;        text 'DSK1.SPEECHDOCS'      ; 10-.. - File descriptor (Device + '.' + File name)
 
 
         even
@@ -225,5 +245,6 @@ fname   byte  15                    ;  9    - File descriptor length
 msg     #string '* File reading test *'
 rec1    #string 'Records read......:'
 rec2    #string 'Characters read...:'
-eof     #string 'EOF reached. FCTN+Q to quit'
+rec3    #string 'Kilobytes read....:'
+eof     #string 'EOF reached. FCTN-+ to quit'
 
