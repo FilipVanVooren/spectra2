@@ -1,5 +1,5 @@
 XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
-**** **** ****     > fio.asm.20306
+**** **** ****     > fio.asm.17671
 0001               ***************************************************************
 0002               *
 0003               *                          File I/O test
@@ -7,7 +7,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0005               *                (c)2018-2019 // Filip van Vooren
 0006               *
 0007               ***************************************************************
-0008               * File: fio.asm                     ; Version 191124-20306
+0008               * File: fio.asm                     ; Version 191201-17671
 0009               *--------------------------------------------------------------
 0010               * 2018-04-01   Development started
 0011               ********@*****@*********************@**************************
@@ -61,7 +61,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0054 6012 6FE6             data  runlib
 0056               
 0057 6014 1146             byte  17
-0058 6015 ....             text  'FIOT 191124-20306'
+0058 6015 ....             text  'FIOT 191201-17671'
 0059                       even
 0060               
 0068               *--------------------------------------------------------------
@@ -3832,10 +3832,10 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0228               * Exit
 0229               *--------------------------------------------------------------
 0230               ; If an error occured during the IO operation, then the
-0231               ; equal bit in the saved status register (=R2) is set to 1.
+0231               ; equal bit in the saved status register (=tmp2) is set to 1.
 0232               ;
 0233               ; If no error occured during the IO operation, then the
-0234               ; equal bit in the saved status register (=R2) is set to 0.
+0234               ; equal bit in the saved status register (=tmp2) is set to 0.
 0235               ;
 0236               ; Upon return from this IO call you should basically test with:
 0237               ;       coc   @wbit2,tmp2           ; Equal bit set?
@@ -4221,7 +4221,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
      709A 0040 
 0349 709C 0460  28         b     @main                 ; Give control to main program
      709E 70A0 
-**** **** ****     > fio.asm.20306
+**** **** ****     > fio.asm.17671
 0072               *--------------------------------------------------------------
 0073               * SPECTRA2 startup options
 0074               *--------------------------------------------------------------

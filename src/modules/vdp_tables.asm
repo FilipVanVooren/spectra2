@@ -95,7 +95,7 @@ tx8030  byte  >04,>f0,>00,>3f,>02,>40,>03,SPFCLR,0,80
 * ;      bit 5=0: reserved
 * ;      bit 6=0: 8x8 sprites
 * ;      bit 7=0: Sprite magnification (1x)
-* ; VDP#2 PNT (Pattern name table)       at >0000  (>00 * >400)
+* ; VDP#2 PNT (Pattern name table)       at >0000  (>00 * >960)
 * ; VDP#3 PCT (Pattern color table)      at >0FC0  (>3F * >040)
 * ; VDP#4 PDT (Pattern descriptor table) at >1000  (>02 * >800)
 * ; VDP#5 SAT (sprite attribute list)    at >2000  (>40 * >080)
