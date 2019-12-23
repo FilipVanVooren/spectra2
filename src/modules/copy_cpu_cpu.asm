@@ -64,6 +64,6 @@ cpymz   b     *r11
 *--------------------------------------------------------------
 * Handle odd source/target address
 *--------------------------------------------------------------
-cpyodd  ori   config,>8000        ; Set CONFIG bot 0
+cpyodd  ori   config,>8000        ; Set CONFIG bit 0
         jmp   cpym2
 tmp011  data  >dd74               ; MOVB *TMP0+,*TMP1+
