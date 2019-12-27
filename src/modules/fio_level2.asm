@@ -79,7 +79,7 @@ file.open_exit:
 *--------------------------------------------------------------
 *  bl   @xfile.close
 *
-*  R0 = Address of PAB in VD RAM
+*  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
 *  tmp0 LSB = VDP PAB byte 1 (status) 
