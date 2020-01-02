@@ -1,5 +1,5 @@
-* FILE......: vdp_rle_decompr.asm
-* Purpose...: RLE decompress to VRAM support module
+* FILE......: rle_decompress.asm
+* Purpose...: RLE decompression support
 
 ***************************************************************
 * RLE2V - RLE decompress to VRAM memory

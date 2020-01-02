@@ -35,7 +35,6 @@
 * skip_vdp_bitmap           equ  1  ; Skip bitmap functions
 * skip_vdp_intscr           equ  1  ; Skip interrupt+screen on/off
 * skip_vdp_viewport         equ  1  ; Skip viewport functions
-* skip_vdp_rle_decompress   equ  1  ; Skip RLE decompress to VRAM
 * skip_vdp_yx2px_calc       equ  1  ; Skip YX to pixel calculation
 * skip_vdp_px2yx_calc       equ  1  ; Skip pixel to YX calculation
 * skip_vdp_sprites          equ  1  ; Skip sprites support
@@ -52,6 +51,8 @@
 *
 * == Utilities
 * skip_random_generator     equ  1  ; Skip random generator functions
+* skip_rle_compress         equ  1  ; Skip RLE compression functions
+* skip_rle_decompress       equ  1  ; Skip RLE decompression functions
 * skip_cpu_hexsupport       equ  1  ; Skip mkhex, puthex
 * skip_cpu_numsupport       equ  1  ; Skip mknum, putnum, trimnum
 * skip_cpu_crc16            equ  1  ; Skip CPU memory CRC-16 calculation
@@ -103,10 +104,6 @@
 
     .ifndef skip_grom_vram_copy
         copy  "copy_grom_vram.asm"       ; GROM to VRAM copy functions
-    .endif
-
-    .ifndef skip_vdp_rle_decompress
-        copy  "vdp_rle_decompr.asm"      ; RLE decompress to VRAM
     .endif
 
     .ifndef skip_vdp_intscr
@@ -183,6 +180,14 @@
 
     .ifndef skip_cpu_crc16
          copy  "cpu_crc16.asm"           ; CRC-16 checksum calculation
+    .endif
+
+    .ifndef skip_rle_compress
+        copy  "rle_compress.asm"         ; RLE compression support
+    .endif
+
+    .ifndef skip_rle_decompress
+        copy  "rle_decompress.asm"       ; RLE decompression support
     .endif
 
     .ifndef skip_random_generator
