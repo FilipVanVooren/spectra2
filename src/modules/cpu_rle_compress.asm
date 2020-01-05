@@ -1,4 +1,4 @@
-* FILE......: rle_compress.asm
+* FILE......: cpu_rle_compress.asm
 * Purpose...: RLE compression support
 
 ***************************************************************
@@ -33,16 +33,25 @@
 *  - If high bit is clear, remaining 7 bits indicate how many
 *    data bytes (non-repeated) follow.
 *
+*  Part of string is considered for RLE compression as soon as
+*  the same char is repeated 3 times.
+* 
 *  Implementation workflow:
 *  (1) Scan string from left to right:
-*      (1.1) Compare lookahead char with current char
-*      (1.2) If it's not a repeated character:
+*      (1.1) Compare lookahead char with current char.
+*            - Jump to (1.2) if it's not a repeated character.
+*            - If repeated char count = 0 then check 2nd lookahead
+*              char. If it's a repeated char again then jump to (1.3)
+*              else handle as non-repeated char (1.2)
+*            - If repeated char count > 0 then handle as repeated char (1.3)
+*
+*      (1.2) It's not a repeated character:
 *            (1.2.1) Check if any pending repeated character
 *            (1.2.2) If yes, flush pending to output buffer (=RLE encode)
 *            (1.2.3) Track address of future encoding byte
 *            (1.2.4) Append data byte to output buffer and jump to (2)
 *
-*      (1.3) If it's a repeated character:
+*      (1.3) It's a repeated character:
 *            (1.3.1) Check if any pending non-repeated character
 *            (1.3.2) If yes, set encoding byte before first data byte
 *            (1.3.3) Increase repetition counter and jump to (2)
@@ -84,7 +93,14 @@ cpu2rle.scan:
         movb  *tmp0+,tmp3           ; Move current character to MSB
         cb    *tmp0,tmp3            ; Compare 1st lookahead with current.
         jne   cpu2rle.scan.nodup    ; No duplicate, move along
-
+        ;------------------------------------------------------
+        ; Only check 2nd lookahead if new string fragment
+        ;------------------------------------------------------             
+        mov   tmp4,tmp4             ; Repeat counter > 0 ?
+        jgt   cpu2rle.scan.dup      ; Duplicate found
+        ;------------------------------------------------------
+        ; Special handling for new string fragment
+        ;------------------------------------------------------        
         cb    @1(tmp0),tmp3         ; Compare 2nd lookahead with current.
         jne   cpu2rle.scan.nodup    ; Only 1 repeated char, compression is 
                                     ; not worth it, so move along
@@ -168,8 +184,6 @@ cpu2rle.eos.check2:
         bl    @cpu2rle.flush.encoding_byte
                                     ; (3.4) Set encoding byte before 
                                     ; 1st data byte of unique string
-
-
 *--------------------------------------------------------------
 *   (4) Exit
 *--------------------------------------------------------------

@@ -51,8 +51,9 @@
 *
 * == Utilities
 * skip_random_generator     equ  1  ; Skip random generator functions
-* skip_rle_compress         equ  1  ; Skip RLE compression functions
-* skip_rle_decompress       equ  1  ; Skip RLE decompression functions
+* skip_cpu_rle_compress     equ  1  ; Skip CPU RLE compression
+* skip_cpu_rle_decompress   equ  1  ; Skip CPU RLE decompression
+* skip_vdp_rle_decompress   equ  1  ; Skip VDP RLE decompression
 * skip_cpu_hexsupport       equ  1  ; Skip mkhex, puthex
 * skip_cpu_numsupport       equ  1  ; Skip mknum, putnum, trimnum
 * skip_cpu_crc16            equ  1  ; Skip CPU memory CRC-16 calculation
@@ -182,12 +183,12 @@
          copy  "cpu_crc16.asm"           ; CRC-16 checksum calculation
     .endif
 
-    .ifndef skip_rle_compress
-        copy  "rle_compress.asm"         ; RLE compression support
+    .ifndef skip_cpu_rle_compress
+        copy  "cpu_rle_compress.asm"     ; CPU RLE compression support
     .endif
 
-    .ifndef skip_rle_decompress
-        copy  "rle_decompress.asm"       ; RLE decompression support
+    .ifndef skip_vdp_rle_decompress
+        copy  "vdp_rle_decompress.asm"   ; VDP RLE decompression support
     .endif
 
     .ifndef skip_random_generator
