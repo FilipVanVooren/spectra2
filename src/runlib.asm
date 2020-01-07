@@ -8,7 +8,7 @@
 *                                  for
 *              the Texas Instruments TI-99/4A Home Computer
 *
-*                      2010-2019 by Filip Van Vooren
+*                      2010-2020 by Filip Van Vooren
 *
 *              https://github.com/FilipVanVooren/spectra2.git
 *******************************************************************************
