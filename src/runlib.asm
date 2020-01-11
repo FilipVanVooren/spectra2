@@ -187,6 +187,10 @@
         copy  "cpu_rle_compress.asm"     ; CPU RLE compression support
     .endif
 
+    .ifndef skip_cpu_rle_decompress
+        copy  "cpu_rle_decompress.asm"   ; CPU RLE decompression support
+    .endif
+
     .ifndef skip_vdp_rle_decompress
         copy  "vdp_rle_decompress.asm"   ; VDP RLE decompression support
     .endif

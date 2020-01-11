@@ -172,14 +172,14 @@ cpu2rle.eos.check1:
         jeq   cpu2rle.eos.check2
 
         bl    @cpu2rle.flush.duplicates
-                                    ; (3.2) Flush pending 
-        jmp   cpu2rle.$$            ;       duplicates and exit
+                                    ; (3.2) Flush pending ...
+        jmp   cpu2rle.exit          ;       duplicates & exit
         ;------------------------------------------------------
         ; (3.3) Flush any pending encoding byte
         ;------------------------------------------------------
 cpu2rle.eos.check2:        
         mov   @waux2,@waux2
-        jeq   cpu2rle.$$            ; No, so exit
+        jeq   cpu2rle.exit          ; No, so exit
 
         bl    @cpu2rle.flush.encoding_byte
                                     ; (3.4) Set encoding byte before 
@@ -187,7 +187,7 @@ cpu2rle.eos.check2:
 *--------------------------------------------------------------
 *   (4) Exit
 *--------------------------------------------------------------
-cpu2rle.$$:
+cpu2rle.exit:
         b     @poprt                ; Return
 
 

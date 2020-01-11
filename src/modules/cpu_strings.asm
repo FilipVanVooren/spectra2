@@ -4,7 +4,7 @@
 *----------------------------------
 * Left justify length-padded string
 *----------------------------------
-trim_left
+trim_left:
         mov   *r11+,tmp0            ; Pointer to length-prefixed string
         mov   *r11+,tmp1            ; RAM work buffer
         mov   *r11+,tmp2            ; Fill character
