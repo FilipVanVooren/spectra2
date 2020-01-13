@@ -28,8 +28,19 @@ cpym2m  mov   *r11+,tmp0            ; Memory source address
 * Do some checks first
 *--------------------------------------------------------------
 xpym2m  mov   tmp2,tmp2             ; Bytes to copy = 0 ?
-        jne   cpym0 
+        jne   cpychk                ; No, continue checking
         b     @crash_handler        ; Yes, crash
+*--------------------------------------------------------------
+*    Check: 1 byte copy
+*--------------------------------------------------------------
+cpychk  ci    tmp2,1                ; Bytes to copy = 1 ?
+        jne   cpym0                 ; No, continue checking         
+        movb  *tmp0+,*tmp1+         ; Copy byte 
+        clr   tmp2                  ; Reset counter
+        b     *r11                  ; Return to caller
+*--------------------------------------------------------------
+*    Check: Uneven address handling
+*--------------------------------------------------------------
 cpym0   andi  config,>7fff          ; Clear CONFIG bit 0
         mov   tmp0,tmp3
         andi  tmp3,1
@@ -60,10 +71,10 @@ cpym4   mov   *tmp0+,*tmp1+
         mov   tmp3,tmp3
         jeq   cpymz
         movb  *tmp0,*tmp1
-cpymz   b     *r11
+cpymz   b     *r11                  ; Return to caller
 *--------------------------------------------------------------
 * Handle odd source/target address
 *--------------------------------------------------------------
-cpyodd  ori   config,>8000        ; Set CONFIG bit 0
+cpyodd  ori   config,>8000          ; Set CONFIG bit 0
         jmp   cpym2
-tmp011  data  >dd74               ; MOVB *TMP0+,*TMP1+
+tmp011  data  >dd74                 ; MOVB *TMP0+,*TMP1+
