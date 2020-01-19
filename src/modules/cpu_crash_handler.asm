@@ -9,9 +9,12 @@
 ***************************************************************
 * crash - CPU program crashed handler 
 ***************************************************************
-*  b  @crash_handler
+*  bl   @crash_handler
 ********@*****@*********************@**************************
-crash_handler:        
+crash_handler:    
+        ai    r11,-4                ; Remove opcode offset    
+        mov   r11,@>fffe            ; Save address of where crash occured to >FFFE
+
         lwpi  ws1                   ; Activate workspace 1
         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
         li    r0,>4a4a              ; Note that a crash occured (Flag = >4a4a)

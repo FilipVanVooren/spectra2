@@ -19,6 +19,13 @@
 *     4) dsrlnk based on MG The Smart Programmer and version of Paolo Bagnaresi
 *******************************************************************************
 * NOTE - TODOS
+* 19-01-2020    Rework CPU memory fill and CPU memory copy for more speed
+*                - 16 bit loop in scratchpad memory for copy and fill!
+*                - Reduce loop penalty by moving multiple words (e.g. 4, 6 or 8)
+*                  in a single loop.
+*                - Add crash handler with error message for insane parameters
+*                  e.g. tmp2=0
+*               Add high-level file read/write library for text or binary files
 * 14-03-2018    bit 10 CONFIG register reserved for alpha lock key down!
 *               But code in VIRTKB buggy and disabled for now
 * 25-03-2018    LDFNT routine is not using tmp3. Tighten registers useful?

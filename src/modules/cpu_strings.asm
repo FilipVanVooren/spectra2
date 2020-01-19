@@ -44,4 +44,4 @@ trim_left_exit:
         b     *r11                  ; Return 
          
 trim_left_panic:
-        b     @crash_handler        ; System halted
+        bl    @crash_handler        ; System halted

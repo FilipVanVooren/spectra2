@@ -68,24 +68,55 @@ film    mov   *r11+,tmp0            ; Memory start
         mov   *r11+,tmp1            ; Byte to fill
         mov   *r11+,tmp2            ; Repeat count
 *--------------------------------------------------------------
-* Fill memory with 16 bit words
+* Do some checks first
 *--------------------------------------------------------------
-xfilm   mov   tmp2,tmp3
-        andi  tmp3,1                ; TMP3=1 -> ODD else EVEN
+xfilm   mov   tmp2,tmp3             ; Bytes to fill = 0 ?
+        jne   filchk                ; No, continue checking
+        bl    @crash_handler        ; Yes, crash
+*--------------------------------------------------------------
+*       Check: 1 byte fill
+*--------------------------------------------------------------
+filchk  movb  @tmp1lb,@tmp1hb       ; Duplicate value
 
-        jeq   film1
+        ci    tmp2,1                ; Bytes to fill = 1 ?
+        jne   filchk2
+        movb  tmp1,*tmp0+
+        b     *r11                  ; Exit
+*--------------------------------------------------------------
+*       Check: 2 byte fill
+*--------------------------------------------------------------
+filchk2 ci    tmp2,2                ; Byte to fill = 2 ?
+        jne   filchk3
+        movb  tmp1,*tmp0+           ; Deal with possible uneven start address
+        movb  tmp1,*tmp0+        
+        b     *r11                  ; Exit
+*--------------------------------------------------------------
+*       Check: Handle uneven start address
+*--------------------------------------------------------------
+filchk3 mov   tmp0,tmp3
+        andi  tmp3,1                ; TMP3=1 -> ODD else EVEN
+        jne   fil16b
+        movb  tmp1,*tmp0+           ; Copy 1st byte
+        dec   tmp2
+        ci    tmp2,2                ; Do we only have 1 word left?
+        jeq   filchk2               ; Yes, copy word and exit
+*--------------------------------------------------------------
+*       Fill memory with 16 bit words
+*--------------------------------------------------------------
+fil16b  mov   tmp2,tmp3
+        andi  tmp3,1                ; TMP3=1 -> ODD else EVEN
+        jeq   dofill
         dec   tmp2                  ; Make TMP2 even
-film1   movb  @tmp1lb,@tmp1hb       ; Duplicate value
-film2   mov   tmp1,*tmp0+
+dofill  mov   tmp1,*tmp0+
         dect  tmp2
-        jne   film2
+        jne   dofill
 *--------------------------------------------------------------
 * Fill last byte if ODD
 *--------------------------------------------------------------
         mov   tmp3,tmp3
-        jeq   filmz
-        movb  tmp1,*tmp0
-filmz   b     *r11
+        jeq   fil.$$
+        movb  tmp1,*tmp0+
+fil.$$  b     *r11
 
 
 ***************************************************************

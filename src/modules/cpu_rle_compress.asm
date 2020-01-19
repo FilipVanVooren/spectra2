@@ -9,7 +9,7 @@
 *--------------------------------------------------------------
 *  P0 = ROM/RAM source address
 *  P1 = RAM target address
-*  P2 = Length of uncompressed data
+*  P2 = Length uncompressed data
 *
 *  Output:
 *  waux1 = Length of RLE encoded string
@@ -17,8 +17,8 @@
 *  bl   @xcpu2rle
 *
 *  TMP0  = ROM/RAM source address
-*  TMP1  = ROM/RAM source address
-*  TMP2  = Length of uncompressed data
+*  TMP1  = RAM target address
+*  TMP2  = Length uncompressed data
 *
 *  Output:
 *  waux1 = Length of RLE encoded string

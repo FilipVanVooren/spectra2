@@ -50,13 +50,17 @@ rle2cpu.scan:
 rle2cpu.dump_uncompressed:
         srl   tmp3,9                ; Use control byte as loop counter
         s     tmp3,tmp2             ; Update RLE string length     
-        dect  stack
+
+        dect  stack        
         mov   tmp2,*stack           ; Push tmp2
-
         mov   tmp3,tmp2             ; Set length for block copy
-        bl    @xpym2m               ; Block copy to destination
-        mov   *stack+,tmp2          ; Pop tmp2
 
+        bl    @xpym2m               ; Block copy to destination
+                                    ; \ .  tmp0 = Source address
+                                    ; | .  tmp1 = Target address 
+                                    ; / .  tmp2 = Bytes to copy
+
+        mov   *stack+,tmp2          ; Pop tmp2
         jmp   rle2cpu.check_if_more ; Check if more data to decompress
 *--------------------------------------------------------------
 *    Dump compressed bytes
@@ -75,7 +79,11 @@ rle2cpu.dump_compressed:
         mov   tmp3,tmp2             ; Set length for block fill
         movb  *tmp0+,tmp1           ; Byte to fill (*tmp0+ is why "dec tmp2")       
         srl   tmp1,8                ; Right align                                                                                                                           
+
         bl    @xfilm                ; Block fill to destination
+                                    ; \ .  tmp0 = Target address
+                                    ; | .  tmp1 = Byte to fill
+                                    ; / .  tmp2 = Repeat count
 
         mov   *stack+,tmp3          ; Pop tmp3
         mov   *stack+,tmp2          ; Pop tmp2
