@@ -206,7 +206,9 @@ file.error:
         srl   tmp0,8                ; Right align VDP PAB 1 status byte
         ci    tmp0,io.err.eof       ; EOF reached ?
         jeq   eof_reached           ; All good. File closed by DSRLNK 
-        bl    @crash_handler        ; A File error occured. System crashed
+        
+        mov   r11,@>ffce            ; \ Save caller address
+        bl    @crash                ; / File error occured. Halt system.
         ;------------------------------------------------------
         ; End-Of-File reached
         ;------------------------------------------------------     

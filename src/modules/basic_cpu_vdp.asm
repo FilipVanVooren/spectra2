@@ -72,7 +72,9 @@ film    mov   *r11+,tmp0            ; Memory start
 *--------------------------------------------------------------
 xfilm   mov   tmp2,tmp3             ; Bytes to fill = 0 ?
         jne   filchk                ; No, continue checking
-        bl    @crash_handler        ; Yes, crash
+
+        mov   r11,@>ffce            ; \ Save caller address        
+        bl    @crash                ; / Crash and halt system
 *--------------------------------------------------------------
 *       Check: 1 byte fill
 *--------------------------------------------------------------

@@ -2,32 +2,59 @@
 * Purpose...: CPU create, display hex numbers module
 
 ***************************************************************
-* MKHEX - Convert hex word to string
+* mkhex - Convert hex word to string
 ***************************************************************
-*  BL   @MKHEX
-*  DATA P0,P1,P2
+*  bl   @mkhex
+*       data P0,P1,P2
 *--------------------------------------------------------------
 *  P0 = Pointer to 16 bit word
 *  P1 = Pointer to string buffer
 *  P2 = Offset for ASCII digit
-*
+*       MSB determines offset for chars A-F
+*       LSB determines offset for chars 0-9
 *  (CONFIG#0 = 1) = Display number at cursor YX
+*--------------------------------------------------------------
+*  Memory usage:
+*  tmp0, tmp1, tmp2, tmp3, tmp4
+*  waux1, waux2, waux3
+*--------------------------------------------------------------
+*  Memory variables waux1-waux3 are used as temporary variables
 ********@*****@*********************@**************************
-mkhex   mov   *r11+,tmp0            ; Address of word
-        mov   *r11+,@waux3          ; Pointer to string buffer
-        li    tmp3,waux1            ; We store the result in WAUX1 and WAUX2
-        clr   *tmp3+                ; Clear WAUX1
-        clr   *tmp3                 ; Clear WAUX2
-        dect  tmp3                  ; Back to WAUX1
+mkhex   mov   *r11+,tmp0            ; P0: Address of word
+        mov   *r11+,@waux3          ; P1: Pointer to string buffer
+        clr   @waux1
+        clr   @waux2
+        li    tmp3,waux1            ; We store results in WAUX1 and WAUX2
         mov   *tmp0,tmp0            ; Get word
 *--------------------------------------------------------------
 *    Convert nibbles to bytes (is in wrong order)
 *--------------------------------------------------------------
-        li    tmp1,4
+        li    tmp1,4                ; 4 nibbles
 mkhex1  mov   tmp0,tmp2             ; Make work copy
         andi  tmp2,>000f            ; Only keep LSN
-        a     *r11,tmp2             ; Add ASCII-offset
-mkhex2  swpb  tmp2
+        ;------------------------------------------------------
+        ; Determine offset for ASCII char
+        ;------------------------------------------------------
+        ci    tmp2,>000a            
+        jlt   mkhex1.digit09
+        ;------------------------------------------------------
+        ; Add ASCII offset for digits A-F
+        ;------------------------------------------------------        
+mkhex1.digitaf:        
+        mov   *r11,tmp4
+        srl   tmp4,8                ; Right justify
+        ai    tmp4,-10              ; Adjust offset for 'A-F'        
+        jmp   mkhex2
+
+mkhex1.digit09:
+        ;------------------------------------------------------
+        ; Add ASCII offset for digits 0-9
+        ;------------------------------------------------------
+        mov   *r11,tmp4
+        andi  tmp4,>00ff            ; Only keep LSB        
+
+mkhex2  a     tmp4,tmp2             ; Add ASCII-offset
+        swpb  tmp2
         movb  tmp2,*tmp3+           ; Save byte
         srl   tmp0,4                ; Next nibble
         dec   tmp1
@@ -73,16 +100,23 @@ mkhex3  andi  config,>7fff          ; Reset bit 0
 prefix  data  >0610                 ; Length byte + blank
 
 
+
 ***************************************************************
-* PUTHEX - Put 16 bit word on screen
+* puthex - Put 16 bit word on screen
 ***************************************************************
-*  BL   @PUTHEX
-*  DATA P0,P1,P2,P3
+*  bl   @mkhex
+*       data P0,P1,P2,P3
 *--------------------------------------------------------------
 *  P0 = YX position
 *  P1 = Pointer to 16 bit word
 *  P2 = Pointer to string buffer
 *  P3 = Offset for ASCII digit
+*       MSB determines offset for chars A-F
+*       LSB determines offset for chars 0-9
+*--------------------------------------------------------------
+*  Memory usage:
+*  tmp0, tmp1, tmp2, tmp3
+*  waux1, waux2, waux3
 ********@*****@*********************@**************************
 puthex  mov   *r11+,@wyx            ; Set cursor
         ori   config,>8000          ; CONFIG register bit 0=1
