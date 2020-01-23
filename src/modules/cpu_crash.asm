@@ -63,7 +63,7 @@ crash.main:
               data >0000,crash.msg.crashed
                 
         bl    @puthex               ; Put hex value on screen
-              byte 0,19             ; \ .  p0 = YX position              
+              byte 0,21             ; \ .  p0 = YX position              
               data >fff6            ; | .  p1 = Pointer to 16 bit word
               data rambuf           ; | .  p2 = Pointer to ram buffer
               byte 65,48            ; | .  p3 = MSB offset for ASCII digit a-f
@@ -75,7 +75,7 @@ crash.main:
               data >0100,crash.msg.caller
 
         bl    @puthex               ; Put hex value on screen
-              byte 1,19             ; \ .  p0 = YX position              
+              byte 1,21             ; \ .  p0 = YX position              
               data >ffce            ; | .  p1 = Pointer to 16 bit word
               data rambuf           ; | .  p2 = Pointer to ram buffer
               byte 65,48            ; | .  p3 = MSB offset for ASCII digit a-f
@@ -85,8 +85,8 @@ crash.main:
         ;------------------------------------------------------
         b     @tmgr                 ; Start kernel again for polling keyboard
         
-crash.msg.crashed      byte 19
-                       text 'System crashed at >'
+crash.msg.crashed      byte 21
+                       text 'System crashed near >'
 
-crash.msg.caller       byte 19        
-                       text 'Caller address is >'
+crash.msg.caller       byte 21        
+                       text 'Caller address near >'
