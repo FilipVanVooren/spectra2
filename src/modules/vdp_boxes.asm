@@ -15,7 +15,7 @@
 *  P1LB = Width
 *  P2HB = >00
 *  P2LB = Character to fill
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 filbox  mov   *r11+,@wyx            ; Upper left corner
         movb  *r11+,tmp3            ; Height in TMP3
         movb  *r11+,tmp2            ; Width in TMP2
@@ -79,7 +79,7 @@ filbo3  inct  tmp4
 *--------------------------------------------------------------
 *  ; Only byte operations on TMP1HB & TMP2HB.
 *  ; LO bytes of TMP1 and TMP2 reserved for future use.
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 putbox  mov   *r11+,tmp0            ; P0 - Upper left corner YX
         mov   *r11,tmp1             ; P1 - Height/Width in TMP1
         mov   *r11+,tmp2            ; P1 - Height/Width in TMP2

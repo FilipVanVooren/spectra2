@@ -1,4 +1,4 @@
-* FILE......: dsrlnk.asm
+* FILE......: fio_dsrlnk.asm
 * Purpose...: Custom DSRLNK implementation
 
 *//////////////////////////////////////////////////////////////
@@ -37,7 +37,7 @@
 dsrlnk.dstype equ   dsrlnk.dsrlws + 10
                                     ; dstype is address of R5 of DSRLNK ws
 dsrlnk.sav8a  equ   >8322           ; Scratchpad @>8322. Contains >08 or >0a                                           
-********@*****@*********************@**************************                                     
+********|*****|*********************|**************************                                     
 dsrlnk  data  dsrlnk.dsrlws         ; dsrlnk workspace
         data  dsrlnk.init           ; entry point
         ;------------------------------------------------------

@@ -16,7 +16,7 @@
 * TMP1   = Temporary use  (scratchpad machine code)
 * TMP2   = Return address for this subroutine
 * R11    = Return address (scratchpad machine code)
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 spstat  li    tmp0,spchrd           ; (R4) = >9000
         mov   @spcode,@mcsprd       ; \
         mov   @spcode+2,@mcsprd+2   ; / Load speech read code
@@ -43,7 +43,7 @@ spsta1  mov   @mccode,@mcsprd       ; \
 * TMP0HB = Byte read from speech synth
 * TMP3   = Copy of R11
 * R12    = CONFIG register
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 spconn  mov   r11,tmp3              ; Save R11
 *--------------------------------------------------------------
 * Setup speech synthesizer memory address >0000

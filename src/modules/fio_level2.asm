@@ -4,7 +4,7 @@
 
 ***************************************************************
 * PAB  - Peripheral Access Block
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 ; my_pab:
 ;       byte  io.op.open            ;  0    - OPEN
 ;       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
@@ -38,7 +38,7 @@
 *  tmp0 LSB = VDP PAB byte 1 (status) 
 *  tmp1 LSB = VDP PAB byte 5 (characters read)
 *  tmp2     = Status register contents upon DSRLNK return
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
 *--------------------------------------------------------------
@@ -85,7 +85,7 @@ file.open_exit:
 *  tmp0 LSB = VDP PAB byte 1 (status) 
 *  tmp1 LSB = VDP PAB byte 5 (characters read)
 *  tmp2     = Status register contents upon DSRLNK return
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 file.close:
         mov   *r11+,r0              ; Get file descriptor (P0)
 *--------------------------------------------------------------
@@ -134,7 +134,7 @@ file.close_exit:
 *  tmp0 LSB = VDP PAB byte 1 (status) 
 *  tmp1 LSB = VDP PAB byte 5 (characters read)
 *  tmp2     = Status register contents upon DSRLNK return
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 file.record.read:
         mov   *r11+,r0              ; Get file descriptor (P0)
 *--------------------------------------------------------------
@@ -204,9 +204,9 @@ file.status:
 *  tmp0 LSB = VDP PAB byte 1 (status) 
 *  tmp1 LSB = VDP PAB byte 5 (characters read)
 *  tmp2     = Status register contents upon DSRLNK return
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 file.record.pab.details:
         stst  tmp2                  ; Store status register contents in tmp2
                                     ; Upon DSRLNK return status register EQ bit

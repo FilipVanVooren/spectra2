@@ -82,7 +82,7 @@ k2fire  equ   >0001                 ; Virtual key fire
 *  TMP3     Address of entry in mapping table
 *  TMP4     Copy of R12 (CONFIG REGISTER)
 *  R12      CRU communication
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 virtkb
 *       szc   @wbit10,config        ; Reset alpha lock down key
         szc   @wbit11,config        ; Reset ANY key

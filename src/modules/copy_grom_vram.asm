@@ -20,7 +20,7 @@
 *  TMP0 = GROM source address
 *  TMP1 = VDP target address
 *  TMP2 = Number of bytes to copy
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 cpyg2v  mov   *r11+,tmp0            ; Memory source address
         mov   *r11+,tmp1            ; Memory target address
         mov   *r11+,tmp2            ; Number of bytes to copy

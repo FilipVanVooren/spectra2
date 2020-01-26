@@ -19,28 +19,28 @@
 *  REMARKS
 *  Introduces register equate wcrc (tmp4/r8) which contains the
 *  calculated CRC-16 checksum upon exit.
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 wmemory equ   tmp0                  ; Current memory address
 wmemend equ   tmp1                  ; Highest memory address to process
 wcrc    equ   tmp4                  ; Current CRC
 *--------------------------------------------------------------
 * Entry point
 *--------------------------------------------------------------
-calc_crc
+calc_crc:
         mov   *r11+,wmemory         ; First memory address
         mov   *r11+,wmemend         ; Last memory address
-calc_crcx
+calc_crcx:
         seto  wcrc                  ; Starting crc value = 0xffff
         jmp   calc_crc2             ; Start with first memory word
 *--------------------------------------------------------------
-* Next word
+* (1) Next word
 *--------------------------------------------------------------
-calc_crc1
+calc_crc1:
         inct  wmemory               ; Next word
 *--------------------------------------------------------------
-* Process high byte
+* (2) Process high byte
 *--------------------------------------------------------------
-calc_crc2
+calc_crc2:
         mov   *wmemory,tmp2         ; Get word from memory
         srl   tmp2,8                ; memory word >> 8
 
@@ -54,9 +54,9 @@ calc_crc2
         sla   wcrc,8                ; wcrc << 8
         xor   @crc_table(tmp3),wcrc ; Current CRC = xor "substitution byte" with current CRC
 *--------------------------------------------------------------
-* Process low byte
+* (3) Process low byte
 *--------------------------------------------------------------
-calc_crc3
+calc_crc3:
         mov   *wmemory,tmp2         ; Get word from memory
         andi  tmp2,>00ff            ; Clear MSB
 
@@ -79,6 +79,7 @@ calc_crc3
 *--------------------------------------------------------------
         clr   tmp3
         xor   tmp3,wcrc             ; Final CRC 
+calc_crc.exit:        
         b     *r11                  ; Return
 
 

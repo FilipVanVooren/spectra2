@@ -16,7 +16,7 @@
 *  TMP0 = VDP source address
 *  TMP1 = RAM target address
 *  TMP2 = Number of bytes to copy
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 cpyv2m  mov   *r11+,tmp0            ; VDP source address
         mov   *r11+,tmp1            ; Target address in RAM
         mov   *r11+,tmp2            ; Bytes to copy

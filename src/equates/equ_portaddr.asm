@@ -3,7 +3,7 @@
 
 ***************************************************************                                     
 * Equates for VDP, GROM, SOUND, SPEECH ports                                                        
-********@*****@*********************@**************************                                     
+********|*****|*********************|**************************                                     
 sound   equ   >8400                 ; Sound generator address                                       
 vdpr    equ   >8800                 ; VDP read data window address                                  
 vdpw    equ   >8c00                 ; VDP write data window address                                 

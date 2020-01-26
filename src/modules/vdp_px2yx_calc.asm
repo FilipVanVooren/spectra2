@@ -19,7 +19,7 @@
 *--------------------------------------------------------------
 *  Remarks
 *  This subroutine does not support multicolor or text mode
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 px2yx   coc   @wbit0,config         ; Skip sprite adjustment ?
         jeq   px2yx1
         ai    tmp0,>0100            ; Adjust Y. Top of screen is at >FF

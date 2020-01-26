@@ -19,7 +19,7 @@
 *  waux1, waux2, waux3
 *--------------------------------------------------------------
 *  Memory variables waux1-waux3 are used as temporary variables
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 mkhex   mov   *r11+,tmp0            ; P0: Address of word
         mov   *r11+,@waux3          ; P1: Pointer to string buffer
         clr   @waux1
@@ -117,7 +117,7 @@ prefix  data  >0610                 ; Length byte + blank
 *  Memory usage:
 *  tmp0, tmp1, tmp2, tmp3
 *  waux1, waux2, waux3
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 puthex  mov   *r11+,@wyx            ; Set cursor
         ori   config,>8000          ; CONFIG register bit 0=1
         jmp   mkhex                 ; Convert number and display

@@ -11,7 +11,7 @@
 *
 *  The kernel thread is responsible for running the sound
 *  player and doing keyboard scan.
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 kthread soc   @wbit8,config         ; Block kernel thread
 *--------------------------------------------------------------
 * Run sound player

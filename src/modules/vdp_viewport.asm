@@ -9,7 +9,7 @@
 *  INPUT
 *  P0 = PNT base address
 *  P1 = Number of columns per row
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 scrdim  mov   *r11+,@wbase          ; VDP destination address
         mov   *r11+,@wcolmn         ; Number of columns per row
         b     *r11                  ; Exit
@@ -41,7 +41,7 @@ scrdim  mov   *r11+,@wbase          ; VDP destination address
 * 45  Physical screen YX (viewport upper left corner)
 * 67  Height & width of viewport
 * 89  Return address
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 view    mov   *r11+,tmp4            ; P0: Get pointer to RAM buffer
         mov   @wbase,*tmp4          ; RAM 01 - Save physical screen VRAM base
         mov   @wcolmn,@2(tmp4)      ; RAM 23 - Save physical screen size (columns per row)

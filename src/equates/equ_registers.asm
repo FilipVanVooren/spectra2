@@ -24,7 +24,7 @@
 * R15     STATUS - when using LWPI, BLWP, RTWP
 ***************************************************************
 * Define registers
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 r0      equ   0
 r1      equ   1
 r2      equ   2
@@ -43,7 +43,7 @@ r14     equ   14
 r15     equ   15
 ***************************************************************
 * Define register equates
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 config  equ   r2                    ; Config register
 xconfig equ   r3                    ; Extended config register 
 tmp0    equ   r4                    ; Temp register 0
@@ -56,7 +56,7 @@ vdpr01  equ   r14                   ; Copy of VDP#0 and VDP#1 bytes
 vdprw   equ   r15                   ; Contains VDP read/write address
 ***************************************************************
 * Define MSB/LSB equates for registers
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 r0hb    equ   ws1                   ; HI byte R0
 r0lb    equ   ws1+1                 ; LO byte R0
 r1hb    equ   ws1+2                 ; HI byte R1
@@ -89,7 +89,7 @@ r14hb   equ   ws1+28                ; HI byte R14
 r14lb   equ   ws1+29                ; LO byte R14
 r15hb   equ   ws1+30                ; HI byte R15
 r15lb   equ   ws1+31                ; LO byte R15
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 tmp0hb  equ   ws1+8                 ; HI byte R4
 tmp0lb  equ   ws1+9                 ; LO byte R4
 tmp1hb  equ   ws1+10                ; HI byte R5
@@ -100,7 +100,7 @@ tmp3hb  equ   ws1+14                ; HI byte R7
 tmp3lb  equ   ws1+15                ; LO byte R7
 tmp4hb  equ   ws1+16                ; HI byte R8
 tmp4lb  equ   ws1+17                ; LO byte R8
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 btihi   equ   ws1+20                ; Highest slot in use (HI byte R10)
 bvdpst  equ   ws1+26                ; Copy of VDP status register (HI byte R13)
 vdpr0   equ   ws1+28                ; High byte of R14. Is VDP#0 byte

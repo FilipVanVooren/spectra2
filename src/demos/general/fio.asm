@@ -8,7 +8,7 @@
 * File: fio.asm                     ; Version %%build_date%%
 *--------------------------------------------------------------
 * 2018-04-01   Development started
-********@*****@*********************@**************************
+********|*****|*********************|**************************
         save  >6000,>7fff
         aorg  >6000
 *--------------------------------------------------------------
@@ -92,7 +92,7 @@ rambuf        equ   >c00c           ; 5 byte RAM-buffer
 
 ***************************************************************
 * Main
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 main    bl    @putat
         data  >0000,msg
 
@@ -123,7 +123,7 @@ main.init:
         ;------------------------------------------------------
         ; Load GPL scratchpad layout
         ;------------------------------------------------------
-        bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
+        bl    @cpu.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
               data >a000            ; / 8300->a000, 2000->8300
         ;------------------------------------------------------
         ; Open file
@@ -160,8 +160,8 @@ main.readfile:
         ; Load spectra scratchpad layout
         ;------------------------------------------------------
 main.readfile.display:        
-        bl    @mem.scrpad.backup    ; Backup GPL layout to >2000
-        bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
+        bl    @cpu.scrpad.backup    ; Backup GPL layout to >2000
+        bl    @cpu.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
               data >a000            ; / >a000->8300
         ;------------------------------------------------------
         ; Display results
@@ -194,7 +194,7 @@ main.readfile.check:
         ;------------------------------------------------------
         ; Load GPL scratchpad layout again
         ;------------------------------------------------------
-        bl    @mem.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
+        bl    @cpu.scrpad.pgout     ; \ Swap scratchpad memory (SPECTRA->GPL)
               data >a000            ; / 8300->a000, 2000->8300
 
         jmp   main.readfile         ; Next record
@@ -213,7 +213,7 @@ file.error:
         ; End-Of-File reached
         ;------------------------------------------------------     
 eof_reached:
-        bl    @mem.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
+        bl    @cpu.scrpad.pgin      ; \ Swap scratchpad memory (GPL->SPECTRA)
               data >a000            ; / >a000->8300
 
         bl    @putat
@@ -225,7 +225,7 @@ eof_reached:
 
 ***************************************************************
 * PAB for accessing file
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 pab     byte  io.op.open            ;  0    - OPEN
         byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
         data  vrecbuf               ;  2-3  - Record buffer in VDP memory

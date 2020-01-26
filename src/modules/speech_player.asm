@@ -13,7 +13,7 @@
 *  DATA P0
 *
 *  P0 = Address of LPC data for external voice.
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 spprep  mov   *r11+,@wspeak         ; Set speech address
         soc   @wbit3,config         ; Clear bit 3
         b     *r11
@@ -26,7 +26,7 @@ spprep  mov   *r11+,@wspeak         ; Set speech address
 * Register usage
 * TMP3   = Copy of R11
 * R12    = CONFIG register
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 spplay  czc   @wbit3,config         ; Player off ?
         jeq   spplaz                ; Yes, exit
 sppla1  mov   r11,tmp3              ; Save R11

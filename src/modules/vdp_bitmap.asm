@@ -5,7 +5,7 @@
 * BITMAP - Set tiles for displaying bitmap picture
 ***************************************************************
 *  BL   @BITMAP
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 bitmap  mov   r11,tmp3              ; Save R11
         mov   @wbase,tmp0           ; Get PNT base address
         bl    @vdwa                 ; Setup VDP write address

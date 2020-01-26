@@ -23,7 +23,7 @@
 * ; 02  VDP9918 PAL version             1=yes(50)      0=no(60)                                     
 * ; 01  F18A present                    1=on           0=off                                        
 * ; 00  Subroutine state flag           1=on           0=off                                        
-********@*****@*********************@**************************                                     
+********|*****|*********************|**************************                                     
 palon   equ   wbit2                 ; bit 2=1   (VDP9918 PAL version)                               
 enusr   equ   wbit7                 ; bit 7=1   (Enable user hook)                                  
 enknl   equ   wbit9                 ; bit 9=1   (Enable kernel thread)                                                     

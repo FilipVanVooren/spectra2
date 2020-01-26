@@ -16,7 +16,7 @@
 *  TMP0 = VDP start address
 *  TMP1 = RAM/ROM start address
 *  TMP2 = Number of bytes to copy
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 cpym2v  mov   *r11+,tmp0            ; VDP Start address
         mov   *r11+,tmp1            ; RAM/ROM start address
         mov   *r11+,tmp2            ; Bytes to copy

@@ -12,7 +12,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0010               * TI-99/4a DSR scan utility
 0011               *--------------------------------------------------------------
 0012               * 2018-11-01   Development started
-0013               ********@*****@*********************@**************************
+0013               ********|*****|*********************|**************************
 0014                       save  >6000,>7fff
 0015                       aorg  >6000
 0016               *--------------------------------------------------------------
@@ -237,7 +237,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0003               
 0004               ***************************************************************
 0005               * >8300 - >8341     Scratchpad memory layout (66 bytes)
-0006               ********@*****@*********************@**************************
+0006               ********|*****|*********************|**************************
 0007      8300     ws1     equ   >8300                 ; 32 - Primary workspace
 0008      8320     mcloop  equ   >8320                 ; 08 - Machine code for loop & speech
 0009      8328     wbase   equ   >8328                 ; 02 - PNT base address
@@ -289,7 +289,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0024               * R15     STATUS - when using LWPI, BLWP, RTWP
 0025               ***************************************************************
 0026               * Define registers
-0027               ********@*****@*********************@**************************
+0027               ********|*****|*********************|**************************
 0028      0000     r0      equ   0
 0029      0001     r1      equ   1
 0030      0002     r2      equ   2
@@ -308,7 +308,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0043      000F     r15     equ   15
 0044               ***************************************************************
 0045               * Define register equates
-0046               ********@*****@*********************@**************************
+0046               ********|*****|*********************|**************************
 0047      0002     config  equ   r2                    ; Config register
 0048      0003     xconfig equ   r3                    ; Extended config register
 0049      0004     tmp0    equ   r4                    ; Temp register 0
@@ -321,7 +321,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0056      000F     vdprw   equ   r15                   ; Contains VDP read/write address
 0057               ***************************************************************
 0058               * Define MSB/LSB equates for registers
-0059               ********@*****@*********************@**************************
+0059               ********|*****|*********************|**************************
 0060      8300     r0hb    equ   ws1                   ; HI byte R0
 0061      8301     r0lb    equ   ws1+1                 ; LO byte R0
 0062      8302     r1hb    equ   ws1+2                 ; HI byte R1
@@ -354,7 +354,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0089      831D     r14lb   equ   ws1+29                ; LO byte R14
 0090      831E     r15hb   equ   ws1+30                ; HI byte R15
 0091      831F     r15lb   equ   ws1+31                ; LO byte R15
-0092               ********@*****@*********************@**************************
+0092               ********|*****|*********************|**************************
 0093      8308     tmp0hb  equ   ws1+8                 ; HI byte R4
 0094      8309     tmp0lb  equ   ws1+9                 ; LO byte R4
 0095      830A     tmp1hb  equ   ws1+10                ; HI byte R5
@@ -365,7 +365,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0100      830F     tmp3lb  equ   ws1+15                ; LO byte R7
 0101      8310     tmp4hb  equ   ws1+16                ; HI byte R8
 0102      8311     tmp4lb  equ   ws1+17                ; LO byte R8
-0103               ********@*****@*********************@**************************
+0103               ********|*****|*********************|**************************
 0104      8314     btihi   equ   ws1+20                ; Highest slot in use (HI byte R10)
 0105      831A     bvdpst  equ   ws1+26                ; Copy of VDP status register (HI byte R13)
 0106      831C     vdpr0   equ   ws1+28                ; High byte of R14. Is VDP#0 byte
@@ -379,7 +379,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0003               
 0004               ***************************************************************
 0005               * Equates for VDP, GROM, SOUND, SPEECH ports
-0006               ********@*****@*********************@**************************
+0006               ********|*****|*********************|**************************
 0007      8400     sound   equ   >8400                 ; Sound generator address
 0008      8800     vdpr    equ   >8800                 ; VDP read data window address
 0009      8C00     vdpw    equ   >8c00                 ; VDP write data window address
@@ -439,7 +439,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0003               
 0004               ***************************************************************
 0005               *                      Some constants
-0006               ********@*****@*********************@**************************
+0006               ********|*****|*********************|**************************
 0037 601E 8000     wbit0   data  >8000                 ; Binary 1000000000000000
 0038 6020 4000     wbit1   data  >4000                 ; Binary 0100000000000000
 0039 6022 2000     wbit2   data  >2000                 ; Binary 0010000000000000
@@ -545,7 +545,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0023               * ; 02  VDP9918 PAL version             1=yes(50)      0=no(60)
 0024               * ; 01  F18A present                    1=on           0=off
 0025               * ; 00  Subroutine state flag           1=on           0=off
-0026               ********@*****@*********************@**************************
+0026               ********|*****|*********************|**************************
 0027      6022     palon   equ   wbit2                 ; bit 2=1   (VDP9918 PAL version)
 0028      602C     enusr   equ   wbit7                 ; bit 7=1   (Enable user hook)
 0029      6030     enknl   equ   wbit9                 ; bit 9=1   (Enable kernel thread)
@@ -572,7 +572,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0014               *  REMARKS
 0015               *  Is expected to be called via bl statement so that R11
 0016               *  contains address that triggered us
-0017               ********@*****@*********************@**************************
+0017               ********|*****|*********************|**************************
 0018 604C 0420  54 crash   blwp  @>0000                ; Soft-reset
      604E 0000 
 **** **** ****     > runlib.asm
@@ -737,7 +737,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0034               *--------------------------------------------------------------
 0035               *  REMARKS
 0036               *  R11 must be at stack bottom
-0037               ********@*****@*********************@**************************
+0037               ********|*****|*********************|**************************
 0038 6082 C0F9  30 popr3   mov   *stack+,r3
 0039 6084 C0B9  30 popr2   mov   *stack+,r2
 0040 6086 C079  30 popr1   mov   *stack+,r1
@@ -766,7 +766,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0063               *  TMP0 = Memory start address
 0064               *  TMP1 = Byte to fill
 0065               *  TMP2 = Number of bytes to fill
-0066               ********@*****@*********************@**************************
+0066               ********|*****|*********************|**************************
 0067 608E C13B  30 film    mov   *r11+,tmp0            ; Memory start
 0068 6090 C17B  30         mov   *r11+,tmp1            ; Byte to fill
 0069 6092 C1BB  30         mov   *r11+,tmp2            ; Repeat count
@@ -809,7 +809,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0103               *  TMP0 = VDP start address
 0104               *  TMP1 = Byte to fill
 0105               *  TMP2 = Number of bytes to fill
-0106               ********@*****@*********************@**************************
+0106               ********|*****|*********************|**************************
 0107 60B2 C13B  30 filv    mov   *r11+,tmp0            ; Memory start
 0108 60B4 C17B  30         mov   *r11+,tmp1            ; Byte to fill
 0109 60B6 C1BB  30         mov   *r11+,tmp2            ; Repeat count
@@ -854,7 +854,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0145               *  BL   @VDRA
 0146               *
 0147               *  TMP0 = VDP source address for read
-0148               ********@*****@*********************@**************************
+0148               ********|*****|*********************|**************************
 0149 60DA 0264  22 vdwa    ori   tmp0,>4000            ; Prepare VDP address for write
      60DC 4000 
 0150 60DE 06C4  14 vdra    swpb  tmp0
@@ -873,7 +873,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0161               *--------------------------------------------------------------
 0162               *  P0 = VDP target address
 0163               *  P1 = Byte to write
-0164               ********@*****@*********************@**************************
+0164               ********|*****|*********************|**************************
 0165 60EC C13B  30 vputb   mov   *r11+,tmp0            ; Get VDP target address
 0166 60EE C17B  30         mov   *r11+,tmp1
 0167 60F0 C18B  18 xvputb  mov   r11,tmp2              ; Save R11
@@ -892,7 +892,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0179               *  DATA P0
 0180               *--------------------------------------------------------------
 0181               *  P0 = VDP source address
-0182               ********@*****@*********************@**************************
+0182               ********|*****|*********************|**************************
 0183 60FC C13B  30 vgetb   mov   *r11+,tmp0            ; Get VDP source address
 0184 60FE C18B  18 xvgetb  mov   r11,tmp2              ; Save R11
 0185 6100 06A0  32         bl    @vdra                 ; Set VDP read address
@@ -920,7 +920,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0205               *  Remarks
 0206               *  TMP1 = MSB is the VDP target register
 0207               *         LSB is the value to write
-0208               ********@*****@*********************@**************************
+0208               ********|*****|*********************|**************************
 0209 610C C13B  30 vidtab  mov   *r11+,tmp0            ; Get video mode table
 0210 610E C394  26 xidtab  mov   *tmp0,r14             ; Store copy of VDP#0 and #1 in RAM
 0211               *--------------------------------------------------------------
@@ -971,7 +971,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0247               *
 0248               *  TMP0 = MSB is the VDP target register
 0249               *         LSB is the value to write
-0250               ********@*****@*********************@**************************
+0250               ********|*****|*********************|**************************
 0251 6146 C13B  30 putvr   mov   *r11+,tmp0
 0252 6148 0264  22 putvrx  ori   tmp0,>8000
      614A 8000 
@@ -988,7 +988,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0261               * PUTV01  - Put VDP registers #0 and #1
 0262               ***************************************************************
 0263               *  BL   @PUTV01
-0264               ********@*****@*********************@**************************
+0264               ********|*****|*********************|**************************
 0265 615A C20B  18 putv01  mov   r11,tmp4              ; Save R11
 0266 615C C10E  18         mov   r14,tmp0
 0267 615E 0984  56         srl   tmp0,8
@@ -1014,7 +1014,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0282               *  P1 = Font options
 0283               *--------------------------------------------------------------
 0284               * Uses registers tmp0-tmp4
-0285               ********@*****@*********************@**************************
+0285               ********|*****|*********************|**************************
 0286 6174 C20B  18 ldfnt   mov   r11,tmp4              ; Save R11
 0287 6176 05CB  14         inct  r11                   ; Get 2nd parameter (font options)
 0288 6178 C11B  26         mov   *r11,tmp0             ; Get P0
@@ -1129,7 +1129,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0367               *--------------------------------------------------------------
 0368               *  Register usage
 0369               *  TMP0, R14, R15
-0370               ********@*****@*********************@**************************
+0370               ********|*****|*********************|**************************
 0371 620E C10E  18 yx2pnt  mov   r14,tmp0              ; Save VDP#0 & VDP#1
 0372 6210 C3A0  34         mov   @wyx,r14              ; Get YX
      6212 832A 
@@ -1168,7 +1168,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0400               *--------------------------------------------------------------
 0401               *  REMARKS
 0402               *  First byte of string must contain length
-0403               ********@*****@*********************@**************************
+0403               ********|*****|*********************|**************************
 0404 6232 C17B  30 putstr  mov   *r11+,tmp1
 0405 6234 D1B5  28 xutst0  movb  *tmp1+,tmp2           ; Get length byte
 0406 6236 C1CB  18 xutstr  mov   r11,tmp3
@@ -1191,7 +1191,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0421               *--------------------------------------------------------------
 0422               *  REMARKS
 0423               *  First byte of string must contain length
-0424               ********@*****@*********************@**************************
+0424               ********|*****|*********************|**************************
 0425 6244 C83B  50 putat   mov   *r11+,@wyx            ; Set YX position
      6246 832A 
 0426 6248 0460  28         b     @putstr
@@ -1218,7 +1218,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0016               *  TMP0 = VDP start address
 0017               *  TMP1 = RAM/ROM start address
 0018               *  TMP2 = Number of bytes to copy
-0019               ********@*****@*********************@**************************
+0019               ********|*****|*********************|**************************
 0020 624C C13B  30 cpym2v  mov   *r11+,tmp0            ; VDP Start address
 0021 624E C17B  30         mov   *r11+,tmp1            ; RAM/ROM start address
 0022 6250 C1BB  30         mov   *r11+,tmp2            ; Bytes to copy
@@ -1266,7 +1266,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0016               *  TMP0 = VDP source address
 0017               *  TMP1 = RAM target address
 0018               *  TMP2 = Number of bytes to copy
-0019               ********@*****@*********************@**************************
+0019               ********|*****|*********************|**************************
 0020 6272 C13B  30 cpyv2m  mov   *r11+,tmp0            ; VDP source address
 0021 6274 C17B  30         mov   *r11+,tmp1            ; Target address in RAM
 0022 6276 C1BB  30         mov   *r11+,tmp2            ; Bytes to copy
@@ -1316,7 +1316,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0020               *  TMP0 = Memory source address
 0021               *  TMP1 = Memory target address
 0022               *  TMP2 = Number of bytes to copy
-0023               ********@*****@*********************@**************************
+0023               ********|*****|*********************|**************************
 0024 6294 C13B  30 cpym2m  mov   *r11+,tmp0            ; Memory source address
 0025 6296 C17B  30         mov   *r11+,tmp1            ; Memory target address
 0026 6298 C1BB  30         mov   *r11+,tmp2            ; Number of bytes to copy
@@ -1387,7 +1387,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0005               * SCROFF - Disable screen display
 0006               ***************************************************************
 0007               *  BL @SCROFF
-0008               ********@*****@*********************@**************************
+0008               ********|*****|*********************|**************************
 0009 62E6 024E  22 scroff  andi  r14,>ffbf             ; VDP#R1 bit 1=0 (Disable screen display)
      62E8 FFBF 
 0010 62EA 0460  28         b     @putv01
@@ -1397,7 +1397,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0013               * SCRON - Disable screen display
 0014               ***************************************************************
 0015               *  BL @SCRON
-0016               ********@*****@*********************@**************************
+0016               ********|*****|*********************|**************************
 0017 62EE 026E  22 scron   ori   r14,>0040             ; VDP#R1 bit 1=1 (Enable screen display)
      62F0 0040 
 0018 62F2 0460  28         b     @putv01
@@ -1407,7 +1407,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0021               * INTOFF - Disable VDP interrupt
 0022               ***************************************************************
 0023               *  BL @INTOFF
-0024               ********@*****@*********************@**************************
+0024               ********|*****|*********************|**************************
 0025 62F6 024E  22 intoff  andi  r14,>ffdf             ; VDP#R1 bit 2=0 (Disable VDP interrupt)
      62F8 FFDF 
 0026 62FA 0460  28         b     @putv01
@@ -1417,7 +1417,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0029               * INTON - Enable VDP interrupt
 0030               ***************************************************************
 0031               *  BL @INTON
-0032               ********@*****@*********************@**************************
+0032               ********|*****|*********************|**************************
 0033 62FE 026E  22 inton   ori   r14,>0020             ; VDP#R1 bit 2=1 (Enable VDP interrupt)
      6300 0020 
 0034 6302 0460  28         b     @putv01
@@ -1443,7 +1443,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0014               *--------------------------------------------------------------
 0015               *  INPUT
 0016               *  P0 = New Cursor YX position
-0017               ********@*****@*********************@**************************
+0017               ********|*****|*********************|**************************
 0018 6306 C83B  50 at      mov   *r11+,@wyx
      6308 832A 
 0019 630A 045B  20         b     *r11
@@ -1453,7 +1453,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0023               * down - Increase cursor Y position
 0024               ***************************************************************
 0025               *  bl   @down
-0026               ********@*****@*********************@**************************
+0026               ********|*****|*********************|**************************
 0027 630C B820  54 down    ab    @hb$01,@wyx
      630E 602C 
      6310 832A 
@@ -1464,7 +1464,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0032               * up - Decrease cursor Y position
 0033               ***************************************************************
 0034               *  bl   @up
-0035               ********@*****@*********************@**************************
+0035               ********|*****|*********************|**************************
 0036 6314 7820  54 up      sb    @hb$01,@wyx
      6316 602C 
      6318 832A 
@@ -1479,7 +1479,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0045               *--------------------------------------------------------------
 0046               *  Register usage
 0047               *  TMP0
-0048               ********@*****@*********************@**************************
+0048               ********|*****|*********************|**************************
 0049 631C C13B  30 setx    mov   *r11+,tmp0            ; Set cursor X position
 0050 631E D120  34 xsetx   movb  @wyx,tmp0             ; Overwrite Y position
      6320 832A 
@@ -1504,7 +1504,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0009               * f18unl - Unlock F18A VDP
 0010               ***************************************************************
 0011               *  bl   @f18unl
-0012               ********@*****@*********************@**************************
+0012               ********|*****|*********************|**************************
 0013 6328 C20B  18 f18unl  mov   r11,tmp4              ; Save R11
 0014 632A 06A0  32         bl    @putvr                ; Write once
      632C 6146 
@@ -1519,7 +1519,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0022               * f18lck - Lock F18A VDP
 0023               ***************************************************************
 0024               *  bl   @f18lck
-0025               ********@*****@*********************@**************************
+0025               ********|*****|*********************|**************************
 0026 6338 C20B  18 f18lck  mov   r11,tmp4              ; Save R11
 0027 633A 06A0  32         bl    @putvr                ; VR1/57, value 00011100
      633C 6146 
@@ -1534,7 +1534,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0036               *--------------------------------------------------------------
 0037               *  REMARKS
 0038               *  VDP memory >3f00->3f05 still has part of GPU code upon exit.
-0039               ********@*****@*********************@**************************
+0039               ********|*****|*********************|**************************
 0040 6342 C20B  18 f18chk  mov   r11,tmp4              ; Save R11
 0041 6344 06A0  32         bl    @cpym2v
      6346 624C 
@@ -1578,7 +1578,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0066 6384 0458  20         b     *tmp4                 ; Exit
 0067               ***************************************************************
 0068               * GPU code
-0069               ********@*****@*********************@**************************
+0069               ********|*****|*********************|**************************
 0070               f18chk_gpu
 0071 6386 04E0             data  >04e0                 ; 3f00 \ 04e0  clr @>3f00
 0072 6388 3F00             data  >3f00                 ; 3f02 / 3f00
@@ -1600,7 +1600,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0088               *  It is your responsibility to set video mode tables should
 0089               *  you want to continue instead of doing blwp @0 after your
 0090               *  program cleanup
-0091               ********@*****@*********************@**************************
+0091               ********|*****|*********************|**************************
 0092 638C C20B  18 f18rst  mov   r11,tmp4              ; Save R11
 0093                       ;------------------------------------------------------
 0094                       ; Reset all F18a VDP registers to power-on defaults
@@ -1630,7 +1630,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0116               *  TMP0 Low nibble  = minor version
 0117               *
 0118               *  Example: >0018     F18a Firmware v1.8
-0119               ********@*****@*********************@**************************
+0119               ********|*****|*********************|**************************
 0120 639C C20B  18 f18fwv  mov   r11,tmp4              ; Save R11
 0121 639E 20A0  38         coc   @wbit1,config         ; CONFIG bit 1 set ?
      63A0 6020 
@@ -1743,7 +1743,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0082               *  TMP3     Address of entry in mapping table
 0083               *  TMP4     Copy of R12 (CONFIG REGISTER)
 0084               *  R12      CRU communication
-0085               ********@*****@*********************@**************************
+0085               ********|*****|*********************|**************************
 0086               virtkb
 0087               *       szc   @wbit10,config        ; Reset alpha lock down key
 0088 63B8 40A0  34         szc   @wbit11,config        ; Reset ANY key
@@ -1909,7 +1909,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0012               *--------------------------------------------------------------
 0013               *  Based on work done by Simon Koppelmann
 0014               *  taken from the book "TMS9900 assembler auf dem TI-99/4A"
-0015               ********@*****@*********************@**************************
+0015               ********|*****|*********************|**************************
 0016 64A8 40A0  34 realkb  szc   @wbit0,config         ; Reset bit 0 in CONFIG register
      64AA 601E 
 0017 64AC 020C  20         li    r12,>0024
@@ -2010,7 +2010,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0095 653A 020F  20 realkz  li    r15,vdpw              ; Setup VDP write address again after using R15 as temp storage
      653C 8C00 
 0096 653E 045B  20         b     *r11                  ; Exit
-0097               ********@*****@*********************@**************************
+0097               ********|*****|*********************|**************************
 0098 6540 FF00     kbsmal  data  >ff00,>0000,>ff0d,>203D
      6542 0000 
      6544 FF0D 
@@ -2095,7 +2095,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0012               *  P2 = Offset for ASCII digit
 0013               *
 0014               *  (CONFIG#0 = 1) = Display number at cursor YX
-0015               ********@*****@*********************@**************************
+0015               ********|*****|*********************|**************************
 0016 6600 C13B  30 mkhex   mov   *r11+,tmp0            ; Address of word
 0017 6602 C83B  50         mov   *r11+,@waux3          ; Pointer to string buffer
      6604 8340 
@@ -2180,7 +2180,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0083               *  P1 = Pointer to 16 bit word
 0084               *  P2 = Pointer to string buffer
 0085               *  P3 = Offset for ASCII digit
-0086               ********@*****@*********************@**************************
+0086               ********|*****|*********************|**************************
 0087 666C C83B  50 puthex  mov   *r11+,@wyx            ; Set cursor
      666E 832A 
 0088 6670 0262  22         ori   config,>8000          ; CONFIG register bit 0=1
@@ -2208,7 +2208,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0015               *  (CONFIG:0 = 1) = Display number at cursor YX
 0016               *-------------------------------------------------------------
 0017               *  Destroys registers tmp0-tmp4
-0018               ********@*****@*********************@**************************
+0018               ********|*****|*********************|**************************
 0019 6676 0207  20 mknum   li    tmp3,5                ; Digit counter
      6678 0005 
 0020 667A C17B  30         mov   *r11+,tmp1            ; \ Get 16 bit unsigned number
@@ -2289,7 +2289,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0087               *               XXXXX|zYYYYY   where length byte z=5
 0088               *--------------------------------------------------------------
 0089               *  Destroys registers tmp0-tmp3
-0090               ********@*****@*********************@**************************
+0090               ********|*****|*********************|**************************
 0091               trimnum:
 0092 66CE C13B  30         mov   *r11+,tmp0            ; Get pointer to input string
 0093 66D0 C17B  30         mov   *r11+,tmp1            ; Get pointer to output string
@@ -2337,7 +2337,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0134               *  P2   = Pointer to 5 byte string buffer
 0135               *  P3HB = Offset for ASCII digit
 0136               *  P3LB = Character for replacing leading 0's
-0137               ********@*****@*********************@**************************
+0137               ********|*****|*********************|**************************
 0138 66F4 C83B  50 putnum  mov   *r11+,@wyx            ; Set cursor
      66F6 832A 
 0139 66F8 0262  22         ori   config,>8000          ; CONFIG register bit 0=1
@@ -2368,7 +2368,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0019               *  REMARKS
 0020               *  Introduces register equate wcrc (tmp4/r8) which contains the
 0021               *  calculated CRC-16 checksum upon exit.
-0022               ********@*****@*********************@**************************
+0022               ********|*****|*********************|**************************
 0023      0004     wmemory equ   tmp0                  ; Current memory address
 0024      0005     wmemend equ   tmp1                  ; Highest memory address to process
 0025      0008     wcrc    equ   tmp4                  ; Current CRC
@@ -2727,7 +2727,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0309               *  R10LB = Use as slot counter
 0310               *  TMP2  = 2nd word of slot data
 0311               *  TMP3  = Address of routine to call
-0312               ********@*****@*********************@**************************
+0312               ********|*****|*********************|**************************
 0313 6940 0300  24 tmgr    limi  0                     ; No interrupt processing
      6942 0000 
 0314               *--------------------------------------------------------------
@@ -2853,7 +2853,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0417               *
 0418               *  The kernel thread is responsible for running the sound
 0419               *  player and doing keyboard scan.
-0420               ********@*****@*********************@**************************
+0420               ********|*****|*********************|**************************
 0421 69DE E0A0  34 kthread soc   @wbit8,config         ; Block kernel thread
      69E0 602E 
 0422               *--------------------------------------------------------------
@@ -2889,7 +2889,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0463               *  REMARKS
 0464               *  The user hook gets executed after the kernel thread.
 0465               *  The user hook must always exit with "B @HOOKOK"
-0466               ********@*****@*********************@**************************
+0466               ********|*****|*********************|**************************
 0467 69EE C83B  50 mkhook  mov   *r11+,@wtiusr         ; Set user hook address
      69F0 832E 
 0468 69F2 E0A0  34         soc   @wbit7,config         ; Enable user hook
@@ -2902,7 +2902,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0474               * CLHOOK - Clear user hook
 0475               ***************************************************************
 0476               *  BL    @CLHOOK
-0477               ********@*****@*********************@**************************
+0477               ********|*****|*********************|**************************
 0478 69F8 04E0  34 clhook  clr   @wtiusr               ; Unset user hook address
      69FA 832E 
 0479 69FC 0242  22         andi  config,>feff          ; Disable user hook (bit 7=0)
@@ -2924,7 +2924,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0494               *  If R1 in WS1 equals >FFFF we return to the TI title screen
 0495               *  after clearing scratchpad memory.
 0496               *  Use 'B @RUNLI1' to exit your program.
-0497               ********@*****@*********************@**************************
+0497               ********|*****|*********************|**************************
 0498 6A02 04E0  34 runlib  clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
      6A04 8302 
 0499               *--------------------------------------------------------------
@@ -3054,9 +3054,9 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0006               *//////////////////////////////////////////////////////////////
 0007               
 0008               ***************************************************************
-0009               * mem.scrpad.pgout - Page out scratchpad memory
+0009               * cpu.scrpad.pgout - Page out scratchpad memory
 0010               ***************************************************************
-0011               *  bl   @mem.scrpad.pgout
+0011               *  bl   @cpu.scrpad.pgout
 0012               *  DATA p0
 0013               *--------------------------------------------------------------
 0014               *  P0 = CPU memory destination
@@ -3067,14 +3067,14 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0019               *  Register usage
 0020               *  tmp0-tmp2 = Used as temporary registers
 0021               *  tmp3      = Copy of CPU memory destination
-0022               ********@*****@*********************@**************************
-0023               mem.scrpad.pgout:
+0022               ********|*****|*********************|**************************
+0023               cpu.scrpad.pgout:
 0024 6AA8 C17B  30         mov   *r11+,tmp1            ; tmp1 = Memory target address
 0025 6AAA C1C5  18         mov   tmp1,tmp3             ; tmp3 = copy of tmp1
 0026                       ;------------------------------------------------------
 0027                       ; Copy scratchpad memory to destination
 0028                       ;------------------------------------------------------
-0029               xmem.scrpad.pgout:
+0029               xcpu.scrpad.pgout:
 0030 6AAC 0204  20         li    tmp0,>8300            ; tmp0 = Memory source address
      6AAE 8300 
 0031 6AB0 0206  20         li    tmp2,128              ; tmp2 = Bytes to copy
@@ -3090,7 +3090,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0040                       ; Switch to new workspace
 0041                       ;------------------------------------------------------
 0042 6ABC C347  18         mov   tmp3,r13              ; R13=WP   (pop tmp1 from stack)
-0043 6ABE 020E  20         li    r14,mem.scrpad.pgout.after.rtwp
+0043 6ABE 020E  20         li    r14,cpu.scrpad.pgout.after.rtwp
      6AC0 6AC6 
 0044                                                   ; R14=PC
 0045 6AC2 04CF  14         clr   r15                   ; R15=STATUS
@@ -3103,7 +3103,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0052                       ;------------------------------------------------------
 0053                       ; Setup scratchpad memory for DSRLNK/GPLLNK
 0054                       ;------------------------------------------------------
-0055               mem.scrpad.pgout.after.rtwp:
+0055               cpu.scrpad.pgout.after.rtwp:
 0056 6AC6 0205  20         li    tmp1,>8300
      6AC8 8300 
 0057 6ACA 0206  20         li    tmp2,128              ; Clear 128 words of memory
@@ -3134,7 +3134,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0075                       ;------------------------------------------------------
 0076                       ; Exit
 0077                       ;------------------------------------------------------
-0078               mem.scrpad.pgout.$$:
+0078               cpu.scrpad.pgout.$$:
 0079 6AEC 045B  20         b     *r11                  ; Return to caller
 **** **** ****     > scratchpad.asm.19726
 0065                       copy  "/2TBHDD/tifun/asm/spectra2/modules/dsrlnk.asm"
@@ -3341,13 +3341,13 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0078               
 0079               ***************************************************************
 0080               * Main
-0081               ********@*****@*********************@**************************
+0081               ********|*****|*********************|**************************
 0082 6C0C 06A0  32 main    bl    @putat
      6C0E 6244 
 0083 6C10 0815             data  >0815,msg
      6C12 6C1C 
 0084               
-0085 6C14 06A0  32         bl    @mem.scrpad.pgout     ; Page out scratchpad memory
+0085 6C14 06A0  32         bl    @cpu.scrpad.pgout     ; Page out scratchpad memory
      6C16 6AA8 
 0086 6C18 A000             data  >a000                 ; Memory destination @>a000
 0087               

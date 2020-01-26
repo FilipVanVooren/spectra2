@@ -22,7 +22,7 @@
 *--------------------------------------------------------------
 *  OUTPUT
 *  TMP0 = The generated random number
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 rnd     mov   *r11+,tmp0            ; Highest number allowed
         mov   *r11+,tmp3            ; Get address of random seed
 rndx    clr   tmp1

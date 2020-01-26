@@ -17,7 +17,7 @@
 *--------------------------------------------------------------
 *  Remarks
 *  This subroutine does not support multicolor mode
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 yx2px   mov   @wyx,tmp0
 yx2pxx  mov   r11,tmp2              ; Save return address
         swpb  tmp0                  ; Y<->X

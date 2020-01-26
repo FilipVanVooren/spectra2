@@ -34,7 +34,7 @@ spcode  data  >d114                 ; \         movb  *r4,r4 (tmp0)
 *--------------------------------------------------------------
 *  REMARKS
 *  R11 must be at stack bottom
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 popr3   mov   *stack+,r3
 popr2   mov   *stack+,r2
 popr1   mov   *stack+,r1
@@ -63,7 +63,7 @@ poprt   mov   *stack+,r11
 *  TMP0 = Memory start address
 *  TMP1 = Byte to fill
 *  TMP2 = Number of bytes to fill
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 film    mov   *r11+,tmp0            ; Memory start
         mov   *r11+,tmp1            ; Byte to fill
         mov   *r11+,tmp2            ; Repeat count
@@ -136,7 +136,7 @@ fil.$$  b     *r11
 *  TMP0 = VDP start address
 *  TMP1 = Byte to fill
 *  TMP2 = Number of bytes to fill
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 filv    mov   *r11+,tmp0            ; Memory start
         mov   *r11+,tmp1            ; Byte to fill
         mov   *r11+,tmp2            ; Repeat count
@@ -178,7 +178,7 @@ filzz   data  >d7c5                 ; MOVB TMP1,*R15
 *  BL   @VDRA
 *
 *  TMP0 = VDP source address for read
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 vdwa    ori   tmp0,>4000            ; Prepare VDP address for write
 vdra    swpb  tmp0
         movb  tmp0,@vdpa
@@ -194,7 +194,7 @@ vdra    swpb  tmp0
 *--------------------------------------------------------------
 *  P0 = VDP target address
 *  P1 = Byte to write
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 vputb   mov   *r11+,tmp0            ; Get VDP target address
         mov   *r11+,tmp1            ; Get byte to write
 *--------------------------------------------------------------
@@ -228,7 +228,7 @@ xvputb  ori   tmp0,>4000            ; Prepare VDP address for write
 *  Output:
 *  tmp0 MSB = >00
 *  tmp0 LSB = VDP byte read
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 vgetb   mov   *r11+,tmp0            ; Get VDP source address  
 *--------------------------------------------------------------
 * Set VDP read address 
@@ -260,7 +260,7 @@ xvgetb  swpb  tmp0                  ; \
 *  Remarks
 *  TMP1 = MSB is the VDP target register
 *         LSB is the value to write
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 vidtab  mov   *r11+,tmp0            ; Get video mode table
 xidtab  mov   *tmp0,r14             ; Store copy of VDP#0 and #1 in RAM
 *--------------------------------------------------------------
@@ -302,7 +302,7 @@ vidta1  movb  *tmp0+,@tmp1lb        ; Write value to VDP register
 *
 *  TMP0 = MSB is the VDP target register
 *         LSB is the value to write
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 putvr   mov   *r11+,tmp0
 putvrx  ori   tmp0,>8000
         swpb  tmp0
@@ -316,7 +316,7 @@ putvrx  ori   tmp0,>8000
 * PUTV01  - Put VDP registers #0 and #1
 ***************************************************************
 *  BL   @PUTV01
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 putv01  mov   r11,tmp4              ; Save R11
         mov   r14,tmp0
         srl   tmp0,8
@@ -337,7 +337,7 @@ putv01  mov   r11,tmp4              ; Save R11
 *  P1 = Font options
 *--------------------------------------------------------------
 * Uses registers tmp0-tmp4
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 ldfnt   mov   r11,tmp4              ; Save R11
         inct  r11                   ; Get 2nd parameter (font options)
         mov   *r11,tmp0             ; Get P0
@@ -422,7 +422,7 @@ tmp006  data  >004c,64*8,>0000      ; Pointer to TI title screen font
 *--------------------------------------------------------------
 *  Register usage
 *  TMP0, R14, R15
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 yx2pnt  mov   r14,tmp0              ; Save VDP#0 & VDP#1
         mov   @wyx,r14              ; Get YX
         srl   r14,8                 ; Right justify (remove X)
@@ -455,7 +455,7 @@ yx2pnt  mov   r14,tmp0              ; Save VDP#0 & VDP#1
 *--------------------------------------------------------------
 *  REMARKS
 *  First byte of string must contain length
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 putstr  mov   *r11+,tmp1
 xutst0  movb  *tmp1+,tmp2           ; Get length byte
 xutstr  mov   r11,tmp3
@@ -476,6 +476,6 @@ xutstr  mov   r11,tmp3
 *--------------------------------------------------------------
 *  REMARKS
 *  First byte of string must contain length
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 putat   mov   *r11+,@wyx            ; Set YX position
         b     @putstr

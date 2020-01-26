@@ -21,7 +21,7 @@
 *--------------------------------------------------------------
 *  Important! The bank-switch routine must be at the exact
 *  same location accross banks
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 swbnk   mov   *r11+,tmp0
         mov   *r11+,tmp1
 swbnkx  clr   *tmp0                 ; Select bank in TMP0

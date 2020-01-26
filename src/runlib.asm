@@ -200,13 +200,13 @@
     .endif
 
     .ifndef skip_mem_paging
-        copy  "mem_scrpad_backrest.asm"  ; Scratchpad backup/restore 
-        copy  "mem_scrpad_paging.asm"    ; Scratchpad memory paging
+        copy  "cpu_scrpad_backrest.asm"  ; Scratchpad backup/restore 
+        copy  "cpu_scrpad_paging.asm"    ; Scratchpad memory paging
     .endif
 
     .ifndef skip_fio
         copy  "equ_fio.asm"              ; File I/O equates
-        copy  "dsrlnk.asm"               ; DSRLNK for peripheral communication 
+        copy  "fio_dsrlnk.asm"           ; DSRLNK for peripheral communication 
         copy  "fio_level2.asm"           ; File I/O level 2 support
     .endif
 
@@ -242,9 +242,9 @@
 *  If R1 in WS1 equals >FFFF we return to the TI title screen
 *  after clearing scratchpad memory. This has higher priority 
 *  as crash handler flag R0.
-********@*****@*********************@**************************
+********|*****|*********************|**************************
     .ifdef startup_backup_scrpad
-runlib  bl    @mem.scrpad.backup    ; Backup scratchpad memory to @>2000
+runlib  bl    @cpu.scrpad.backup    ; Backup scratchpad memory to @>2000
         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
     .else
 runlib  clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)

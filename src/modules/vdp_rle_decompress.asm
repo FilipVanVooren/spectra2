@@ -22,7 +22,7 @@
 *    the next byte that many times.
 *  - If high bit is clear, remaining 7 bits indicate how many
 *    data bytes (non-repeated) follow.
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 rle2v   mov   *r11+,tmp2            ; ROM/RAM source address
         mov   *r11+,tmp0            ; VDP target address
         mov   *r11+,tmp3            ; Length of RLE encoded data

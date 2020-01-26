@@ -2,7 +2,7 @@
 * Hardware detection 
 ***************************************************************
 * This file: test1.asm
-********@*****@*********************@**************************
+********|*****|*********************|**************************
         save  >6000,>7fff
         aorg  >6000
 
@@ -38,7 +38,7 @@ spvmod  equ   graph1                ; Video mode.   See VIDTAB for details.
 spfont  equ   fnopt3                ; Font to load. See LDFONT for details.
 ***************************************************************
 * Main
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 main    coc   @wbit1,config         ; CONFIG bit 1 set ?
         jeq   main1                 ; Yes, we have a F18A
         blwp  @0                    ; No, return to title screen

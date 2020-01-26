@@ -13,7 +13,7 @@
 *  P0LB = X position
 *  P1HB = Byte to write
 *  P1LB = Number of times to repeat
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 hchar   mov   *r11+,@wyx            ; Set YX position
         movb  *r11+,tmp1
 hcharx  srl   tmp1,8                ; Byte to write

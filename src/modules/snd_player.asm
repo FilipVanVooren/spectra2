@@ -10,7 +10,7 @@
 *
 *  BL  @MUTE2
 *  Mute sound generators without clearing sound pointer
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 mute    clr   @wsdlst               ; Clear sound pointer
 mute2   szc   @wbit13,config        ; Turn off/pause sound player
         li    tmp0,muttab
@@ -39,7 +39,7 @@ muttab  byte  >9f,>bf,>df,>ff       ; Table for muting all generators
 *  SDOPT2 => Tune is in CPU memory
 *  SDOPT3 => Tune is in VRAM + loop
 *  SDOPT4 => Tune is in VRAM
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 sdprep  mov   *r11,@wsdlst          ; Set tune address
         mov   *r11+,@wsdtmp         ; Set tune address in temp
         andi  config,>fff8          ; Clear bits 13-14-15
@@ -55,7 +55,7 @@ sdprep  mov   *r11,@wsdlst          ; Set tune address
 *  REMARKS
 *  Set config register bit13=0 to pause player.
 *  Set config register bit14=1 to repeat (or play next tune).
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 sdplay  coc   @wbit13,config        ; Play tune ?
         jeq   sdpla1                ; Yes, play
         b     *r11

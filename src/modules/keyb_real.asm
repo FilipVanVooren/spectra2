@@ -12,7 +12,7 @@
 *--------------------------------------------------------------
 *  Based on work done by Simon Koppelmann
 *  taken from the book "TMS9900 assembler auf dem TI-99/4A"
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 realkb  szc   @wbit0,config         ; Reset bit 0 in CONFIG register
         li    r12,>0024
         li    r15,kbsmal            ; Default is KBSMAL table
@@ -94,7 +94,7 @@ realka  mov   tmp2,@waux1           ; Store ASCII value of key in WAUX1
         soc   @wbit11,config        ; Set ANYKEY flag in CONFIG register
 realkz  li    r15,vdpw              ; Setup VDP write address again after using R15 as temp storage
         b     *r11                  ; Exit
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 kbsmal  data  >ff00,>0000,>ff0d,>203D
         text  'xws29ol.'
         text  'ced38ik,'

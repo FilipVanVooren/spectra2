@@ -13,7 +13,7 @@
 *  P0LB = X position
 *  P1HB = Byte to write
 *  P1LB = Number of times to repeat
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 vchar   mov   *r11+,@wyx            ; Set YX position
         mov   r11,tmp3              ; Save R11 in TMP3
 vchar1  mov   @wcolmn,tmp4          ; Get columns per row

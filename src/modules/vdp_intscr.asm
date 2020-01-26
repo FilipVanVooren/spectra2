@@ -5,7 +5,7 @@
 * SCROFF - Disable screen display
 ***************************************************************
 *  BL @SCROFF
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 scroff  andi  r14,>ffbf             ; VDP#R1 bit 1=0 (Disable screen display)
         b     @putv01
 
@@ -13,7 +13,7 @@ scroff  andi  r14,>ffbf             ; VDP#R1 bit 1=0 (Disable screen display)
 * SCRON - Disable screen display
 ***************************************************************
 *  BL @SCRON
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 scron   ori   r14,>0040             ; VDP#R1 bit 1=1 (Enable screen display)
         b     @putv01
 
@@ -21,7 +21,7 @@ scron   ori   r14,>0040             ; VDP#R1 bit 1=1 (Enable screen display)
 * INTOFF - Disable VDP interrupt
 ***************************************************************
 *  BL @INTOFF
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 intoff  andi  r14,>ffdf             ; VDP#R1 bit 2=0 (Disable VDP interrupt)
         b     @putv01
 
@@ -29,6 +29,6 @@ intoff  andi  r14,>ffdf             ; VDP#R1 bit 2=0 (Disable VDP interrupt)
 * INTON - Enable VDP interrupt
 ***************************************************************
 *  BL @INTON
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 inton   ori   r14,>0020             ; VDP#R1 bit 2=1 (Enable VDP interrupt)
         b     @putv01

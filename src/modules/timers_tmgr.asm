@@ -16,7 +16,7 @@
 *  R10LB = Use as slot counter
 *  TMP2  = 2nd word of slot data
 *  TMP3  = Address of routine to call
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 tmgr    limi  0                     ; No interrupt processing
 *--------------------------------------------------------------
 * Read VDP status register

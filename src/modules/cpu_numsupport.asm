@@ -15,7 +15,7 @@
 *  (CONFIG:0 = 1) = Display number at cursor YX
 *-------------------------------------------------------------
 *  Destroys registers tmp0-tmp4
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 mknum   li    tmp3,5                ; Digit counter
         mov   *r11+,tmp1            ; \ Get 16 bit unsigned number
         mov   *tmp1,tmp1            ; /
@@ -87,7 +87,7 @@ mknum5  andi  config,>7fff          ; Reset bit 0
 *               XXXXX|zYYYYY   where length byte z=5
 *--------------------------------------------------------------
 *  Destroys registers tmp0-tmp3
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 trimnum:
         mov   *r11+,tmp0            ; Get pointer to input string
         mov   *r11+,tmp1            ; Get pointer to output string
@@ -134,7 +134,7 @@ trimnum_fill
 *  P2   = Pointer to 5 byte string buffer
 *  P3HB = Offset for ASCII digit
 *  P3LB = Character for replacing leading 0's
-********@*****@*********************@**************************
+********|*****|*********************|**************************
 putnum  mov   *r11+,@wyx            ; Set cursor
         ori   config,>8000          ; CONFIG register bit 0=1
         jmp   mknum                 ; Convert number and display
