@@ -24,6 +24,7 @@
 * skip_cpu_cpu_copy         equ  1  ; Skip CPU  to CPU copy functions
 * skip_grom_cpu_copy        equ  1  ; Skip GROM to CPU copy functions
 * skip_grom_vram_copy       equ  1  ; Skip GROM to VRAM copy functions
+* skip_sams                 equ  1  ; Skip CPU support for SAMS memory expansion
 *
 * == VDP
 * skip_textmode_support     equ  1  ; Skip 40x24 textmode support
@@ -105,6 +106,10 @@
 
     .ifndef skip_grom_vram_copy
         copy  "copy_grom_vram.asm"       ; GROM to VRAM copy functions
+    .endif
+
+    .ifndef skip_sams
+        copy  "cpu_sams_support.asm"     ; CPU support for SAMS memory expansion card
     .endif
 
     .ifndef skip_vdp_intscr
@@ -209,8 +214,6 @@
         copy  "fio_dsrlnk.asm"           ; DSRLNK for peripheral communication 
         copy  "fio_level2.asm"           ; File I/O level 2 support
     .endif
-
-
 
 *//////////////////////////////////////////////////////////////
 *                            TIMERS

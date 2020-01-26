@@ -1,16 +1,20 @@
 Preprocessing source file.... PASS 1
 Preprocessing source file.... PASS 2
 ************************************************
-Assembly started ........ 19-11-24 18:02:16
+Assembly started ........ 20-01-26 21:28:58
 Source file ............. runlib.asm
-Assembly run ............ .runlib/runlib.8808/xas99run.out
-Preprocessed source ..... .runlib/runlib.8808/runlib.asm.8808
+Assembly run ............ .runlib/runlib.20978/xas99run.out
+Preprocessed source ..... .runlib/runlib.20978/runlib.asm.20978
 ROM cart binary ......... bin/runlibc.bin
 List file ............... runlib.lst.asm
-Run suffix .............. 191124-8808
+Run suffix .............. 200126-20978
 ************************************************
-> dsrlnk.asm <1> 0037 - dsrlnk.dstype equ   dsrlnk.dsrlws + 10
+> fio_dsrlnk.asm <1> 0037 - dsrlnk.dstype equ   dsrlnk.dsrlws + 10
 ***** Unknown symbol: DSRLNK.DSRLWS
+> cpu_crash.asm <2> 0068 -               data rambuf           ; | .  p2 = Pointer to ram buffer
+***** Unknown symbol: RAMBUF
+> cpu_crash.asm <2> 0080 -               data rambuf           ; | .  p2 = Pointer to ram buffer
+***** Unknown symbol: RAMBUF
 > vdp_tables.asm <2> 0007 - graph1  byte  >00,>e2,>00,>0e,>01,>06,>02,SPFBCK,0,32
 ***** Unknown symbol: SPFBCK
 > vdp_tables.asm <2> 0032 - tx4024  byte  >00,>f2,>00,>0e,>01,>06,>00,SPFCLR,0,40
@@ -19,33 +23,35 @@ Run suffix .............. 191124-8808
 ***** Unknown symbol: SPFCLR
 > vdp_tables.asm <2> 0084 - tx8030  byte  >04,>f0,>00,>3f,>02,>40,>03,SPFCLR,0,80
 ***** Unknown symbol: SPFCLR
-> dsrlnk.asm <2> 0041 - dsrlnk  data  dsrlnk.dsrlws         ; dsrlnk workspace
+> fio_dsrlnk.asm <2> 0041 - dsrlnk  data  dsrlnk.dsrlws         ; dsrlnk workspace
 ***** Unknown symbol: DSRLNK.DSRLWS
-> dsrlnk.asm <2> 0070 -         li    r2,dsrlnk.namsto      ; point to 8-byte CPU buffer
+> fio_dsrlnk.asm <2> 0070 -         li    r2,dsrlnk.namsto      ; point to 8-byte CPU buffer
 ***** Unknown symbol: DSRLNK.NAMSTO
-> dsrlnk.asm <2> 0145 -         a     @dsrlnk.dstype,r2     ; go to first pointer (byte 8 or 10)
+> fio_dsrlnk.asm <2> 0145 -         a     @dsrlnk.dstype,r2     ; go to first pointer (byte 8 or 10)
 ***** Unknown symbol: DSRLNK.DSTYPE
-> dsrlnk.asm <2> 0174 -         li    r6,dsrlnk.namsto      ; Point to 8-byte CPU buffer
+> fio_dsrlnk.asm <2> 0174 -         li    r6,dsrlnk.namsto      ; Point to 8-byte CPU buffer
 ***** Unknown symbol: DSRLNK.NAMSTO
-> dsrlnk.asm <2> 0199 -         lwpi  dsrlnk.dsrlws         ; (2) restore workspace
+> fio_dsrlnk.asm <2> 0199 -         lwpi  dsrlnk.dsrlws         ; (2) restore workspace
 ***** Unknown symbol: DSRLNK.DSRLWS
-> dsrlnk.asm <2> 0234 -         lwpi  dsrlnk.dsrlws         ; No DSR found, restore workspace
+> fio_dsrlnk.asm <2> 0234 -         lwpi  dsrlnk.dsrlws         ; No DSR found, restore workspace
 ***** Unknown symbol: DSRLNK.DSRLWS
-> fio_level2.asm <2> 0044 -         mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
+> fio_level2.asm <2> 0049 -         mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
 ***** Unknown symbol: FILE.PAB.PTR
-> fio_level2.asm <2> 0139 -         mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
+> fio_level2.asm <2> 0096 -         mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
 ***** Unknown symbol: FILE.PAB.PTR
-> fio_level2.asm <2> 0217 -         mov   @file.pab.ptr,tmp0    ; Get VDP address of current PAB
+> fio_level2.asm <2> 0145 -         mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
 ***** Unknown symbol: FILE.PAB.PTR
-> runlib.asm.8808 <2> 0310 -         data  pctadr,spfclr,16      ; Load color table
+> fio_level2.asm <2> 0218 -         mov   @file.pab.ptr,tmp0    ; Get VDP address of current PAB
+***** Unknown symbol: FILE.PAB.PTR
+> runlib.asm.20978 <2> 0323 -         data  pctadr,spfclr,16      ; Load color table
 ***** Unknown symbol: PCTADR
-> runlib.asm.8808 <2> 0333 -         data  spvmod                ; Equate selected video mode table
+> runlib.asm.20978 <2> 0346 -         data  spvmod                ; Equate selected video mode table
 ***** Unknown symbol: SPVMOD
-> runlib.asm.8808 <2> 0334 -         li    tmp0,spfont           ; Get font option
+> runlib.asm.20978 <2> 0347 -         li    tmp0,spfont           ; Get font option
 ***** Unknown symbol: SPFONT
-> runlib.asm.8808 <2> 0338 -         data  fntadr,spfont         ; Load specified font
+> runlib.asm.20978 <2> 0351 -         data  fntadr,spfont         ; Load specified font
 ***** Unknown symbol: FNTADR
-> runlib.asm.8808 <2> 0349 -         b     @main                 ; Give control to main program
+> runlib.asm.20978 <2> 0362 -         b     @main                 ; Give control to main program
 ***** Unknown symbol: MAIN
 ***** No ROM cart binary created due to errors during assembly.
 ***** Assembly process returned with RC=1
