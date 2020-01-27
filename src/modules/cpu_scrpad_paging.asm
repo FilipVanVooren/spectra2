@@ -10,10 +10,11 @@
 * cpu.scrpad.pgout - Page out scratchpad memory
 ***************************************************************
 *  bl   @cpu.scrpad.pgout
-*  DATA p0
+*       DATA p0
+*
 *  P0 = CPU memory destination
 *--------------------------------------------------------------
-*  bl   @memx.scrpad.pgout
+*  bl   @xcpu.scrpad.pgout
 *  TMP1 = CPU memory destination
 *--------------------------------------------------------------
 *  Register usage
