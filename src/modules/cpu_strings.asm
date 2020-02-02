@@ -45,4 +45,4 @@ trim_left_exit:
          
 trim_left_panic:
         mov   r11,@>ffce            ; \ Save caller address        
-        bl    @crash                ; / Crash and halt system
+        bl    @cpu.crash            ; / Crash and halt system

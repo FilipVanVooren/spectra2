@@ -4322,9 +4322,9 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0057               
 0058 6FD2 06A0  32         bl    @xpym2m               ; Block copy to destination
      6FD4 638A 
-0059                                                   ; \ .  tmp0 = Source address
-0060                                                   ; | .  tmp1 = Target address
-0061                                                   ; / .  tmp2 = Bytes to copy
+0059                                                   ; \ i  tmp0 = Source address
+0060                                                   ; | i  tmp1 = Target address
+0061                                                   ; / i  tmp2 = Bytes to copy
 0062               
 0063 6FD6 C1B9  30         mov   *stack+,tmp2          ; Pop tmp2
 0064 6FD8 1011  14         jmp   rle2cpu.check_if_more ; Check if more data to decompress
@@ -4348,9 +4348,9 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0082               
 0083 6FF0 06A0  32         bl    @xfilm                ; Block fill to destination
      6FF2 6140 
-0084                                                   ; \ .  tmp0 = Target address
-0085                                                   ; | .  tmp1 = Byte to fill
-0086                                                   ; / .  tmp2 = Repeat count
+0084                                                   ; \ i  tmp0 = Target address
+0085                                                   ; | i  tmp1 = Byte to fill
+0086                                                   ; / i  tmp2 = Repeat count
 0087               
 0088 6FF4 C1F9  30         mov   *stack+,tmp3          ; Pop tmp3
 0089 6FF6 C1B9  30         mov   *stack+,tmp2          ; Pop tmp2

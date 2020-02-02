@@ -208,7 +208,7 @@ file.error:
         jeq   eof_reached           ; All good. File closed by DSRLNK 
         
         mov   r11,@>ffce            ; \ Save caller address
-        bl    @crash                ; / File error occured. Halt system.
+        bl    @cpu.crash            ; / File error occured. Halt system.
         ;------------------------------------------------------
         ; End-Of-File reached
         ;------------------------------------------------------     

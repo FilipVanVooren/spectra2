@@ -82,7 +82,7 @@
         copy  "rom_bankswitch.asm"       ; Bank switch routine
     .endif
 
-        copy  "constants.asm"            ; Define constants & equates for word/MSB/LSB
+        copy  "cpu_constants.asm"        ; Define constants & equates for word/MSB/LSB
         copy  "equ_config.asm"           ; Equates for bits in config register
         copy  "cpu_crash.asm"            ; CPU crash handler
         copy  "vdp_tables.asm"           ; Data used by runtime library
@@ -354,7 +354,7 @@ runlic  bl    @vidtab               ; Load video mode table into VDP
 *--------------------------------------------------------------
 runlid  ci    r0,>4a4a              ; Crash flag set?
         jne   runlie                ; No, continue
-        b     @crash.main           ; Yes, back to crash handler
+        b     @cpu.crash.main       ; Yes, back to crash handler
 *--------------------------------------------------------------
 * Branch to main program
 *--------------------------------------------------------------

@@ -31,7 +31,7 @@ xpym2m  mov   tmp2,tmp2             ; Bytes to copy = 0 ?
         jne   cpychk                ; No, continue checking
         
         mov   r11,@>ffce            ; \ Save caller address        
-        bl    @crash                ; / Crash and halt system
+        bl    @cpu.crash            ; / Crash and halt system
 *--------------------------------------------------------------
 *    Check: 1 byte copy
 *--------------------------------------------------------------

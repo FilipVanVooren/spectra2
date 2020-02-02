@@ -36,19 +36,88 @@
 
 
 
+
 ***************************************************************
-* sams.page - Page SAMS memory to memory bank
+* sams.page.get - Get SAMS page number for memory address
 ***************************************************************
-*  bl   @xsams.page
+* bl   @sams.page.get
+*      data P0
+*--------------------------------------------------------------
+* P0 = Memory address (e.g. address >a100 will map to SAMS
+*      register >4014 (bank >a000 - >afff)
+*--------------------------------------------------------------
+* bl   @xsams.page.get
 *
-*  tmp0 = SAMS page number
-*  tmp1 = Memory address (e.g. address >a100 will map to SAMS
-*         register >4014 (bank >a000 - >afff)
+* tmp0 = Memory address (e.g. address >a100 will map to SAMS
+*        register >4014 (bank >a000 - >afff)
 *--------------------------------------------------------------
-*  Register usage
-*  r0, tmp0, tmp1, r12
+* OUTPUT
+* waux1 = SAMS page number
+* waux2 = Address of affected SAMS register
 *--------------------------------------------------------------
-*  SAMS page number should be in range 0-255 (>00 to >ff)
+* Register usage
+* r0, tmp0, r12
+********|*****|*********************|**************************
+sams.page.get:
+        mov   *r11+,tmp0            ; Memory address
+xsams.page.get:
+        dect  stack
+        mov   r11,*stack            ; Push return address
+        dect  stack
+        mov   r0,*stack             ; Push r0
+        dect  stack
+        mov   r12,*stack            ; Push r12
+*--------------------------------------------------------------
+* Determine memory bank
+*--------------------------------------------------------------
+        srl   tmp0,12               ; Reduce address to 4K chunks 
+        sla   tmp0,1                ; Registers are 2 bytes appart        
+
+        ai    tmp0,>4000            ; Add base address of "DSR" space        
+        mov   tmp0,@waux2           ; Save address of SAMS register
+*--------------------------------------------------------------
+* Switch memory bank to specified SAMS page
+*--------------------------------------------------------------
+        li    r12,>1e00             ; SAMS CRU address
+        clr   r0
+        sbo   0                     ; Enable access to SAMS registers 
+        movb  *tmp0,r0              ; Get SAMS page number
+        movb  r0,tmp0
+        srl   tmp0,8                ; Right align
+        mov   tmp0,@waux1           ; Save SAMS page number
+        sbz   0                     ; Disable access to SAMS registers
+*--------------------------------------------------------------
+* Exit
+*--------------------------------------------------------------
+sams.page.get.exit:
+        mov   *stack+,r12           ; Pop r12
+        mov   *stack+,r0            ; Pop r0
+        mov   *stack+,r11           ; Pop return address
+        b     *r11                  ; Return to caller       
+
+
+
+
+***************************************************************
+* sams.page.set - Set SAMS memory page
+***************************************************************
+* bl   sams.page.set
+*      data P0,P1
+*--------------------------------------------------------------
+* P0 = SAMS page number
+* P1 = Memory address (e.g. address >a100 will map to SAMS
+*      register >4014 (bank >a000 - >afff)
+*--------------------------------------------------------------
+* bl   @xsams.page.set
+*
+* tmp0 = SAMS page number
+* tmp1 = Memory address (e.g. address >a100 will map to SAMS
+*        register >4014 (bank >a000 - >afff)
+*--------------------------------------------------------------
+* Register usage
+* r0, tmp0, tmp1, r12
+*--------------------------------------------------------------
+* SAMS page number should be in range 0-255 (>00 to >ff)
 *
 *  Page         Memory
 *  ====         ====== 
@@ -58,7 +127,10 @@
 *  >7f            512K
 *  >ff           1024K
 ********|*****|*********************|**************************
-xsams.page:
+sams.page.set:
+        mov   *r11+,tmp0            ; Get SAMS page
+        mov   *r11+,tmp1            ; Get memory address
+xsams.page.set:
         dect  stack
         mov   r11,*stack            ; Push return address
         dect  stack
@@ -69,17 +141,32 @@ xsams.page:
         mov   tmp0,*stack           ; Push tmp0
         dect  stack
         mov   tmp1,*stack           ; Push tmp1
-        dect  stack
-        mov   tmp2,*stack           ; Push tmp2
 *--------------------------------------------------------------
 * Determine memory bank
 *--------------------------------------------------------------
         srl   tmp1,12               ; Reduce address to 4K chunks 
         sla   tmp1,1                ; Registers are 2 bytes appart
 *--------------------------------------------------------------
+* Sanity check on SAMS register
+*--------------------------------------------------------------
+        ci    tmp1,>1e              ; r@401e   >f000 - >ffff
+        jgt   !
+        ci    tmp1,>04              ; r@4004   >2000 - >2fff
+        jlt   !
+        ci    tmp1,>12              ; r@4014   >a000 - >ffff
+        jgt   sams.page.set.switch_page
+        ci    tmp1,>06              ; r@4006   >3000 - >3fff
+        jgt   !
+        jmp   sams.page.set.switch_page
+        ;------------------------------------------------------
+        ; Crash the system
+        ;------------------------------------------------------
+!       mov   r11,@>ffce            ; \ Save caller address        
+        bl    @cpu.crash            ; / Crash and halt system
+*--------------------------------------------------------------
 * Switch memory bank to specified SAMS page
 *--------------------------------------------------------------
-sams.page.switch:
+sams.page.set.switch_page
         li    r12,>1e00             ; SAMS CRU address
         mov   tmp0,r0               ; Must be in r0 for CRU use
         swpb  r0                    ; LSB to MSB      
@@ -89,8 +176,7 @@ sams.page.switch:
 *--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
-sams.page.exit:
-        mov   *stack+,tmp2          ; Pop tmp2
+sams.page.set.exit:
         mov   *stack+,tmp1          ; Pop tmp1
         mov   *stack+,tmp0          ; Pop tmp0
         mov   *stack+,r12           ; Pop r12
@@ -124,10 +210,13 @@ sams.mapping.on.exit:
 ***************************************************************
 * sams.mapping.off - Disable SAMS mapping mode
 ***************************************************************
-*  bl   @sams.mapping.off
+* bl  @sams.mapping.off
 *--------------------------------------------------------------
-*  Register usage
-*  r12
+* OUTPUT
+* none
+*--------------------------------------------------------------
+* Register usage
+* r12
 ********|*****|*********************|**************************
 sams.mapping.off:
         li    r12,>1e00             ; SAMS CRU address
@@ -154,17 +243,17 @@ sams.mapping.off.exit:
 *--------------------------------------------------------------
 * bl  @xsams.layout
 *
-* TMP0 = Pointer to SAMS page layout table (16 words).
+* tmp0 = Pointer to SAMS page layout table (16 words).
 *--------------------------------------------------------------
 * OUTPUT
 * none
 *--------------------------------------------------------------
 * Register usage
 * tmp0, tmp1, tmp2, tmp3
-***************************************************************
+********|*****|*********************|**************************
 sams.layout:
         mov   *r11+,tmp3            ; Get P0
-xsams.layout                
+xsams.layout:          
         dect  stack
         mov   r11,*stack            ; Save return address
         dect  stack
@@ -180,15 +269,15 @@ xsams.layout
         ;------------------------------------------------------
         li    tmp2,8                ; Set loop counter
         ;------------------------------------------------------
-        ; Set SAMS banks
+        ; Set SAMS memory pages
         ;------------------------------------------------------
 sams.layout.loop:        
         mov   *tmp3+,tmp1           ; Get memory address
         mov   *tmp3+,tmp0           ; Get SAMS page
 
-        bl    @xsams.page           ; \ SAMS page to memory bank
-                                    ; | .  tmp0 = SAMS bank number
-                                    ; / .  tmp1 = Memory address
+        bl    @xsams.page.set       ; \ Switch SAMS page
+                                    ; | i  tmp0 = SAMS page
+                                    ; / i  tmp1 = Memory address
 
         dec   tmp2                  ; Next iteration
         jne   sams.layout.loop      ; Loop until done
@@ -219,7 +308,7 @@ sams.init.exit:
 *--------------------------------------------------------------
 * Register usage
 * none
-***************************************************************
+********|*****|*********************|**************************
 sams.reset:
         dect  stack
         mov   r11,*stack            ; Save return address
@@ -227,7 +316,7 @@ sams.reset:
         ; Set SAMS standard layout
         ;------------------------------------------------------        
         bl    @sams.layout
-              data data.sams.reset.layout
+              data sams.reset.layout.data
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
@@ -237,7 +326,7 @@ sams.reset.exit:
 ***************************************************************
 * SAMS standard page layout table (16 words)
 *--------------------------------------------------------------
-data.sams.reset.layout:
+sams.reset.layout.data:
         data  >2000,>0002           ; >2000-2fff, SAMS page >02
         data  >3000,>0003           ; >3000-3fff, SAMS page >03
         data  >a000,>000a           ; >a000-afff, SAMS page >0a

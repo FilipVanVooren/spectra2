@@ -3,9 +3,9 @@
 
 
 ***************************************************************
-* crash - CPU program crashed handler 
+* cpu.crash - CPU program crashed handler 
 ***************************************************************
-*  bl   @crash
+*  bl   @cpu.crash
 *--------------------------------------------------------------
 * Crash and halt system. Upon crash entry register contents are
 * copied to the memory region >ffe0 - >fffe and displayed after
@@ -24,7 +24,8 @@
 * >ffec  r6 (tmp2)        >fffc  r14
 * >ffee  r7 (tmp3)        >fffe  r15
 ********|*****|*********************|**************************
-crash:  ai    r11,-4                ; Remove opcode offset         
+cpu.crash:  
+        ai    r11,-4                ; Remove opcode offset         
 *--------------------------------------------------------------
 *    Save registers to high memory
 *--------------------------------------------------------------
@@ -47,7 +48,7 @@ crash:  ai    r11,-4                ; Remove opcode offset
 *--------------------------------------------------------------
 *    Reset system
 *--------------------------------------------------------------
-crash.reset:
+cpu.crash.reset:
         lwpi  ws1                   ; Activate workspace 1
         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
         li    r0,>4a4a              ; Note that a crash occured (Flag = >4a4a)
@@ -55,12 +56,12 @@ crash.reset:
 *--------------------------------------------------------------
 *    Show diagnostics after system reset
 *--------------------------------------------------------------
-crash.main:
+cpu.crash.main:
         ;------------------------------------------------------
         ; Show crashed message
         ;------------------------------------------------------
         bl    @putat                ; Show crash message
-              data >0000,crash.msg.crashed
+              data >0000,cpu.crash.msg.crashed
                 
         bl    @puthex               ; Put hex value on screen
               byte 0,21             ; \ .  p0 = YX position              
@@ -72,7 +73,7 @@ crash.main:
         ; Show caller details
         ;------------------------------------------------------
         bl    @putat                ; Show caller message
-              data >0100,crash.msg.caller
+              data >0100,cpu.crash.msg.caller
 
         bl    @puthex               ; Put hex value on screen
               byte 1,21             ; \ .  p0 = YX position              
@@ -85,8 +86,10 @@ crash.main:
         ;------------------------------------------------------
         b     @tmgr                 ; Start kernel again for polling keyboard
         
-crash.msg.crashed      byte 21
-                       text 'System crashed near >'
 
-crash.msg.caller       byte 21        
-                       text 'Caller address near >'
+
+cpu.crash.msg.crashed      byte 21
+                           text 'System crashed near >'
+
+cpu.crash.msg.caller       byte 21        
+                           text 'Caller address near >'

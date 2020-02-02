@@ -56,9 +56,9 @@ rle2cpu.dump_uncompressed:
         mov   tmp3,tmp2             ; Set length for block copy
 
         bl    @xpym2m               ; Block copy to destination
-                                    ; \ .  tmp0 = Source address
-                                    ; | .  tmp1 = Target address 
-                                    ; / .  tmp2 = Bytes to copy
+                                    ; \ i  tmp0 = Source address
+                                    ; | i  tmp1 = Target address 
+                                    ; / i  tmp2 = Bytes to copy
 
         mov   *stack+,tmp2          ; Pop tmp2
         jmp   rle2cpu.check_if_more ; Check if more data to decompress
@@ -81,9 +81,9 @@ rle2cpu.dump_compressed:
         srl   tmp1,8                ; Right align                                                                                                                           
 
         bl    @xfilm                ; Block fill to destination
-                                    ; \ .  tmp0 = Target address
-                                    ; | .  tmp1 = Byte to fill
-                                    ; / .  tmp2 = Repeat count
+                                    ; \ i  tmp0 = Target address
+                                    ; | i  tmp1 = Byte to fill
+                                    ; / i  tmp2 = Repeat count
 
         mov   *stack+,tmp3          ; Pop tmp3
         mov   *stack+,tmp2          ; Pop tmp2

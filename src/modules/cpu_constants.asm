@@ -1,6 +1,5 @@
-* FILE......: constants.asm
-* Purpose...: Constants and equates used by runlib modules
-
+* FILE......: cpu_constants.asm
+* Purpose...: Constants used by Spectra2 and for own use
 
 ***************************************************************                                     
 *                      Some constants                                                               
