@@ -15,14 +15,24 @@
 * >ffce  caller address
 *
 * Register contents
-* >ffe0  r0               >fff0  r8  (tmp4)
-* >ffe2  r1               >fff2  r9  (stack)
-* >ffe4  r2 (config)      >fff4  r10
-* >ffe6  r3               >fff6  r11
-* >ffe8  r4 (tmp0)        >fff8  r12
-* >ffea  r5 (tmp1)        >fffa  r13
-* >ffec  r6 (tmp2)        >fffc  r14
-* >ffee  r7 (tmp3)        >fffe  r15
+* >ffdc  wp
+* >ffde  st
+* >ffe0  r0
+* >ffe2  r1               
+* >ffe4  r2  (config)
+* >ffe6  r3
+* >ffe8  r4  (tmp0)
+* >ffea  r5  (tmp1)
+* >ffec  r6  (tmp2)
+* >ffee  r7  (tmp3)
+* >fff0  r8  (tmp4)
+* >fff2  r9  (stack)
+* >fff4  r10
+* >fff6  r11
+* >fff8  r12
+* >fffa  r13
+* >fffc  r14
+* >fffe  r15
 ********|*****|*********************|**************************
 cpu.crash:  
         ai    r11,-4                ; Remove opcode offset         
@@ -45,6 +55,10 @@ cpu.crash:
         mov   r13,@>fffa
         mov   r14,@>fffc
         mov   r15,@>ffff
+        stwp  r0
+        mov   r0,@>ffdc
+        stst  r0
+        mov   r0,@>ffde 
 *--------------------------------------------------------------
 *    Reset system
 *--------------------------------------------------------------
@@ -58,7 +72,7 @@ cpu.crash.reset:
 *--------------------------------------------------------------
 cpu.crash.main:
         ;------------------------------------------------------
-        ; Show crashed message
+        ; Show crash details
         ;------------------------------------------------------
         bl    @putat                ; Show crash message
               data >0000,cpu.crash.msg.crashed
@@ -82,13 +96,28 @@ cpu.crash.main:
               byte 65,48            ; | i  p3 = MSB offset for ASCII digit a-f
                                     ; /         LSB offset for ASCII digit 0-9
         ;------------------------------------------------------
-        ; Show registers R0 - R15
+        ; Display labels
+        ;------------------------------------------------------
+        bl    @putat
+              byte 3,0
+              data cpu.crash.msg.wp
+        bl    @putat
+              byte 4,0
+              data cpu.crash.msg.st
+        bl    @putat
+              byte 22,0
+              data cpu.crash.msg.source
+        bl    @putat
+              byte 23,0
+              data cpu.crash.msg.id
+        ;------------------------------------------------------
+        ; Show crash registers WP, ST, R0 - R15
         ;------------------------------------------------------
         bl    @at                   ; Put cursor at YX
               byte 3,4              ; \ i p0 = YX position         
                                     ; /
 
-        li    tmp0,>ffe0            ; Crash registers >ffe0 - >ffff
+        li    tmp0,>ffdc            ; Crash registers >ffdc - >ffff
         clr   tmp2                  ; Loop counter
 
 cpu.crash.showreg:
@@ -103,8 +132,13 @@ cpu.crash.showreg:
         ;------------------------------------------------------
         ; Display crash register number
         ;------------------------------------------------------
+cpu.crash.showreg.label:                
         mov   tmp2,r1               ; Save register number
+        ci    tmp2,1                ; Skip labels WP/ST?
+        jle   cpu.crash.showreg.content
+                                    ; Yes, skip
 
+        dect  r1                    ; Adjust because of "dummy" WP/ST registers
         bl    @mknum
               data r1hb             ; \ i  p0 = Pointer to 16 bit unsigned word
               data rambuf           ; | i  p1 = Pointer to ram buffer
@@ -135,16 +169,15 @@ cpu.crash.showreg:
               data rambuf           ; | i  p1 = Pointer to ram buffer
               byte 48,32            ; | i  p2 = MSB offset for ASCII digit a-f
                                     ; /         LSB offset for ASCII digit 0-9
-
         ;------------------------------------------------------
         ; Display crash register content
         ;------------------------------------------------------
+cpu.crash.showreg.content:        
         bl    @mkhex                ; Convert hex word to string
               data r0hb             ; \ i  p0 = Pointer to 16 bit word  
               data rambuf           ; | i  p1 = Pointer to ram buffer
               byte 65,48            ; | i  p2 = MSB offset for ASCII digit a-f
                                     ; /         LSB offset for ASCII digit 0-9
-
 
         bl    @setx                 ; Set cursor X position
               data 6                ; \ i  p0 =  Cursor Y position
@@ -168,74 +201,19 @@ cpu.crash.showreg:
         bl    @down                 ; y=y+1
 
         inc   tmp2
-        ci    tmp2,15
+        ci    tmp2,17
         jle   cpu.crash.showreg     ; Show next register
-        ;------------------------------------------------------
-        ; Display temp variable markers
-        ;------------------------------------------------------
-        bl    @putat
-              byte 5,15
-              data cpu.crash.msg.config
-        bl    @putat
-              byte 7,15
-              data cpu.crash.msg.tmp0 
-        bl    @putat
-              byte 8,15
-              data cpu.crash.msg.tmp1
-        bl    @putat
-              byte 9,15
-              data cpu.crash.msg.tmp2 
-        bl    @putat
-              byte 10,15
-              data cpu.crash.msg.tmp3 
-        bl    @putat
-              byte 11,15
-              data cpu.crash.msg.tmp4 
-        bl    @putat
-              byte 12,15
-              data cpu.crash.msg.stack
         ;------------------------------------------------------
         ; Kernel takes over
         ;------------------------------------------------------
         b     @tmgr                 ; Start kernel again for polling keyboard
         
 
-cpu.crash.msg.crashed      byte 21
-                           text 'System crashed near >'
-
-cpu.crash.msg.caller       byte 21        
-                           text 'Caller address near >'
-
-cpu.crash.msg.r            byte 1
-                           text 'R'
-
-cpu.crash.msg.marker       byte 1      
-                           text '>'
-
-cpu.crash.msg.config       byte 6
-                           text 'config'
-                           even
-
-cpu.crash.msg.stack        byte 5
-                           text 'stack'
-                           even
-
-cpu.crash.msg.tmp0         byte 4
-                           text 'tmp0'
-                           even
-
-cpu.crash.msg.tmp1         byte 4
-                           text 'tmp1'
-                           even
-
-cpu.crash.msg.tmp2         byte 4
-                           text 'tmp2'
-                           even
-
-cpu.crash.msg.tmp3         byte 4
-                           text 'tmp3'
-                           even
-
-cpu.crash.msg.tmp4         byte 4
-                           text 'tmp4'
-                           even
+cpu.crash.msg.crashed      #string 'System crashed near >'
+cpu.crash.msg.caller       #string 'Caller address near >'
+cpu.crash.msg.r            #string 'R'
+cpu.crash.msg.marker       #string '>'
+cpu.crash.msg.wp           #string '**WP'
+cpu.crash.msg.st           #string '**ST'
+cpu.crash.msg.source       #string 'Source    %%build_id%%'
+cpu.crash.msg.id           #string 'Build-ID  %%build_date%%'

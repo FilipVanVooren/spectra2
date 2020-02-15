@@ -14,6 +14,7 @@
 # 30.01.2018    v.0.2     Handle modules
 # 04.04.2019    v.0.3     Some bugfixes
 # 07.09.2019    v.0.4     Added support for MS Visual Studio Code
+# 15.02.2020    v.0.5     Preprocessing on all asm files, not only main file
 ###############################################################################
 
 #------------------------------------------------------------------------------
@@ -78,23 +79,23 @@ function assert() {
 # Preprocess source code
 #------------------------------------------------------------------------------ 
 function preproc_source() {
-  #------
-  # Preprocess source file. PASS 1
-  #------
-  echo "Preprocessing source file.... PASS 1" >>$g_xas99hdr
+  for i in $(ls ${g_prepdir}/*.asm ${g_prepdir}/*.asm.*); do
+      echo "Preprocessing source file.... $i" >>$g_xas99hdr  
+      #------------------------------------------------------------------------
+      # Preprocess source file. PASS 1
+      #------------------------------------------------------------------------
+      sed -i -e "s/%%build_date%%/${g_date}/"                     \
+             -e "s/%%build_date.length%%/${#g_date}/"             \
+             -e "s/%%build_id%%/${g_list}/"                       \
+             -e "s/%%spectra2%%/${g_spectra2}/"                   \
+             ${i}
 
-  sed -i -e "s/%%build_date%%/${g_date}/"                     \
-         -e "s/%%build_date.length%%/${#g_date}/"             \
-         -e "s/%%spectra2%%/${g_spectra2}/"                   \
-         $g_preproc
-
-
-  #------
-  # Preprocess source file. PASS 2
-  #------
-  echo "Preprocessing source file.... PASS 2" >>$g_xas99hdr
-  awk -f ${g_xas99}.awk -i inplace $g_preproc
-  #view $g_preproc                                           # DEBUG
+      #------------------------------------------------------------------------
+      # Preprocess source file. PASS 2
+      #------------------------------------------------------------------------
+      awk -f ${g_xas99}.awk -i inplace ${i}
+      #view $i                                           # DEBUG
+   done   
 }
 
 
@@ -127,6 +128,7 @@ function preprocess() {
   # Copy all sources to preprocessing directory
   #-------
   cp $g_source                 ${g_prepdir}/$g_source.$$
+  cp ${g_spectra2}/*.asm       ${g_prepdir}/ 
   cp ${g_spectra2}/equates/*   ${g_prepdir}/ 
   cp ${g_spectra2}/data/*      ${g_prepdir}/ 
   cp ${g_spectra2}/modules/*   ${g_prepdir}/ 
@@ -194,8 +196,8 @@ function postprocess() {
      l_upcase_bin=${l_upcase_bin/BIN\//bin\/} 
      cp -p $g_binary $l_upcase_bin
      cp -p $g_binary /DS414/9900bin
-     cp -p $g_binary /media/q0tws01/FINALGROM/tifun
-     scp $g_binary tipi@tipi:~/tipi_disk
+     cp -p $g_binary /media/q0tws01/FINALGROM/tifun  1>/dev/null 2>&1 
+     scp $g_binary tipi@tipi:~/tipi_disk             1>/dev/null 2>&1
 
 
      # Copy binary to removable media if mounted
@@ -218,6 +220,7 @@ function postprocess() {
      else
         cat $g_xas99hdr | tee ./xas99.log
      fi
+     #view ./xas99.log     
   fi
 
   #-----------
