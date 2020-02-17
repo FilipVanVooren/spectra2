@@ -52,7 +52,7 @@ dsrlnk.init:
         ;------------------------------------------------------
         ; Fetch file descriptor length from PAB
         ;------------------------------------------------------ 
-        ai    r9,>fff8              ; adjust r9 to addr PAB flag -> (pabaddr+9)-8
+        ai    r9,>fff8              ; adjust r9 to addr PAB flag->(pabaddr+9)-8
 
         ;---------------------------; Inline VSBR start
         swpb  r0                    ; 
@@ -148,7 +148,9 @@ dsrlnk.dsrscan.cardloop:
         ; Next DSR entry
         ;------------------------------------------------------
 dsrlnk.dsrscan.nextentry:        
-        mov   @>83d2,r2             ; Offset 0 > Fetch link to next DSR or subprogram
+        mov   @>83d2,r2             ; Offset 0 > Fetch link to next DSR or 
+                                    ; subprogram
+
         sbo   0                     ; turn rom back on
         ;------------------------------------------------------
         ; Get DSR entry
@@ -157,22 +159,32 @@ dsrlnk.dsrscan.getentry:
         mov   *r2,r2                ; is addr a zero? (end of chain?)
         jeq   dsrlnk.dsrscan.cardoff
                                     ; yes, no more DSRs or programs to check
-        mov   r2,@>83d2             ; Offset 0 > Store link to next DSR or subprogram
-        inct  r2                    ; Offset 2 > Has call address of current DSR/subprogram code
-        mov   *r2+,r9               ; Store call address in r9. Move r2 to offset 4 (DSR/subprogram name)
+        mov   r2,@>83d2             ; Offset 0 > Store link to next DSR or
+                                    ; subprogram
+
+        inct  r2                    ; Offset 2 > Has call address of current
+                                    ; DSR/subprogram code
+
+        mov   *r2+,r9               ; Store call address in r9. Move r2 to 
+                                    ; offset 4 (DSR/subprogram name)
         ;------------------------------------------------------
         ; Check file descriptor in DSR
         ;------------------------------------------------------
         clr   r5                    ; Remove any old stuff
         movb  @>8355,r5             ; get length as counter
         jeq   dsrlnk.dsrscan.call_dsr
-                                    ; if zero, do not further check, call DSR program
+                                    ; if zero, do not further check, call DSR
+                                    ; program
+
         cb    r5,*r2+               ; see if length matches
         jne   dsrlnk.dsrscan.nextentry 
-                                    ; no, length does not match. Go process next DSR entry
+                                    ; no, length does not match. Go process next
+                                    ; DSR entry
+
         srl   r5,8                  ; yes, move to low byte
         li    r6,dsrlnk.namsto      ; Point to 8-byte CPU buffer
-!       cb    *r6+,*r2+             ; compare byte in CPU buffer with byte in DSR ROM
+!       cb    *r6+,*r2+             ; Compare byte in CPU buffer with byte in 
+                                    ; DSR ROM
         jne   dsrlnk.dsrscan.nextentry 
                                     ; try next DSR entry if no match
         dec   r5                    ; loop until full length checked
@@ -225,7 +237,8 @@ dsrlnk.dsrscan.dsr.a:
         srl   r1,13                 ; just keep error bits
         jne   dsrlnk.error.io_error
                                     ; handle IO error
-        rtwp                        ; Return from DSR workspace to caller workspace
+        rtwp                        ; Return from DSR workspace to caller
+                                    ; workspace
 
         ;------------------------------------------------------
         ; IO-error handler
@@ -238,12 +251,14 @@ dsrlnk.error.io_error:
         swpb  r1                    ; put error in hi byte
         movb  r1,*r13               ; store error flags in callers r0
         socb  @hb$20,r15            ; set equal bit to indicate error
-        rtwp                        ; Return from DSR workspace to caller workspace
+        rtwp                        ; Return from DSR workspace to caller
+                                    ; workspace
 
-****************************************************************************************
+********************************************************************************
 
 dsrlnk.$aa00      data   >aa00      ; Used for identifying DSR header
-dsrlnk.$0008      data   >0008      ; 8 is the data that usually follows a @blwp @dsrlnk
+dsrlnk.$0008      data   >0008      ; 8 is the data that usually follows
+                                    ; a @blwp @dsrlnk
 dsrlnk.period     text  '.'         ; For finding end of device name
 
         even
