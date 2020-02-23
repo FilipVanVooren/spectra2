@@ -14,7 +14,7 @@
 *
 * 1. You have to "turn on" the card's memory in the
 *    >4000 block and write to the mapping registers there.
-*    (bl  @sams.page)
+*    (bl  @sams.page.set)
 * 
 * 2. You have to "turn on" the mapper function to make what
 *    you've written into the >4000 block take effect.  
@@ -298,10 +298,10 @@ sams.init.exit:
 
 
 ***************************************************************
-* sams.reset
+* sams.reset.layout
 * Reset SAMS memory banks to standard layout
 ***************************************************************
-* bl  @sams.reset
+* bl  @sams.reset.layout
 *--------------------------------------------------------------
 * OUTPUT
 * none
@@ -309,7 +309,7 @@ sams.init.exit:
 * Register usage
 * none
 ********|*****|*********************|**************************
-sams.reset:
+sams.reset.layout:
         dect  stack
         mov   r11,*stack            ; Save return address
         ;------------------------------------------------------
@@ -320,7 +320,7 @@ sams.reset:
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
-sams.reset.exit:
+sams.reset.layout.exit:
         mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return to caller
 ***************************************************************
@@ -335,3 +335,76 @@ sams.reset.layout.data:
         data  >d000,>000d           ; >d000-dfff, SAMS page >0d
         data  >e000,>000e           ; >e000-efff, SAMS page >0e
         data  >f000,>000f           ; >f000-ffff, SAMS page >0f
+
+
+
+***************************************************************
+* sams.copy.layout
+* Copy SAMS memory layout
+***************************************************************
+* bl  @sams.copy.layout
+*     data P0
+*--------------------------------------------------------------
+* P0 = Pointer to 8 words RAM buffer for results
+*--------------------------------------------------------------
+* OUTPUT
+* RAM buffer will have the SAMS page number for each range
+* 2000-2fff, 3000-3fff, a000-afff, b000-bfff, ...
+*--------------------------------------------------------------
+* Register usage
+* tmp0, tmp1, tmp2, tmp3
+***************************************************************
+sams.copy.layout:
+        mov   *r11+,tmp3            ; Get P0
+
+        dect  stack
+        mov   r11,*stack            ; Push return address
+        dect  stack
+        mov   tmp0,*stack           ; Push tmp0
+        dect  stack
+        mov   tmp1,*stack           ; Push tmp1
+        dect  stack
+        mov   tmp2,*stack           ; Push tmp2
+        dect  stack
+        mov   tmp3,*stack           ; Push tmp3
+        ;------------------------------------------------------
+        ; Copy SAMS layout
+        ;------------------------------------------------------        
+        li    tmp1,sams.copy.layout.data
+        li    tmp2,8                ; Set loop counter
+        ;------------------------------------------------------
+        ; Set SAMS memory pages
+        ;------------------------------------------------------
+sams.copy.layout.loop:        
+        mov   *tmp1+,tmp0           ; Get memory address
+        bl    @xsams.page.get       ; \ Get SAMS page
+                                    ; | i  tmp0   = Memory address
+                                    ; / o  @waux1 = SAMS page
+
+        mov   @waux1,*tmp3+         ; Copy SAMS page number
+
+        dec   tmp2                  ; Next iteration
+        jne   sams.copy.layout.loop ; Loop until done
+        ;------------------------------------------------------
+        ; Exit
+        ;------------------------------------------------------
+sams.copy.layout.exit:
+        mov   *stack+,tmp3          ; Pop tmp3
+        mov   *stack+,tmp2          ; Pop tmp2
+        mov   *stack+,tmp1          ; Pop tmp1        
+        mov   *stack+,tmp0          ; Pop tmp0                
+        mov   *stack+,r11           ; Pop r11
+        b     *r11                  ; Return to caller
+***************************************************************
+* SAMS memory range table (8 words)
+*--------------------------------------------------------------
+sams.copy.layout.data:
+        data  >2000                 ; >2000-2fff
+        data  >3000                 ; >3000-3fff
+        data  >a000                 ; >a000-afff
+        data  >b000                 ; >b000-bfff
+        data  >c000                 ; >c000-cfff
+        data  >d000                 ; >d000-dfff
+        data  >e000                 ; >e000-efff
+        data  >f000                 ; >f000-ffff
+
