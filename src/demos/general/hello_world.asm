@@ -1,6 +1,6 @@
 ***************************************************************
 * 
-*                          Device scan
+*                          Hello World
 *
 *                (c)2018-2019 // Filip van Vooren
 *
@@ -10,9 +10,10 @@
 * TI-99/4a DSR scan utility
 *--------------------------------------------------------------
 * 2018-11-01   Development started
-********|*****|*********************|**************************
-        save  >6000,>7fff
+********|*****|*********************|**************************        
         aorg  >6000
+        bank  0
+        save  >6000,>7fff        
 *--------------------------------------------------------------
 *debug                  equ  1      ; Turn on debugging
 ;--------------------------------------------------------------
@@ -22,10 +23,7 @@ dsrlnk.dsrlws             equ >b000 ; Address of dsrlnk workspace
 dsrlnk.namsto             equ >2100 ; 8-byte RAM buffer for storing device name
 startup_backup_scrpad     equ  1    ; Backup scratchpad @>8300:>83ff to @>2000
 startup_keep_vdpdiskbuf   equ  1    ; Keep VDP memory reserved for 3 VDP disk buffers
-*--------------------------------------------------------------
-* Skip unused spectra2 code modules for reduced code size
-*--------------------------------------------------------------
-skip_fio                  equ 1     ; Skip file I/O
+file.pab.ptr              equ  9999
 *--------------------------------------------------------------
 * Cartridge header
 *--------------------------------------------------------------
@@ -56,6 +54,7 @@ spfont  equ   fnopt3                ; Font to load. See LDFONT for details.
 pctadr  equ   >0fc0                 ; VDP color table base
 fntadr  equ   >1100                 ; VDP font start address (in PDT range)
 rambuf  equ   >8350
+cpu.scrpad.tgt  equ >2000
 
 ***************************************************************
 * Main
@@ -68,3 +67,18 @@ main    bl    @putat
 
 hello_world:
         #string 'Hello World!'
+
+
+
+
+        aorg  >6000
+        bank  1
+        save  >6000,>7fff
+
+aaa     data  >9999,>9999,>9999,>9999
+        data  >9999,>9999,>9999,>9999
+        data  >9999,>9999,>9999,>9999
+        data  >9999,>9999,>9999,>9999                
+        data  >9999,>9999,>9999,>9999        
+        data  >9999,>9999,>9999,>9999
+        data  >9999,>9999,>9999,>9999                

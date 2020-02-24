@@ -73,16 +73,16 @@
 *                       RUNLIB SETUP
 *//////////////////////////////////////////////////////////////
 
-        copy  "equ_memsetup.asm"         ; Equates for runlib scratchpad memory setup
-        copy  "equ_registers.asm"        ; Equates for runlib registers
-        copy  "equ_portaddr.asm"         ; Equates for runlib hardware port addresses
-        copy  "equ_param.asm"            ; Equates for runlib parameters
+        copy  "equ_memsetup.asm"         ; Equates runlib scratchpad mem setup
+        copy  "equ_registers.asm"        ; Equates runlib registers
+        copy  "equ_portaddr.asm"         ; Equates runlib hw port addresses
+        copy  "equ_param.asm"            ; Equates runlib parameters
 
     .ifndef skip_rom_bankswitch
         copy  "rom_bankswitch.asm"       ; Bank switch routine
     .endif
 
-        copy  "cpu_constants.asm"        ; Define constants & equates for word/MSB/LSB
+        copy  "cpu_constants.asm"        ; Define constants for word/MSB/LSB
         copy  "equ_config.asm"           ; Equates for bits in config register
         copy  "cpu_crash.asm"            ; CPU crash handler
         copy  "vdp_tables.asm"           ; Data used by runtime library
@@ -109,8 +109,8 @@
     .endif
 
     .ifndef skip_sams
-        copy  "cpu_sams_support.asm"     ; CPU support for SAMS memory expansion card
-    .endif
+        copy  "cpu_sams_support.asm"     ; CPU support for SAMS memory card
+    .endif                             
 
     .ifndef skip_vdp_intscr
         copy  "vdp_intscr.asm"           ; VDP interrupt & screen on/off
@@ -125,11 +125,11 @@
     .endif
 
     .ifndef skip_vdp_yx2px_calc
-        copy  "vdp_yx2px_calc.asm"       ; VDP calculate pixel pos for YX coordinate
+        copy  "vdp_yx2px_calc.asm"       ; VDP calculate pixel pos for YX coord
     .endif
 
     .ifndef skip_vdp_px2yx_calc
-        copy  "vdp_px2yx_calc.asm"       ; VDP calculate YX coordinate for pixel pos
+        copy  "vdp_px2yx_calc.asm"       ; VDP calculate YX coord for pixel pos
     .endif
 
     .ifndef skip_vdp_bitmap
@@ -247,7 +247,9 @@
 *  as crash handler flag R0.
 ********|*****|*********************|**************************
     .ifdef startup_backup_scrpad
-runlib  bl    @cpu.scrpad.backup    ; Backup scratchpad memory to @>2000
+runlib  bl    @cpu.scrpad.backup    ; Backup scratchpad memory to 
+                                    ; @cpu.scrpad.tgt (>00..>ff)
+
         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
     .else
 runlib  clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
@@ -268,8 +270,7 @@ runli3  clr   *r2+                  ; Clear scratchpad >8306->83FF
 *--------------------------------------------------------------
 * Exit to TI-99/4A title screen ?
 *--------------------------------------------------------------
-runli3a
-        ci    r1,>ffff              ; Exit flag set ?
+runli3a ci    r1,>ffff              ; Exit flag set ?
         jne   runli4                ; No, continue
         blwp  @0                    ; Yes, bye bye
 *--------------------------------------------------------------

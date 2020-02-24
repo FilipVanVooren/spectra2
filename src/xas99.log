@@ -1,19 +1,82 @@
-Preprocessing source file.... PASS 1
-Preprocessing source file.... PASS 2
+Preprocessing source file.... .runlib/runlib.3103/basic_cpu_vdp.asm
+Preprocessing source file.... .runlib/runlib.3103/copy_cpu_cpu.asm
+Preprocessing source file.... .runlib/runlib.3103/copy_cpu_vram.asm
+Preprocessing source file.... .runlib/runlib.3103/copy_grom_cpu.asm
+Preprocessing source file.... .runlib/runlib.3103/copy_grom_vram.asm
+Preprocessing source file.... .runlib/runlib.3103/copy_vram_cpu.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_constants.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_crash.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_crc16.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_hexsupport.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_numsupport.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_rle_compress.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_rle_decompress.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_sams_support.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_scrpad_backrest.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_scrpad_paging.asm
+Preprocessing source file.... .runlib/runlib.3103/cpu_strings.asm
+Preprocessing source file.... .runlib/runlib.3103/dummy.asm
+Preprocessing source file.... .runlib/runlib.3103/equ_config.asm
+Preprocessing source file.... .runlib/runlib.3103/equ_fio.asm
+Preprocessing source file.... .runlib/runlib.3103/equ_memsetup.asm
+Preprocessing source file.... .runlib/runlib.3103/equ_param.asm
+Preprocessing source file.... .runlib/runlib.3103/equ_portaddr.asm
+Preprocessing source file.... .runlib/runlib.3103/equ_registers.asm
+Preprocessing source file.... .runlib/runlib.3103/fio_dsrlnk.asm
+Preprocessing source file.... .runlib/runlib.3103/fio_level2.asm
+Preprocessing source file.... .runlib/runlib.3103/header.asm
+Preprocessing source file.... .runlib/runlib.3103/keyb_real.asm
+Preprocessing source file.... .runlib/runlib.3103/keyb_virtual.asm
+Preprocessing source file.... .runlib/runlib.3103/rnd_support.asm
+Preprocessing source file.... .runlib/runlib.3103/rom_bankswitch.asm
+Preprocessing source file.... .runlib/runlib.3103/runlib.asm
+Preprocessing source file.... .runlib/runlib.3103/runlib.asm.3103
+Preprocessing source file.... .runlib/runlib.3103/runlib.lst.asm
+Preprocessing source file.... .runlib/runlib.3103/snd_player.asm
+Preprocessing source file.... .runlib/runlib.3103/speech_detect.asm
+Preprocessing source file.... .runlib/runlib.3103/speech_player.asm
+Preprocessing source file.... .runlib/runlib.3103/timers_alloc.asm
+Preprocessing source file.... .runlib/runlib.3103/timers_hooks.asm
+Preprocessing source file.... .runlib/runlib.3103/timers_kthread.asm
+Preprocessing source file.... .runlib/runlib.3103/timers_tmgr.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_bitmap.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_boxes.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_cursor.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_f18a_support.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_hchar.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_intscr.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_px2yx_calc.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_rle_decompress.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_sprites.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_tables.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_vchar.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_viewport.asm
+Preprocessing source file.... .runlib/runlib.3103/vdp_yx2px_calc.asm
 ************************************************
-Assembly started ........ 20-01-26 21:28:58
+Assembly started ........ 20-02-24 18:57:57
 Source file ............. runlib.asm
-Assembly run ............ .runlib/runlib.20978/xas99run.out
-Preprocessed source ..... .runlib/runlib.20978/runlib.asm.20978
-ROM cart binary ......... bin/runlibc.bin
+Assembly run ............ .runlib/runlib.3103/xas99run.out
+Preprocessed source ..... .runlib/runlib.3103/runlib.asm.3103
+ROM cart binary ......... bin/runlib.bin
 List file ............... runlib.lst.asm
-Run suffix .............. 200126-20978
+Run suffix .............. 200224-3103
 ************************************************
+Warning: Unreferenced constants: DSRLNK.$0008 GRAPH1 KBCOL5 KBMAP1 KBMAP2 KBMAP6 KBMAP7 PREFIX TX4024 TX8024 TX8030
 > fio_dsrlnk.asm <1> 0037 - dsrlnk.dstype equ   dsrlnk.dsrlws + 10
 ***** Unknown symbol: DSRLNK.DSRLWS
-> cpu_crash.asm <2> 0068 -               data rambuf           ; | .  p2 = Pointer to ram buffer
+> cpu_crash.asm <2> 0083 -               data rambuf           ; | i  p2 = Pointer to ram buffer
 ***** Unknown symbol: RAMBUF
-> cpu_crash.asm <2> 0080 -               data rambuf           ; | .  p2 = Pointer to ram buffer
+> cpu_crash.asm <2> 0095 -               data rambuf           ; | i  p2 = Pointer to ram buffer
+***** Unknown symbol: RAMBUF
+> cpu_crash.asm <2> 0144 -               data rambuf           ; | i  p1 = Pointer to ram buffer
+***** Unknown symbol: RAMBUF
+> cpu_crash.asm <2> 0153 -               data rambuf           ; \ i  p0 = Pointer to ram buffer
+***** Unknown symbol: RAMBUF
+> cpu_crash.asm <2> 0169 -               data rambuf           ; | i  p1 = Pointer to ram buffer
+***** Unknown symbol: RAMBUF
+> cpu_crash.asm <2> 0178 -               data rambuf           ; | i  p1 = Pointer to ram buffer
+***** Unknown symbol: RAMBUF
+> cpu_crash.asm <2> 0194 -               data rambuf           ; \ i  p0 = Pointer to ram buffer
 ***** Unknown symbol: RAMBUF
 > vdp_tables.asm <2> 0007 - graph1  byte  >00,>e2,>00,>0e,>01,>06,>02,SPFBCK,0,32
 ***** Unknown symbol: SPFBCK
@@ -23,17 +86,59 @@ Run suffix .............. 200126-20978
 ***** Unknown symbol: SPFCLR
 > vdp_tables.asm <2> 0084 - tx8030  byte  >04,>f0,>00,>3f,>02,>40,>03,SPFCLR,0,80
 ***** Unknown symbol: SPFCLR
+> cpu_scrpad_backrest.asm <2> 0022 -         mov   r0,@cpu.scrpad.tgt    ; Save @>8300 (r0)
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0023 -         mov   r1,@cpu.scrpad.tgt+2  ; Save @>8302 (r1)
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0024 -         mov   r2,@cpu.scrpad.tgt+4  ; Save @>8304 (r2)
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0029 -         li    r1,cpu.scrpad.tgt+6   ; RAM target address
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0039 -         mov   @>83fe,@cpu.scrpad.tgt + >fe
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0044 -         mov   @cpu.scrpad.tgt,r0    ; Restore r0
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0045 -         mov   @cpu.scrpad.tgt+2,r1  ; Restore r1
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0046 -         mov   @cpu.scrpad.tgt+4,r2  ; Restore r2
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0070 -         mov   @cpu.scrpad.tgt,@>8300
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0071 -         mov   @cpu.scrpad.tgt + 2,@>8302
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0072 -         mov   @cpu.scrpad.tgt + 4,@>8304
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0076 -         mov   r0,@cpu.scrpad.tgt
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0077 -         mov   r1,@cpu.scrpad.tgt + 2
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0078 -         mov   r2,@cpu.scrpad.tgt + 4
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0082 -         li    r0,cpu.scrpad.tgt + 6
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0093 -         mov   @cpu.scrpad.tgt + > fe,@>83fe
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0098 -         mov   @cpu.scrpad.tgt,r0
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0099 -         mov   @cpu.scrpad.tgt + 2,r1
+***** Unknown symbol: CPU.SCRPAD.TGT
+> cpu_scrpad_backrest.asm <2> 0100 -         mov   @cpu.scrpad.tgt + 4,r2
+***** Unknown symbol: CPU.SCRPAD.TGT
 > fio_dsrlnk.asm <2> 0041 - dsrlnk  data  dsrlnk.dsrlws         ; dsrlnk workspace
 ***** Unknown symbol: DSRLNK.DSRLWS
 > fio_dsrlnk.asm <2> 0070 -         li    r2,dsrlnk.namsto      ; point to 8-byte CPU buffer
 ***** Unknown symbol: DSRLNK.NAMSTO
+> fio_dsrlnk.asm <2> 0074 -         jgt   dsrlnk.error.devicename_invalid
+***** Out of range: DSRLNK.ERROR.DEVICENAME_INVALID +/- 0xa0
+> fio_dsrlnk.asm <2> 0099 -         jeq   dsrlnk.error.devicename_invalid
+***** Out of range: DSRLNK.ERROR.DEVICENAME_INVALID +/- 0x91
 > fio_dsrlnk.asm <2> 0145 -         a     @dsrlnk.dstype,r2     ; go to first pointer (byte 8 or 10)
 ***** Unknown symbol: DSRLNK.DSTYPE
-> fio_dsrlnk.asm <2> 0174 -         li    r6,dsrlnk.namsto      ; Point to 8-byte CPU buffer
+> fio_dsrlnk.asm <2> 0185 -         li    r6,dsrlnk.namsto      ; Point to 8-byte CPU buffer
 ***** Unknown symbol: DSRLNK.NAMSTO
-> fio_dsrlnk.asm <2> 0199 -         lwpi  dsrlnk.dsrlws         ; (2) restore workspace
+> fio_dsrlnk.asm <2> 0211 -         lwpi  dsrlnk.dsrlws         ; (2) restore workspace
 ***** Unknown symbol: DSRLNK.DSRLWS
-> fio_dsrlnk.asm <2> 0234 -         lwpi  dsrlnk.dsrlws         ; No DSR found, restore workspace
+> fio_dsrlnk.asm <2> 0247 -         lwpi  dsrlnk.dsrlws         ; No DSR found, restore workspace
 ***** Unknown symbol: DSRLNK.DSRLWS
 > fio_level2.asm <2> 0049 -         mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
 ***** Unknown symbol: FILE.PAB.PTR
@@ -43,15 +148,15 @@ Run suffix .............. 200126-20978
 ***** Unknown symbol: FILE.PAB.PTR
 > fio_level2.asm <2> 0218 -         mov   @file.pab.ptr,tmp0    ; Get VDP address of current PAB
 ***** Unknown symbol: FILE.PAB.PTR
-> runlib.asm.20978 <2> 0323 -         data  pctadr,spfclr,16      ; Load color table
+> runlib.asm.3103 <2> 0324 -         data  pctadr,spfclr,16      ; Load color table
 ***** Unknown symbol: PCTADR
-> runlib.asm.20978 <2> 0346 -         data  spvmod                ; Equate selected video mode table
+> runlib.asm.3103 <2> 0347 -         data  spvmod                ; Equate selected video mode table
 ***** Unknown symbol: SPVMOD
-> runlib.asm.20978 <2> 0347 -         li    tmp0,spfont           ; Get font option
+> runlib.asm.3103 <2> 0348 -         li    tmp0,spfont           ; Get font option
 ***** Unknown symbol: SPFONT
-> runlib.asm.20978 <2> 0351 -         data  fntadr,spfont         ; Load specified font
+> runlib.asm.3103 <2> 0352 -         data  fntadr,spfont         ; Load specified font
 ***** Unknown symbol: FNTADR
-> runlib.asm.20978 <2> 0362 -         b     @main                 ; Give control to main program
+> runlib.asm.3103 <2> 0363 -         b     @main                 ; Give control to main program
 ***** Unknown symbol: MAIN
 ***** No ROM cart binary created due to errors during assembly.
 ***** Assembly process returned with RC=1

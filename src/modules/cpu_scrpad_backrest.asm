@@ -13,18 +13,20 @@
 *  Register usage
 *  r0-r2, but values restored before exit
 *--------------------------------------------------------------
-*  Backup scratchpad memory to the memory area >2000 - >20FF.
+*  Backup scratchpad memory to destination range
+*  cpu.scrpad.tgt <--> cpu.scrpad.tgt + >ff.
+*
 *  Expects current workspace to be in scratchpad memory.
 ********|*****|*********************|**************************
 cpu.scrpad.backup:
-        mov   r0,@>2000             ; Save @>8300 (r0)
-        mov   r1,@>2002             ; Save @>8302 (r1)
-        mov   r2,@>2004             ; Save @>8304 (r2)
+        mov   r0,@cpu.scrpad.tgt    ; Save @>8300 (r0)
+        mov   r1,@cpu.scrpad.tgt+2  ; Save @>8302 (r1)
+        mov   r2,@cpu.scrpad.tgt+4  ; Save @>8304 (r2)
         ;------------------------------------------------------
         ; Prepare for copy loop
         ;------------------------------------------------------
         li    r0,>8306              ; Scratpad source address 
-        li    r1,>2006              ; RAM target address
+        li    r1,cpu.scrpad.tgt+6   ; RAM target address
         li    r2,62                 ; Loop counter
         ;------------------------------------------------------
         ; Copy memory range >8306 - >83ff
@@ -34,13 +36,14 @@ cpu.scrpad.backup.copy:
         mov   *r0+,*r1+        
         dect  r2
         jne   cpu.scrpad.backup.copy
-        mov   @>83fe,@>20fe         ; Copy last word
+        mov   @>83fe,@cpu.scrpad.tgt + >fe 
+                                    ; Copy last word
         ;------------------------------------------------------
         ; Restore register r0 - r2
         ;------------------------------------------------------
-        mov   @>2000,r0             ; Restore r0
-        mov   @>2002,r1             ; Restore r1
-        mov   @>2004,r2             ; Restore r2
+        mov   @cpu.scrpad.tgt,r0    ; Restore r0
+        mov   @cpu.scrpad.tgt+2,r1  ; Restore r1
+        mov   @cpu.scrpad.tgt+4,r2  ; Restore r2
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
@@ -56,43 +59,45 @@ cpu.scrpad.backup.exit:
 *  Register usage
 *  r0-r2, but values restored before exit
 *--------------------------------------------------------------
-*  Restore scratchpad from memory area >2000 - >20FF
+*  Restore scratchpad from memory area
+*  cpu.scrpad.tgt <--> cpu.scrpad.tgt + >ff.
 *  Current workspace can be outside scratchpad when called.
 ********|*****|*********************|**************************
 cpu.scrpad.restore:
         ;------------------------------------------------------
         ; Restore scratchpad >8300 - >8304
         ;------------------------------------------------------
-        mov   @>2000,@>8300
-        mov   @>2002,@>8302
-        mov   @>2004,@>8304
+        mov   @cpu.scrpad.tgt,@>8300
+        mov   @cpu.scrpad.tgt + 2,@>8302
+        mov   @cpu.scrpad.tgt + 4,@>8304
         ;------------------------------------------------------
         ; save current r0 - r2 (WS can be outside scratchpad!)
         ;------------------------------------------------------
-        mov   r0,@>2000
-        mov   r1,@>2002
-        mov   r2,@>2004
+        mov   r0,@cpu.scrpad.tgt
+        mov   r1,@cpu.scrpad.tgt + 2
+        mov   r2,@cpu.scrpad.tgt + 4
         ;------------------------------------------------------
         ; Prepare for copy loop, WS 
         ;------------------------------------------------------
-        li    r0,>2006
+        li    r0,cpu.scrpad.tgt + 6
         li    r1,>8306
         li    r2,62
         ;------------------------------------------------------
-        ; Copy memory range >2006 - >20ff
+        ; Copy memory range @cpu.scrpad.tgt <-> @cpu.scrpad.tgt + >ff
         ;------------------------------------------------------
 cpu.scrpad.restore.copy:
         mov   *r0+,*r1+
         mov   *r0+,*r1+        
         dect  r2
         jne   cpu.scrpad.restore.copy
-        mov   @>20fe,@>83fe         ; Copy last word        
+        mov   @cpu.scrpad.tgt + > fe,@>83fe   
+                                    ; Copy last word        
         ;------------------------------------------------------
         ; Restore register r0 - r2
         ;------------------------------------------------------
-        mov   @>2000,r0             ; Restore r0
-        mov   @>2002,r1             ; Restore r1
-        mov   @>2004,r2             ; Restore r2
+        mov   @cpu.scrpad.tgt,r0
+        mov   @cpu.scrpad.tgt + 2,r1                                             
+        mov   @cpu.scrpad.tgt + 4,r2
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------

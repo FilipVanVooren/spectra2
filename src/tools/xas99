@@ -31,7 +31,7 @@ g_preproc="$g_prepdir/$g_source.$$"           # Preprocessor source file
 
 # Defaults
 g_asmrc=99                                    # xas99 return code
-g_binary="bin/${g_basename}c.bin"             # Flag as 8k ROM in classic99
+g_binary="bin/${g_basename}.bin"              # Output filename
 g_date="$(date '+%y%m%d')-$$"                 # Current date & PID
 g_now="$(date '+%y-%m-%d %H:%M:%S')"          # Current date & time
 g_prog="$g_prog ($g_date)"                    # Cartridge title
@@ -179,6 +179,15 @@ function assemble() {
 #------------------------------------------------------------------------------
 function postprocess() {
 
+  # Get list of binary files
+  g_binlist=$(ls -1 $g_binary\_* 2>/dev/null)
+
+  #for f in $g_binlist;
+  #do
+  #   echo "Stitching binary: $f >> $g_binary" >>$g_xas99run
+  #   cat $f >> $g_binary
+  #done
+  
   #-----------
   # Remove _<6000> file suffix from resulting binary
   #-----------

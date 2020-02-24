@@ -1,13 +1,76 @@
-Preprocessing source file.... PASS 1
-Preprocessing source file.... PASS 2
+Preprocessing source file.... .hello_world/hello_world.10219/basic_cpu_vdp.asm
+Preprocessing source file.... .hello_world/hello_world.10219/copy_cpu_cpu.asm
+Preprocessing source file.... .hello_world/hello_world.10219/copy_cpu_vram.asm
+Preprocessing source file.... .hello_world/hello_world.10219/copy_grom_cpu.asm
+Preprocessing source file.... .hello_world/hello_world.10219/copy_grom_vram.asm
+Preprocessing source file.... .hello_world/hello_world.10219/copy_vram_cpu.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_constants.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_crash.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_crc16.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_hexsupport.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_numsupport.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_rle_compress.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_rle_decompress.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_sams_support.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_scrpad_backrest.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_scrpad_paging.asm
+Preprocessing source file.... .hello_world/hello_world.10219/cpu_strings.asm
+Preprocessing source file.... .hello_world/hello_world.10219/dummy.asm
+Preprocessing source file.... .hello_world/hello_world.10219/equ_config.asm
+Preprocessing source file.... .hello_world/hello_world.10219/equ_fio.asm
+Preprocessing source file.... .hello_world/hello_world.10219/equ_memsetup.asm
+Preprocessing source file.... .hello_world/hello_world.10219/equ_param.asm
+Preprocessing source file.... .hello_world/hello_world.10219/equ_portaddr.asm
+Preprocessing source file.... .hello_world/hello_world.10219/equ_registers.asm
+Preprocessing source file.... .hello_world/hello_world.10219/fio_dsrlnk.asm
+Preprocessing source file.... .hello_world/hello_world.10219/fio_level2.asm
+Preprocessing source file.... .hello_world/hello_world.10219/header.asm
+Preprocessing source file.... .hello_world/hello_world.10219/hello_world.asm.10219
+Preprocessing source file.... .hello_world/hello_world.10219/keyb_real.asm
+Preprocessing source file.... .hello_world/hello_world.10219/keyb_virtual.asm
+Preprocessing source file.... .hello_world/hello_world.10219/rnd_support.asm
+Preprocessing source file.... .hello_world/hello_world.10219/rom_bankswitch.asm
+Preprocessing source file.... .hello_world/hello_world.10219/runlib.asm
+Preprocessing source file.... .hello_world/hello_world.10219/runlib.lst.asm
+Preprocessing source file.... .hello_world/hello_world.10219/snd_player.asm
+Preprocessing source file.... .hello_world/hello_world.10219/speech_detect.asm
+Preprocessing source file.... .hello_world/hello_world.10219/speech_player.asm
+Preprocessing source file.... .hello_world/hello_world.10219/timers_alloc.asm
+Preprocessing source file.... .hello_world/hello_world.10219/timers_hooks.asm
+Preprocessing source file.... .hello_world/hello_world.10219/timers_kthread.asm
+Preprocessing source file.... .hello_world/hello_world.10219/timers_tmgr.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_bitmap.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_boxes.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_cursor.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_f18a_support.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_hchar.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_intscr.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_px2yx_calc.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_rle_decompress.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_sprites.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_tables.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_vchar.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_viewport.asm
+Preprocessing source file.... .hello_world/hello_world.10219/vdp_yx2px_calc.asm
 ************************************************
-Assembly started ........ 20-01-26 21:19:24
+Assembly started ........ 20-02-24 19:49:41
 Source file ............. hello_world.asm
-Assembly run ............ .hello_world/hello_world.20059/xas99run.out
-Preprocessed source ..... .hello_world/hello_world.20059/hello_world.asm.20059
-ROM cart binary ......... bin/hello_worldc.bin
+Assembly run ............ .hello_world/hello_world.10219/xas99run.out
+Preprocessed source ..... .hello_world/hello_world.10219/hello_world.asm.10219
+ROM cart binary ......... bin/hello_world.bin
 List file ............... hello_world.lst.asm
-Run suffix .............. 200126-20059
+Run suffix .............. 200224-10219
 ************************************************
 Highest ROM address...... 
+> basic_cpu_vdp.asm <2> 0465 - Warning: Possible branch/jump optimization
+> basic_cpu_vdp.asm <2> 0481 - Warning: Possible branch/jump optimization
+> speech_detect.asm <2> 0064 - Warning: Possible branch/jump optimization
+> speech_player.asm <2> 0052 - Warning: Possible branch/jump optimization
+> cpu_scrpad_paging.asm <2> 0055 - Warning: Possible branch/jump optimization
+> timers_tmgr.asm <2> 0051 - Warning: Possible branch/jump optimization
+> timers_kthread.asm <2> 0045 - Warning: Possible branch/jump optimization
+> runlib.asm <2> 0363 - Warning: Possible branch/jump optimization
+Warning: Unreferenced constants: AAA DSRLNK.$0008 GRAPH1 GRMHDR KBCOL5 KBMAP1 KBMAP2 KBMAP6 KBMAP7 PREFIX TX4024 TX8024
+Stitching binary: bin/hello_world.bin_6000_b0 >> bin/hello_world.bin
+Stitching binary: bin/hello_world.bin_6000_b1 >> bin/hello_world.bin
 ***** Assembly process returned with RC=0
