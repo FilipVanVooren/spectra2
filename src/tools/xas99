@@ -31,7 +31,7 @@ g_preproc="$g_prepdir/$g_source.$$"           # Preprocessor source file
 
 # Defaults
 g_asmrc=99                                    # xas99 return code
-g_binary="bin/${g_basename}.bin"              # Output filename
+g_binary="${g_basename}.bin"                  # Output filename
 g_date="$(date '+%y%m%d')-$$"                 # Current date & PID
 g_now="$(date '+%y-%m-%d %H:%M:%S')"          # Current date & time
 g_prog="$g_prog ($g_date)"                    # Cartridge title
@@ -123,6 +123,13 @@ function preprocess() {
      mkdir bin
   fi
 
+  #------
+  # Create list directory if it doesn't exist
+  #------
+  if [ !  -d "list" ]; then
+     mkdir list
+  fi
+
 
   #-------
   # Copy all sources to preprocessing directory
@@ -156,9 +163,9 @@ function assemble() {
   echo "Run suffix .............. $g_date"                >>$g_xas99hdr
   echo "************************************************" >>$g_xas99hdr
 
-  xas99.py -b $g_preproc \
-           -o $g_binary  \
-           -L $g_list    \
+  xas99.py -b $g_preproc     \
+           -o bin/$g_binary  \
+           -L list/$g_list   \
            -D build_date=$g_date   1>${g_xas99run}    2>&1
 
   g_asmrc=$?
@@ -200,13 +207,10 @@ function postprocess() {
   #-----------
   # Copy output binary to uppercase filename for classic99
   #-----------
-  if [ -e $g_binary ]; then
-     l_upcase_bin=${g_binary^^}
-     l_upcase_bin=${l_upcase_bin/BIN\//bin\/} 
-     cp -p $g_binary $l_upcase_bin
-     cp -p $g_binary /DS414/9900bin
-     cp -p $g_binary /media/q0tws01/FINALGROM/tifun  1>/dev/null 2>&1 
-     scp $g_binary tipi@tipi:~/tipi_disk             1>/dev/null 2>&1
+  if [ -e bin/$g_binary ]; then
+     cp -p bin/$g_binary /DS414/9900bin
+     cp -p bin/$g_binary /media/q0tws01/FINALGROM/tifun  1>/dev/null 2>&1 
+     #scp bin/$g_binary$g_binary tipi@tipi:~/tipi_disk             1>/dev/null 2>&1
 
 
      # Copy binary to removable media if mounted
