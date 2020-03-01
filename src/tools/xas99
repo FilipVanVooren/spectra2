@@ -24,6 +24,7 @@
 # Source File
 g_source=${1:-test1}                          # Source File
 g_spectra2="${2//\//\\\/}"                    # Path to spectra2 directory (escaped slashes)
+g_spasm="${3}"                                # Path to spasm directory
 g_basename=${g_source%.*}                     # Source File basename
 g_suffix=${g_source##*.}                      # Source File extension
 g_prepdir=".${g_basename}/${g_basename}.$$"   # Preprocessor directory
@@ -175,6 +176,7 @@ function assemble() {
       echo "Highest ROM address...... $l_high" >>$g_xas99hdr
   fi
 
+  source 
 
   return 0
 }
@@ -203,23 +205,6 @@ function postprocess() {
      mv  $g_file $g_binary
      rm -f $g_file
   fi 
-
-  #-----------
-  # Copy output binary to uppercase filename for classic99
-  #-----------
-  if [ -e bin/$g_binary ]; then
-     cp -p bin/$g_binary /DS414/9900bin
-     cp -p bin/$g_binary /media/q0tws01/FINALGROM/tifun  1>/dev/null 2>&1 
-     #scp bin/$g_binary$g_binary tipi@tipi:~/tipi_disk             1>/dev/null 2>&1
-
-
-     # Copy binary to removable media if mounted
-     if [ -d "media/q0tws01/FINALGROM/tifun" ]; then
-        cp -p $g_binary /media/q0tws01/FINALGROM/tifun
-     fi
-  else
-     echo "***** No ROM cart binary created due to errors during assembly." >>$g_xas99run
-  fi
   echo "***** Assembly process returned with RC=$g_asmrc" >>$g_xas99run
 
   
@@ -235,6 +220,11 @@ function postprocess() {
      fi
      #view ./xas99.log     
   fi
+
+   
+  # Preprocess. Stitch ROMS
+  source /2TBHDD/bitbucket/projects/ti994a/venv/bin/activate
+  python3 $g_spasm/mixer.py
 
   #-----------
   # Cleanup, remove any work files of previous run.
