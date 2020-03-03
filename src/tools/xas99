@@ -173,10 +173,8 @@ function assemble() {
 
   if [[ g_asmrc -eq 0 ]]; then
      l_high=$(tail -n1 ${g_list} | cut -f2 -d' ')
-      echo "Highest ROM address...... $l_high" >>$g_xas99hdr
+     echo "Highest ROM address...... $l_high" >>$g_xas99hdr
   fi
-
-  source 
 
   return 0
 }
