@@ -19,6 +19,14 @@
 *     4) dsrlnk based on MG The Smart Programmer and version of Paolo Bagnaresi
 *******************************************************************************
 * NOTE - TODOS
+* 11-03-2020    Rework tmgr "interrupt flag" code in "tmgr1a"
+*               to make sure that user hook gets called now and then.
+*               If the interrupt flag is always on because the timer slots
+*               take too much time (e.g. write too many bytes to VDP), then
+*               user hook code is never called because slots need to be 
+*               executed again. If user hook code is never called then
+*               keyboard is not read and program seems unresponsive.
+* 
 * 19-01-2020    Rework CPU memory fill and CPU memory copy for more speed
 *                - 16 bit loop in scratchpad memory for copy and fill!
 *                - Reduce loop penalty by moving multiple words (e.g. 4, 6 or 8)
