@@ -6,7 +6,7 @@
 *//////////////////////////////////////////////////////////////
 
 ***************************************************************
-* cpu.scrpad.backup - Backup scratchpad memory to >2000
+* cpu.scrpad.backup - Backup scratchpad memory to cpu.scrpad.tgt
 ***************************************************************
 *  bl   @cpu.scrpad.backup
 *--------------------------------------------------------------
@@ -52,7 +52,7 @@ cpu.scrpad.backup.exit:
 
 
 ***************************************************************
-* cpu.scrpad.restore - Restore scratchpad memory from >2000
+* cpu.scrpad.restore - Restore scratchpad memory from cpu.scrpad.tgt
 ***************************************************************
 *  bl   @cpu.scrpad.restore
 *--------------------------------------------------------------
