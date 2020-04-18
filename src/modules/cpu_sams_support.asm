@@ -298,10 +298,10 @@ sams.init.exit:
 
 
 ***************************************************************
-* sams.reset.layout
+* sams.layout.reset
 * Reset SAMS memory banks to standard layout
 ***************************************************************
-* bl  @sams.reset.layout
+* bl  @sams.layout.reset
 *--------------------------------------------------------------
 * OUTPUT
 * none
@@ -309,24 +309,24 @@ sams.init.exit:
 * Register usage
 * none
 ********|*****|*********************|**************************
-sams.reset.layout:
+sams.layout.reset:
         dect  stack
         mov   r11,*stack            ; Save return address
         ;------------------------------------------------------
         ; Set SAMS standard layout
         ;------------------------------------------------------        
         bl    @sams.layout
-              data sams.reset.layout.data
+              data sams.layout.standard
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
-sams.reset.layout.exit:
+sams.layout.reset.exit:
         mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return to caller
 ***************************************************************
 * SAMS standard page layout table (16 words)
 *--------------------------------------------------------------
-sams.reset.layout.data:
+sams.layout.standard:
         data  >2000,>0002           ; >2000-2fff, SAMS page >02
         data  >3000,>0003           ; >3000-3fff, SAMS page >03
         data  >a000,>000a           ; >a000-afff, SAMS page >0a
@@ -339,10 +339,10 @@ sams.reset.layout.data:
 
 
 ***************************************************************
-* sams.copy.layout
+* sams.layout.copy
 * Copy SAMS memory layout
 ***************************************************************
-* bl  @sams.copy.layout
+* bl  @sams.layout.copy
 *     data P0
 *--------------------------------------------------------------
 * P0 = Pointer to 8 words RAM buffer for results
@@ -354,7 +354,7 @@ sams.reset.layout.data:
 * Register usage
 * tmp0, tmp1, tmp2, tmp3
 ***************************************************************
-sams.copy.layout:
+sams.layout.copy:
         mov   *r11+,tmp3            ; Get P0
 
         dect  stack
@@ -370,12 +370,12 @@ sams.copy.layout:
         ;------------------------------------------------------
         ; Copy SAMS layout
         ;------------------------------------------------------        
-        li    tmp1,sams.copy.layout.data
+        li    tmp1,sams.layout.copy.data
         li    tmp2,8                ; Set loop counter
         ;------------------------------------------------------
         ; Set SAMS memory pages
         ;------------------------------------------------------
-sams.copy.layout.loop:        
+sams.layout.copy.loop:        
         mov   *tmp1+,tmp0           ; Get memory address
         bl    @xsams.page.get       ; \ Get SAMS page
                                     ; | i  tmp0   = Memory address
@@ -384,11 +384,11 @@ sams.copy.layout.loop:
         mov   @waux1,*tmp3+         ; Copy SAMS page number
 
         dec   tmp2                  ; Next iteration
-        jne   sams.copy.layout.loop ; Loop until done
+        jne   sams.layout.copy.loop ; Loop until done
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
-sams.copy.layout.exit:
+sams.layout.copy.exit:
         mov   *stack+,tmp3          ; Pop tmp3
         mov   *stack+,tmp2          ; Pop tmp2
         mov   *stack+,tmp1          ; Pop tmp1        
@@ -398,7 +398,7 @@ sams.copy.layout.exit:
 ***************************************************************
 * SAMS memory range table (8 words)
 *--------------------------------------------------------------
-sams.copy.layout.data:
+sams.layout.copy.data:
         data  >2000                 ; >2000-2fff
         data  >3000                 ; >3000-3fff
         data  >a000                 ; >a000-afff
