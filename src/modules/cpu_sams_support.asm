@@ -76,7 +76,7 @@ xsams.page.get:
         ai    tmp0,>4000            ; Add base address of "DSR" space        
         mov   tmp0,@waux2           ; Save address of SAMS register
 *--------------------------------------------------------------
-* Switch memory bank to specified SAMS page
+* Get SAMS page number
 *--------------------------------------------------------------
         li    r12,>1e00             ; SAMS CRU address
         clr   r0
