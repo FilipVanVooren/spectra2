@@ -331,6 +331,9 @@ runlia  bl    @filv
         bl    @f18unl               ; Unlock the F18A
         bl    @f18chk               ; Check if F18A is there
         bl    @f18lck               ; Lock the F18A again
+
+        bl    @putvr                ; Reset all F18a extended registers
+              data >3201            ; F18a VR50 (>32), bit 1
     .endif
 *--------------------------------------------------------------
 * Check if there is a speech synthesizer attached

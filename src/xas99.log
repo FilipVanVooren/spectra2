@@ -1,65 +1,64 @@
-Preprocessing source file.... .runlib/runlib.3103/basic_cpu_vdp.asm
-Preprocessing source file.... .runlib/runlib.3103/copy_cpu_cpu.asm
-Preprocessing source file.... .runlib/runlib.3103/copy_cpu_vram.asm
-Preprocessing source file.... .runlib/runlib.3103/copy_grom_cpu.asm
-Preprocessing source file.... .runlib/runlib.3103/copy_grom_vram.asm
-Preprocessing source file.... .runlib/runlib.3103/copy_vram_cpu.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_constants.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_crash.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_crc16.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_hexsupport.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_numsupport.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_rle_compress.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_rle_decompress.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_sams_support.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_scrpad_backrest.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_scrpad_paging.asm
-Preprocessing source file.... .runlib/runlib.3103/cpu_strings.asm
-Preprocessing source file.... .runlib/runlib.3103/dummy.asm
-Preprocessing source file.... .runlib/runlib.3103/equ_config.asm
-Preprocessing source file.... .runlib/runlib.3103/equ_fio.asm
-Preprocessing source file.... .runlib/runlib.3103/equ_memsetup.asm
-Preprocessing source file.... .runlib/runlib.3103/equ_param.asm
-Preprocessing source file.... .runlib/runlib.3103/equ_portaddr.asm
-Preprocessing source file.... .runlib/runlib.3103/equ_registers.asm
-Preprocessing source file.... .runlib/runlib.3103/fio_dsrlnk.asm
-Preprocessing source file.... .runlib/runlib.3103/fio_level2.asm
-Preprocessing source file.... .runlib/runlib.3103/header.asm
-Preprocessing source file.... .runlib/runlib.3103/keyb_real.asm
-Preprocessing source file.... .runlib/runlib.3103/keyb_virtual.asm
-Preprocessing source file.... .runlib/runlib.3103/rnd_support.asm
-Preprocessing source file.... .runlib/runlib.3103/rom_bankswitch.asm
-Preprocessing source file.... .runlib/runlib.3103/runlib.asm
-Preprocessing source file.... .runlib/runlib.3103/runlib.asm.3103
-Preprocessing source file.... .runlib/runlib.3103/runlib.lst.asm
-Preprocessing source file.... .runlib/runlib.3103/snd_player.asm
-Preprocessing source file.... .runlib/runlib.3103/speech_detect.asm
-Preprocessing source file.... .runlib/runlib.3103/speech_player.asm
-Preprocessing source file.... .runlib/runlib.3103/timers_alloc.asm
-Preprocessing source file.... .runlib/runlib.3103/timers_hooks.asm
-Preprocessing source file.... .runlib/runlib.3103/timers_kthread.asm
-Preprocessing source file.... .runlib/runlib.3103/timers_tmgr.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_bitmap.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_boxes.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_cursor.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_f18a_support.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_hchar.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_intscr.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_px2yx_calc.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_rle_decompress.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_sprites.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_tables.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_vchar.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_viewport.asm
-Preprocessing source file.... .runlib/runlib.3103/vdp_yx2px_calc.asm
+Preprocessing source file.... .runlib/runlib.77115/basic_cpu_vdp.asm
+Preprocessing source file.... .runlib/runlib.77115/copy_cpu_cpu.asm
+Preprocessing source file.... .runlib/runlib.77115/copy_cpu_vram.asm
+Preprocessing source file.... .runlib/runlib.77115/copy_grom_cpu.asm
+Preprocessing source file.... .runlib/runlib.77115/copy_grom_vram.asm
+Preprocessing source file.... .runlib/runlib.77115/copy_vram_cpu.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_constants.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_crash.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_crc16.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_hexsupport.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_numsupport.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_rle_compress.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_rle_decompress.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_sams_support.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_scrpad_backrest.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_scrpad_paging.asm
+Preprocessing source file.... .runlib/runlib.77115/cpu_strings.asm
+Preprocessing source file.... .runlib/runlib.77115/equ_config.asm
+Preprocessing source file.... .runlib/runlib.77115/equ_fio.asm
+Preprocessing source file.... .runlib/runlib.77115/equ_memsetup.asm
+Preprocessing source file.... .runlib/runlib.77115/equ_param.asm
+Preprocessing source file.... .runlib/runlib.77115/equ_portaddr.asm
+Preprocessing source file.... .runlib/runlib.77115/equ_registers.asm
+Preprocessing source file.... .runlib/runlib.77115/fio_dsrlnk.asm
+Preprocessing source file.... .runlib/runlib.77115/fio_level2.asm
+Preprocessing source file.... .runlib/runlib.77115/header.asm
+Preprocessing source file.... .runlib/runlib.77115/keyb_real.asm
+Preprocessing source file.... .runlib/runlib.77115/keyb_virtual.asm
+Preprocessing source file.... .runlib/runlib.77115/rnd_support.asm
+Preprocessing source file.... .runlib/runlib.77115/rom_bankswitch.asm
+Preprocessing source file.... .runlib/runlib.77115/runlib.asm
+Preprocessing source file.... .runlib/runlib.77115/runlib.asm.77115
+Preprocessing source file.... .runlib/runlib.77115/runlib.lst.asm
+Preprocessing source file.... .runlib/runlib.77115/snd_player.asm
+Preprocessing source file.... .runlib/runlib.77115/speech_detect.asm
+Preprocessing source file.... .runlib/runlib.77115/speech_player.asm
+Preprocessing source file.... .runlib/runlib.77115/timers_alloc.asm
+Preprocessing source file.... .runlib/runlib.77115/timers_hooks.asm
+Preprocessing source file.... .runlib/runlib.77115/timers_kthread.asm
+Preprocessing source file.... .runlib/runlib.77115/timers_tmgr.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_bitmap.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_boxes.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_cursor.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_f18a_support.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_hchar.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_intscr.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_px2yx_calc.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_rle_decompress.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_sprites.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_tables.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_vchar.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_viewport.asm
+Preprocessing source file.... .runlib/runlib.77115/vdp_yx2px_calc.asm
 ************************************************
-Assembly started ........ 20-02-24 18:57:57
+Assembly started ........ 20-06-05 19:07:03
 Source file ............. runlib.asm
-Assembly run ............ .runlib/runlib.3103/xas99run.out
-Preprocessed source ..... .runlib/runlib.3103/runlib.asm.3103
-ROM cart binary ......... bin/runlib.bin
+Assembly run ............ .runlib/runlib.77115/xas99run.out
+Preprocessed source ..... .runlib/runlib.77115/runlib.asm.77115
+ROM cart binary ......... runlib.bin
 List file ............... runlib.lst.asm
-Run suffix .............. 200224-3103
+Run suffix .............. 200605-77115
 ************************************************
 Warning: Unreferenced constants: DSRLNK.$0008 GRAPH1 KBCOL5 KBMAP1 KBMAP2 KBMAP6 KBMAP7 PREFIX TX4024 TX8024 TX8030
 > fio_dsrlnk.asm <1> 0037 - dsrlnk.dstype equ   dsrlnk.dsrlws + 10
@@ -148,15 +147,14 @@ Warning: Unreferenced constants: DSRLNK.$0008 GRAPH1 KBCOL5 KBMAP1 KBMAP2 KBMAP6
 ***** Unknown symbol: FILE.PAB.PTR
 > fio_level2.asm <2> 0218 -         mov   @file.pab.ptr,tmp0    ; Get VDP address of current PAB
 ***** Unknown symbol: FILE.PAB.PTR
-> runlib.asm.3103 <2> 0324 -         data  pctadr,spfclr,16      ; Load color table
+> runlib.asm.77115 <2> 0324 -         data  pctadr,spfclr,16      ; Load color table
 ***** Unknown symbol: PCTADR
-> runlib.asm.3103 <2> 0347 -         data  spvmod                ; Equate selected video mode table
+> runlib.asm.77115 <2> 0350 -         data  spvmod                ; Equate selected video mode table
 ***** Unknown symbol: SPVMOD
-> runlib.asm.3103 <2> 0348 -         li    tmp0,spfont           ; Get font option
+> runlib.asm.77115 <2> 0351 -         li    tmp0,spfont           ; Get font option
 ***** Unknown symbol: SPFONT
-> runlib.asm.3103 <2> 0352 -         data  fntadr,spfont         ; Load specified font
+> runlib.asm.77115 <2> 0355 -         data  fntadr,spfont         ; Load specified font
 ***** Unknown symbol: FNTADR
-> runlib.asm.3103 <2> 0363 -         b     @main                 ; Give control to main program
+> runlib.asm.77115 <2> 0366 -         b     @main                 ; Give control to main program
 ***** Unknown symbol: MAIN
-***** No ROM cart binary created due to errors during assembly.
 ***** Assembly process returned with RC=1
