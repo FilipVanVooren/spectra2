@@ -147,6 +147,11 @@ xsams.page.set:
         srl   tmp1,12               ; Reduce address to 4K chunks 
         sla   tmp1,1                ; Registers are 2 bytes appart
 *--------------------------------------------------------------
+* Sanity check on SAMS page number
+*--------------------------------------------------------------
+        ci    tmp0,255              ; Crash if page > 255
+        jgt   !
+*--------------------------------------------------------------
 * Sanity check on SAMS register
 *--------------------------------------------------------------
         ci    tmp1,>1e              ; r@401e   >f000 - >ffff
