@@ -7,7 +7,11 @@
 * R1      **free not used**
 * R2      Config register
 * R3      Extended config register
-* R4-R8   Temporary registers/variables (tmp0-tmp4)
+* R4      Temporary register/variable tmp0
+* R5      Temporary register/variable tmp1
+* R6      Temporary register/variable tmp2
+* R7      Temporary register/variable tmp3
+* R8      Temporary register/variable tmp4
 * R9      Stack pointer
 * R10     Highest slot in use + Timer counter
 * R11     Subroutine return address
