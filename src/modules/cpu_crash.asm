@@ -72,6 +72,17 @@ cpu.crash.reset:
 *--------------------------------------------------------------
 cpu.crash.main:
         ;------------------------------------------------------
+        ; Load "32x24" video mode & font
+        ;------------------------------------------------------
+        bl    @vidtab               ; Load video mode table into VDP
+              data graph1           ; Equate selected video mode table
+
+        bl    @ldfnt
+              data >0900,fnopt3     ; Load font (upper & lower case)
+      
+        bl    @filv
+              data >0380,>f0,32*24  ; Load color table
+        ;------------------------------------------------------
         ; Show crash details
         ;------------------------------------------------------
         bl    @putat                ; Show crash message
