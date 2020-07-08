@@ -230,9 +230,6 @@ file.record.pab.details:
 ; If an error occured during the IO operation, then the 
 ; equal bit in the saved status register (=tmp2) is set to 1.
 ; 
-; If no error occured during the IO operation, then the 
-; equal bit in the saved status register (=tmp2) is set to 0.
-;
 ; Upon return from this IO call you should basically test with:
 ;       coc   @wbit2,tmp2           ; Equal bit set?
 ;       jeq   my_file_io_handler    ; Yes, IO error occured
