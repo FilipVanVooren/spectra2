@@ -58,7 +58,8 @@
 * skip_cpu_hexsupport       equ  1  ; Skip mkhex, puthex
 * skip_cpu_numsupport       equ  1  ; Skip mknum, putnum, trimnum
 * skip_cpu_crc16            equ  1  ; Skip CPU memory CRC-16 calculation
-*
+* skip_cpu_strings          equ  1  ; Skip string support utilities
+
 * == Kernel/Multitasking
 * skip_timer_alloc          equ  1  ; Skip support for timers allocation
 * skip_mem_paging           equ  1  ; Skip support for memory paging 
@@ -199,6 +200,10 @@
     .ifndef skip_vdp_rle_decompress
         copy  "vdp_rle_decompress.asm"   ; VDP RLE decompression support
     .endif
+
+    .ifndef skip_cpu_strings      
+        copy  "cpu_strings.asm"          ; String utilities support
+    .endif 
 
     .ifndef skip_random_generator
         copy  "rnd_support.asm"          ; Random number generator
