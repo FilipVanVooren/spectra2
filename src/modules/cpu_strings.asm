@@ -103,15 +103,15 @@ string.ltrim.exit:
 
 
 ***************************************************************
-* string.getlen0 - Get length of C-style string
+* string.getlenc - Get length of C-style string
 ***************************************************************
-*  bl   @string.getlen0
+*  bl   @string.getlenc
 *       data p0,p1
 *--------------------------------------------------------------
 *  P0 = Pointer to C-style string
 *  P1 = String termination character
 *--------------------------------------------------------------
-*  bl   @xstring.getlen0
+*  bl   @xstring.getlenc
 *
 *  TMP0 = Pointer to C-style string
 *  TMP1 = Termination character
@@ -119,7 +119,7 @@ string.ltrim.exit:
 *  OUTPUT:
 *  @waux1 = Length of string
 ********|*****|*********************|**************************
-string.getlen0:
+string.getlenc:
         dect  stack
         mov   r11,*stack            ; Save return address
         dect  stack
@@ -137,7 +137,7 @@ string.getlen0:
         ;-----------------------------------------------------------------------
         ; Register version
         ;-----------------------------------------------------------------------
-xstring.getlen0:
+xstring.getlenc:
         dect  stack
         mov   r11,*stack            ; Save return address
         dect  stack
@@ -152,33 +152,33 @@ xstring.getlen0:
         ;-----------------------------------------------------------------------
         ; Scan string for termination character
         ;-----------------------------------------------------------------------
-string.getlen0.loop:
+string.getlenc.loop:
         inc   tmp2
         cb    *tmp0+,tmp1           ; Compare character
-        jeq   string.getlen0.putlength
+        jeq   string.getlenc.putlength
         ;-----------------------------------------------------------------------
         ; Sanity check on string length
         ;-----------------------------------------------------------------------
         ci    tmp2,255              
-        jgt   string.getlen0.panic
-        jmp   string.getlen0.loop
+        jgt   string.getlenc.panic
+        jmp   string.getlenc.loop
         ;-----------------------------------------------------------------------
         ; Return length
         ;-----------------------------------------------------------------------
-string.getlen0.putlength:
+string.getlenc.putlength:
         dec   tmp2                  ; One time adjustment        
         mov   tmp2,@waux1           ; Store length
-        jmp   string.getlen0.exit   ; Exit
+        jmp   string.getlenc.exit   ; Exit
         ;-----------------------------------------------------------------------
         ; CPU crash
         ;-----------------------------------------------------------------------
-string.getlen0.panic:
+string.getlenc.panic:
         mov   r11,@>ffce            ; \ Save caller address        
         bl    @cpu.crash            ; / Crash and halt system                                    
         ;----------------------------------------------------------------------
         ; Exit
         ;----------------------------------------------------------------------                                    
-string.getlen0.exit:
+string.getlenc.exit:
         mov   *stack+,tmp2          ; Pop tmp2
         mov   *stack+,tmp1          ; Pop tmp1
         mov   *stack+,tmp0          ; Pop tmp0        
