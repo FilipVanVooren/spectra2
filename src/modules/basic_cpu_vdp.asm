@@ -462,7 +462,22 @@ xutstr  mov   r11,tmp3
         bl    @yx2pnt               ; Get VDP destination address
         mov   tmp3,r11
         srl   tmp2,8                ; Right justify length byte
+*--------------------------------------------------------------
+* Put string
+*--------------------------------------------------------------
+        mov   tmp2,tmp2             ; Length = 0 ?
+        jeq   !                     ; Yes, crash and burn
+
+        ci    tmp2,255              ; Length > 255 ?
+        jgt   !                     ; Yes, crash and burn
+
         b     @xpym2v               ; Display string
+*--------------------------------------------------------------
+* Crash handler
+*--------------------------------------------------------------
+!       mov   r11,@>ffce            ; \ Save caller address        
+        bl    @cpu.crash            ; / Crash and halt system
+
 
 
 ***************************************************************
