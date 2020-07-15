@@ -122,6 +122,8 @@ string.ltrim.exit:
 string.getlenc:
         dect  stack
         mov   r11,*stack            ; Save return address
+        inct  *stack                ; Skip "data P0"
+        inct  *stack                ; Skip "data P1"
         dect  stack
         mov   tmp0,*stack           ; Push tmp0
         dect  stack
@@ -131,8 +133,8 @@ string.getlenc:
         ;-----------------------------------------------------------------------
         ; Get parameter values
         ;-----------------------------------------------------------------------
-        mov   *r11+,tmp0            ; Pointer to length-prefixed string
-        mov   *r11+,tmp1            ; RAM work buffer
+        mov   *r11+,tmp0            ; Pointer to C-style string
+        mov   *r11+,tmp1            ; String termination character
         jmp   !
         ;-----------------------------------------------------------------------
         ; Register version
@@ -144,6 +146,8 @@ xstring.getlenc:
         mov   tmp0,*stack           ; Push tmp0
         dect  stack
         mov   tmp1,*stack           ; Push tmp1
+        dect  stack
+        mov   tmp2,*stack           ; Push tmp2
         ;-----------------------------------------------------------------------
         ; Start
         ;-----------------------------------------------------------------------
