@@ -55,3 +55,21 @@ xlslot  sla   tmp0,2                ; TMP0 = TMP0*4
         clr   *tmp0+                ; Clear 1st word of slot
         clr   *tmp0                 ; Clear 2nd word of slot
         b     *r11                  ; Exit
+
+
+***************************************************************
+* RSSLOT - Reset single timer slot loop counter
+***************************************************************
+*  BL    @RSSLOT
+*  DATA  P0
+*--------------------------------------------------------------
+*  P0 = Slot number
+********|*****|*********************|**************************
+rsslot  mov   *r11+,tmp0
+        sla   tmp0,2                ; TMP0 = TMP0*4
+        a     @wtitab,tmp0          ; Add table base
+        inct  tmp0                  ; Skip 1st word of slot
+        mov   *tmp0,tmp1
+        andi  tmp1,>ff00            ; Clear LSB (loop counter)   
+        mov   tmp1,*tmp0
+        b     *r11                  ; Exit
