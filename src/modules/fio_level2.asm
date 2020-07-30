@@ -26,7 +26,7 @@
 * file.open - Open File for procesing
 ***************************************************************
 *  bl   @file.open
-*  data P0
+*       data P0
 *--------------------------------------------------------------
 *  P0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
@@ -45,27 +45,8 @@ file.open:
 * Initialisation
 *--------------------------------------------------------------
 xfile.open:
-        mov   r11,r1                ; Save return address
-        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB
-        mov   r0,tmp0               ; VDP write address (PAB byte 0)
         clr   tmp1                  ; io.op.open
-        bl    @xvputb               ; Write file opcode to VDP
-file.open_init:
-        ai    r0,9                  ; Move to file descriptor length
-        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-*--------------------------------------------------------------
-* Main 
-*--------------------------------------------------------------
-file.open_main:
-        blwp  @dsrlnk               ; Call DSRLNK 
-        data  8                     ; Level 2 IO call
-*--------------------------------------------------------------
-* Exit
-*--------------------------------------------------------------
-file.open_exit:
-        jmp   file.record.pab.details
-                                    ; Get status and return to caller
-                                    ; Status register bits are unaffected
+        jmp   _file.record.fop      ; Do file operation
 
 
 
@@ -73,7 +54,7 @@ file.open_exit:
 * file.close - Close currently open file
 ***************************************************************
 *  bl   @file.close
-*  data P0
+*       data P0
 *--------------------------------------------------------------
 *  P0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
@@ -92,37 +73,15 @@ file.close:
 * Initialisation
 *--------------------------------------------------------------
 xfile.close:
-        mov   r11,r1                ; Save return address
-        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB                        
-        mov   r0,tmp0               ; VDP write address (PAB byte 0)
         li    tmp1,io.op.close      ; io.op.close
-        bl    @xvputb               ; Write file opcode to VDP
-file.close_init:
-        ai    r0,9                  ; Move to file descriptor length
-        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-*--------------------------------------------------------------
-* Main 
-*--------------------------------------------------------------
-file.close_main:
-        blwp  @dsrlnk               ; Call DSRLNK 
-        data  8                     ; 
-*--------------------------------------------------------------
-* Exit
-*--------------------------------------------------------------
-file.close_exit:
-        jmp   file.record.pab.details
-                                    ; Get status and return to caller
-                                    ; Status register bits are unaffected
-
-
-
+        jmp   _file.record.fop      ; Do file operation
 
 
 ***************************************************************
 * file.record.read - Read record from file
 ***************************************************************
 *  bl   @file.record.read
-*  data P0
+*       data P0
 *--------------------------------------------------------------
 *  P0 = Address of PAB in VDP RAM (without +9 offset!)
 *--------------------------------------------------------------
@@ -140,34 +99,36 @@ file.record.read:
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
-xfile.record.read:
-        mov   r11,r1                ; Save return address
-        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB        
-        mov   r0,tmp0               ; VDP write address (PAB byte 0)
         li    tmp1,io.op.read       ; io.op.read
-        bl    @xvputb               ; Write file opcode to VDP
-file.record.read_init:
-        ai    r0,9                  ; Move to file descriptor length
-        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
-*--------------------------------------------------------------
-* Main 
-*--------------------------------------------------------------
-file.record.read_main:
-        blwp  @dsrlnk               ; Call DSRLNK 
-        data  8                     ;         
-*--------------------------------------------------------------
-* Exit
-*--------------------------------------------------------------
-file.record.read_exit:
-        jmp   file.record.pab.details
-                                    ; Get status and return to caller
-                                    ; Status register bits are unaffected
+        jmp   _file.record.fop      ; Do file operation
+        
 
 
-
-
+***************************************************************
+* file.record.write - Write record to file
+***************************************************************
+*  bl   @file.record.write
+*       data P0
+*--------------------------------------------------------------
+*  P0 = Address of PAB in VDP RAM (without +9 offset!)
+*--------------------------------------------------------------
+*  bl   @xfile.record.read
+*
+*  R0 = Address of PAB in VDP RAM
+*--------------------------------------------------------------
+*  Output:
+*  tmp0 LSB = VDP PAB byte 1 (status) 
+*  tmp1 LSB = VDP PAB byte 5 (characters read)
+*  tmp2     = Status register contents upon DSRLNK return
+********|*****|*********************|**************************
 file.record.write:
-        nop
+        mov   *r11+,r0              ; Get file descriptor (P0)
+*--------------------------------------------------------------
+* Initialisation
+*--------------------------------------------------------------
+        li    tmp1,io.op.write      ; io.op.write
+        jmp   _file.record.fop      ; Do file operation
+
 
 
 file.record.seek:
@@ -196,18 +157,41 @@ file.status:
 
 
 ***************************************************************
-* file.record.pab.details - Return PAB details to caller
+* file.record.fop - File operation
 ***************************************************************
 * Called internally via JMP/B by file operations
 *--------------------------------------------------------------
-*  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  Input:
+*  r0   = Address of PAB in VDP RAM
+*  tmp1 = File operation opcode
+*--------------------------------------------------------------
+*  Register usage:
+*  r0, r1, tmp0, tmp1, tmp2
+*--------------------------------------------------------------
+*  Remarks
+*  Private, only to be called from inside fio_level2 module
+*  via jump or branch instruction
 ********|*****|*********************|**************************
+_file.record.fop:
+        mov   r11,r1                ; Save return address
+        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB                
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
 
-********|*****|*********************|**************************
-file.record.pab.details:
+        bl    @xvputb               ; Write file opcode to VDP
+                                    ; \ i  tmp0 = VDP target address
+                                    ; / i  tmp1 = Byte to write
+
+        ai    r0,9                  ; Move to file descriptor length
+        mov   r0,@>8356             ; Pass file descriptor to DSRLNK
+*--------------------------------------------------------------
+* Call DSRLINK for doing file operation
+*--------------------------------------------------------------
+        blwp  @dsrlnk               ; Call DSRLNK 
+        data  8                     ;         
+*--------------------------------------------------------------
+* Return PAB details to caller
+*--------------------------------------------------------------
+_file.record.fop.pab:
         stst  tmp2                  ; Store status register contents in tmp2
                                     ; Upon DSRLNK return status register EQ bit
                                     ; 1 = No file error
@@ -242,5 +226,5 @@ file.record.pab.details:
 ;       ci    tmp0,io.err.<code>    ; Check for error pattern
 ;       jeq   my_error_handler      
 *--------------------------------------------------------------
-file.record.pab.details.exit:
+_file.record.fop.exit:
         b     *r1                   ; Return to caller
