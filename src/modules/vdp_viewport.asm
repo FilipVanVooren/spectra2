@@ -44,12 +44,15 @@ scrdim  mov   *r11+,@wbase          ; VDP destination address
 ********|*****|*********************|**************************
 view    mov   *r11+,tmp4            ; P0: Get pointer to RAM buffer
         mov   @wbase,*tmp4          ; RAM 01 - Save physical screen VRAM base
-        mov   @wcolmn,@2(tmp4)      ; RAM 23 - Save physical screen size (columns per row)
-        mov   *r11+,@4(tmp4)        ; RAM 45 - P1: Get viewport upper left corner YX
-        mov   *r11+,tmp3            ;
+        mov   @wcolmn,@2(tmp4)      ; RAM 23 - Save physical screen size
+                                    ;          (columns per row)
+
+        mov   *r11+,@4(tmp4)        ; RAM 45 - P1: Get viewport upper left
+                                    ;              corner YX
+        mov   *r11+,tmp3
         mov   tmp3,@6(tmp4)         ; RAM 67 - P2: Get viewport height & width
         mov   *r11+,@waux1          ; P3: Get virtual screen VRAM base address
-        mov   *r11+,@waux2          ; P4: Get virtual screen size (columns per row)
+        mov   *r11+,@waux2          ; P4: Get virtual screen size (cols per row)
         mov   tmp0,@waux3           ; Get upper left corner YX in virtual screen
         mov   r11,@8(tmp4)          ; RAM 89 - Store R11 for exit
         sla   config,1              ; \
@@ -75,7 +78,7 @@ view2   bl    @yx2pnt               ; Get VRAM address in TMP0
 *--------------------------------------------------------------
 *    Copy line from VRAM to RAM
 *--------------------------------------------------------------
-view3   bl    @xpyv2m               ; Copy block from VRAM (virtual screen) to RAM
+view3   bl    @xpyv2m               ; Copy block from VRAM (virt screen) to RAM
         mov   *tmp4,@wbase          ; Set physical screen base
         mov   @2(tmp4),@wcolmn      ; Set physical screen columns per row
         mov   @4(tmp4),@wyx         ; Set cursor in physical screen

@@ -103,9 +103,15 @@ virtkb
 * Scan keyboard matrix
 *-------@-----@---------------------@--------------------------
 virtk1  sbo   >0015                 ; Reset P5
-        li    r12,>0024             ; Scan full 8x8 keyboard matrix. R12 is used by LDCR
-        ldcr  tmp0,3                ; Set keyboard column with a value from 0-7 (3=3 bits)
-        li    r12,>0006             ; Load CRU base for row. R12 required by STCR
+        li    r12,>0024             ; Scan full 8x8 keyboard matrix.
+                                    ; R12 is used by LDCR
+
+        ldcr  tmp0,3                ; Set keyboard column with a value
+                                    ; from 0-7 (3=3 bits)
+
+        li    r12,>0006             ; Load CRU base for row.
+                                    ; R12 required by STCR
+                                    
         seto  tmp1                  ; >FFFF
         stcr  tmp1,8                ; Bring 8 row bits into MSB of TMP1
         inv   tmp1

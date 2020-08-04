@@ -225,7 +225,7 @@ cpu2rle.flush.duplicates.exit:
 *--------------------------------------------------------------
 cpu2rle.flush.encoding_byte:
         dect  stack                 ; Short on registers, save tmp3 on stack
-        mov   tmp3,*stack           ; No need to save tmp4, but reset before exit
+        mov   tmp3,*stack           ; No need to save tmp4, reset before exit
 
         mov   tmp1,tmp3             ; \ Calculate length of non-repeated  
         s     @waux2,tmp3           ; | characters

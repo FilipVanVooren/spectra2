@@ -30,7 +30,7 @@ mknum1  clr   tmp0                  ; Clear the high word of the dividend
         swpb  tmp1                  ; Move to high-byte for writing to buffer
         ab    *r11,tmp1             ; Add offset for ASCII digit
         movb  tmp1,*tmp4            ; Write remainder to string buffer
-        mov   tmp0,tmp1             ; Move integer result into R4 for the next digit
+        mov   tmp0,tmp1             ; Move integer result into R4 for next digit
         dec   tmp4                  ; Adjust string pointer for next digit
         dec   tmp3                  ; Decrease counter
         jne   mknum1                ; Do next digit
