@@ -1,4 +1,4 @@
-* FILE......: portaddr.asm
+* FILE......: portaddr.equ
 * Purpose...: Equates for hardware port addresses
 
 ***************************************************************                                     

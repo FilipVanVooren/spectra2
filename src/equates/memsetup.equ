@@ -1,4 +1,4 @@
-* FILE......: memsetup.asm
+* FILE......: memsetup.equ
 * Purpose...: Equates for spectra2 memory layout
 
 ***************************************************************                                     

@@ -1,4 +1,4 @@
-* FILE......: fio_dsrlnk.asm
+* FILE......: file_dsrlnk.asm
 * Purpose...: Custom DSRLNK implementation
 
 *//////////////////////////////////////////////////////////////

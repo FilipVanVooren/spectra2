@@ -1,4 +1,4 @@
-* FILE......: param.asm
+* FILE......: param.equ
 * Purpose...: Equates used for subroutine parameters
 
 ***************************************************************                                     

@@ -1,4 +1,4 @@
-* FILE......: registers.asm
+* FILE......: registers.equ
 * Purpose...: Equates for registers
 
 ***************************************************************

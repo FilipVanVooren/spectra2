@@ -63,7 +63,7 @@
 * == Kernel/Multitasking
 * skip_timer_alloc          equ  1  ; Skip support for timers allocation
 * skip_mem_paging           equ  1  ; Skip support for memory paging 
-* skip_fio                  equ  1  ; Skip support for file I/O, dsrlnk
+* skip_file                 equ  1  ; Skip support for file I/O, dsrlnk
 *
 * == Startup behaviour 
 * startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300:>83ff to @>2000
@@ -74,10 +74,10 @@
 *                       RUNLIB SETUP
 *//////////////////////////////////////////////////////////////
 
-        copy  "equ_memsetup.asm"         ; Equates runlib scratchpad mem setup
-        copy  "equ_registers.asm"        ; Equates runlib registers
-        copy  "equ_portaddr.asm"         ; Equates runlib hw port addresses
-        copy  "equ_param.asm"            ; Equates runlib parameters
+        copy  "memsetup.asm"             ; Equates runlib scratchpad mem setup
+        copy  "registers.asm"            ; Equates runlib registers
+        copy  "portaddr.asm"             ; Equates runlib hw port addresses
+        copy  "param.asm"                ; Equates runlib parameters
 
     .ifndef skip_rom_bankswitch
         copy  "rom_bankswitch.asm"       ; Bank switch routine
@@ -214,10 +214,10 @@
         copy  "cpu_scrpad_paging.asm"    ; Scratchpad memory paging
     .endif
 
-    .ifndef skip_fio
-        copy  "equ_fio.asm"              ; File I/O equates
-        copy  "fio_dsrlnk.asm"           ; DSRLNK for peripheral communication 
-        copy  "fio_level2.asm"           ; File I/O level 2 support
+    .ifndef skip_file
+        copy  "file.equ"                 ; File I/O equates
+        copy  "file_dsrlnk.asm"          ; DSRLNK for peripheral communication 
+        copy  "file_level2.asm"          ; File I/O level 2 support
     .endif
 
 *//////////////////////////////////////////////////////////////
