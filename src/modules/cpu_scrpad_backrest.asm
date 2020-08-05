@@ -25,7 +25,7 @@ cpu.scrpad.backup:
         ;------------------------------------------------------
         ; Prepare for copy loop
         ;------------------------------------------------------
-        li    r0,>8306              ; Scratpad source address 
+        li    r0,>8306              ; Scratchpad source address 
         li    r1,cpu.scrpad.tgt+6   ; RAM target address
         li    r2,62                 ; Loop counter
         ;------------------------------------------------------
@@ -52,7 +52,7 @@ cpu.scrpad.backup.exit:
 
 
 ***************************************************************
-* cpu.scrpad.restore - Restore scratchpad memory from cpu.scrpad.tgt
+* cpu.scrpad.restore - Restore scratchpad memory
 ***************************************************************
 *  bl   @cpu.scrpad.restore
 *--------------------------------------------------------------

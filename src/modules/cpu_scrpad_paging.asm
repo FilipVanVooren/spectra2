@@ -20,6 +20,10 @@
 *  Register usage
 *  tmp0-tmp2 = Used as temporary registers
 *  tmp3      = Copy of CPU memory destination
+*--------------------------------------------------------------
+*  Remarks
+*  Copies 256 bytes from scratchpad to CPU memory destination.
+*  Copies 256 bytes from >2000 to >8300
 ********|*****|*********************|**************************
 cpu.scrpad.pgout:
         mov   *r11+,tmp1            ; tmp1 = Memory target address
@@ -53,6 +57,7 @@ xcpu.scrpad.pgout:
 
 cpu.scrpad.pgout.after.rtwp:
         b     @cpu.scrpad.restore   ; Restore scratchpad memory from @>2000
+                                    ; to @>8300
 
         ;------------------------------------------------------
         ; Exit
