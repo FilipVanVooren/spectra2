@@ -7,7 +7,10 @@
 
 
 ***************************************************************
-* cpu.scrpad.pgout - Page out scratchpad memory
+* cpu.scrpad.pgout - Page out 256 bytes of scratchpad at >8300
+*                    to CPU memory destination P0 (tmp1)
+*                    and replace with 256 bytes of memory from
+*                    predefined destination @cpu.scrpad.target 
 ***************************************************************
 *  bl   @cpu.scrpad.pgout
 *       DATA p0
@@ -15,7 +18,7 @@
 *  P0 = CPU memory destination
 *--------------------------------------------------------------
 *  bl   @xcpu.scrpad.pgout
-*  TMP1 = CPU memory destination
+*  tmp1 = CPU memory destination
 *--------------------------------------------------------------
 *  Register usage
 *  tmp0-tmp2 = Used as temporary registers
@@ -24,8 +27,9 @@
 *  Remarks
 *  Copies 256 bytes from scratchpad to CPU memory destination
 *  specified in P0 (TMP1).
-*  Then copies 256 bytes from @cpu.scrpad.tgt 
-*  to scratchpad >8300 and activates workspace in >8300
+*
+*  Then copies 256 bytes from @cpu.scrpad.tgt to scratchpad 
+*  >8300 and activates workspace in >8300
 ********|*****|*********************|**************************
 cpu.scrpad.pgout:
         mov   *r11+,tmp1            ; tmp1 = Memory target address
@@ -75,7 +79,9 @@ cpu.scrpad.pgout.exit:
 
 
 ***************************************************************
-* cpu.scrpad.pgin - Page in scratchpad memory
+* cpu.scrpad.pgin - Page in 256 bytes of scratchpad memory 
+*                   at >8300 from CPU memory specified in 
+*                   p0 (tmp0)
 ***************************************************************
 *  bl   @cpu.scrpad.pgin
 *  DATA p0
