@@ -6,7 +6,8 @@
 *//////////////////////////////////////////////////////////////
 
 ***************************************************************
-* cpu.scrpad.backup - Backup scratchpad memory to cpu.scrpad.tgt
+* cpu.scrpad.backup - Backup scratchpad memory to 
+*                     @cpu.scrpad.tgt
 ***************************************************************
 *  bl   @cpu.scrpad.backup
 *--------------------------------------------------------------
@@ -14,7 +15,7 @@
 *  r0-r2, but values restored before exit
 *--------------------------------------------------------------
 *  Backup scratchpad memory to destination range
-*  cpu.scrpad.tgt <--> cpu.scrpad.tgt + >ff.
+*  @cpu.scrpad.tgt (+ >ff)
 *
 *  Expects current workspace to be in scratchpad memory.
 ********|*****|*********************|**************************
@@ -52,15 +53,15 @@ cpu.scrpad.backup.exit:
 
 
 ***************************************************************
-* cpu.scrpad.restore - Restore scratchpad memory
+* cpu.scrpad.restore - Restore scratchpad memory from
+*                      @cpu.scrpad.tgt
 ***************************************************************
 *  bl   @cpu.scrpad.restore
 *--------------------------------------------------------------
 *  Register usage
 *  r0-r2, but values restored before exit
 *--------------------------------------------------------------
-*  Restore scratchpad from memory area
-*  cpu.scrpad.tgt <--> cpu.scrpad.tgt + >ff.
+*  Restore scratchpad from memory area @cpu.scrpad.tgt (+ >ff).
 *  Current workspace can be outside scratchpad when called.
 ********|*****|*********************|**************************
 cpu.scrpad.restore:
