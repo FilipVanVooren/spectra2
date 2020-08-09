@@ -74,17 +74,17 @@
 *                       RUNLIB SETUP
 *//////////////////////////////////////////////////////////////
 
-        copy  "memsetup.asm"             ; Equates runlib scratchpad mem setup
-        copy  "registers.asm"            ; Equates runlib registers
-        copy  "portaddr.asm"             ; Equates runlib hw port addresses
-        copy  "param.asm"                ; Equates runlib parameters
+        copy  "memsetup.equ"             ; Equates runlib scratchpad mem setup
+        copy  "registers.equ"            ; Equates runlib registers
+        copy  "portaddr.equ"             ; Equates runlib hw port addresses
+        copy  "param.equ"                ; Equates runlib parameters
 
     .ifndef skip_rom_bankswitch
         copy  "rom_bankswitch.asm"       ; Bank switch routine
     .endif
 
         copy  "cpu_constants.asm"        ; Define constants for word/MSB/LSB
-        copy  "equ_config.asm"           ; Equates for bits in config register
+        copy  "config.equ"               ; Equates for bits in config register
         copy  "cpu_crash.asm"            ; CPU crash handler
         copy  "vdp_tables.asm"           ; Data used by runtime library
         copy  "basic_cpu_vdp.asm"        ; Basic CPU & VDP functions
