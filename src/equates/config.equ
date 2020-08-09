@@ -29,4 +29,3 @@ enusr   equ   wbit7                 ; bit 7=1   (Enable user hook)
 enknl   equ   wbit9                 ; bit 9=1   (Enable kernel thread)                                                     
 anykey  equ   wbit11                ; BIT 11 in the CONFIG register                                 
 ***************************************************************                                     
-

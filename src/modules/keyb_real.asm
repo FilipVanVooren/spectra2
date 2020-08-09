@@ -41,11 +41,9 @@ realk2  tb    >0009                 ; CTRL-key ?
 * ALPHA LOCK key down ?
 *--------------------------------------------------------------
 realk3  sbz   >0015                 ; Set P5
-        tb    >0007                 ; ALPHA-Lock key down?
-        jeq   !                     ; 
-        szc   @wbit10,config        ; Set CONFIG register bit 0 = 0
-        jmp   realk4
-!       soc   @wbit10,config        ; Set CONFIG register bit 0 = 1
+        tb    >0007                 ; ALPHA-Lock key ?
+        jeq   realk4                ; No,  CONFIG register bit 0 = 0
+        soc   @wbit0,config         ; Yes, CONFIG register bit 0 = 1
 *--------------------------------------------------------------
 * Scan keyboard column
 *--------------------------------------------------------------
@@ -64,7 +62,7 @@ realk5  dec   tmp2
 * Scan keyboard row
 *--------------------------------------------------------------
         clr   tmp1                  ; Use TMP1 as row counter from now on
-realk6  sla   tmp3,1                ; R2 bit combinations scanned by shifting left.
+realk6  sla   tmp3,1                ; R2 bitcombinations scanned by shifting left.
         joc   realk8                ; If no carry after 8 loops, then it means no key
 realk7  inc   tmp1                  ; was pressed on that line.
         ci    tmp1,8

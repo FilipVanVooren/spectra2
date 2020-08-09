@@ -297,11 +297,7 @@ runli6  dec   r2                    ; Next test
 *--------------------------------------------------------------
 * Copy machine code to scratchpad (prepare tight loop)
 *--------------------------------------------------------------
-runli7  li    r1,mccode             ; Machinecode to patch
-        li    r2,mcloop+2           ; Scratch-pad reserved for machine code
-        mov   *r1+,*r2+             ; Copy 1st instruction 
-        mov   *r1+,*r2+             ; Copy 2nd instruction
-        mov   *r1+,*r2+             ; Copy 3rd instruction
+runli7  bl    @loadmc              
 *--------------------------------------------------------------
 * Initialize registers, memory, ...
 *--------------------------------------------------------------

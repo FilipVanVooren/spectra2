@@ -11,6 +11,8 @@
 *                    to CPU memory destination P0 (tmp1)
 *                    and replace with 256 bytes of memory from
 *                    predefined destination @cpu.scrpad.target 
+*
+*                    Workspace at 
 ***************************************************************
 *  bl   @cpu.scrpad.pgout
 *       DATA p0

@@ -23,6 +23,24 @@ spcode  data  >d114                 ; \         movb  *r4,r4 (tmp0)
         even 
 
 
+***************************************************************
+* loadmc - Load machine code into scratchpad  >8322 - >8328
+***************************************************************
+*  bl  @loadmc
+*--------------------------------------------------------------
+*  REMARKS
+*  Machine instruction in location @>8320 will be set by 
+*  SP2 copy/fill routine that is called later on.
+********|*****|*********************|**************************
+loadmc:  
+        li    r1,mccode             ; Machinecode to patch
+        li    r2,mcloop+2           ; Scratch-pad reserved for machine code
+        mov   *r1+,*r2+             ; Copy 1st instruction 
+        mov   *r1+,*r2+             ; Copy 2nd instruction
+        mov   *r1+,*r2+             ; Copy 3rd instruction
+        b     *r11                  ; Return to caller
+
+
 *//////////////////////////////////////////////////////////////
 *                    STACK SUPPORT FUNCTIONS
 *//////////////////////////////////////////////////////////////
@@ -116,9 +134,10 @@ dofill  mov   tmp1,*tmp0+
 * Fill last byte if ODD
 *--------------------------------------------------------------
         mov   tmp3,tmp3
-        jeq   fil.$$
+        jeq   fil.exit
         movb  tmp1,*tmp0+
-fil.$$  b     *r11
+fil.exit:
+        b     *r11
 
 
 ***************************************************************
