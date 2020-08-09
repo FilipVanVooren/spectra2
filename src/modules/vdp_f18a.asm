@@ -1,4 +1,4 @@
-* FILE......: vdp_f18a_support.asm
+* FILE......: vdp_f18a.asm
 * Purpose...: VDP F18A Support module
 
 *//////////////////////////////////////////////////////////////

@@ -27,8 +27,8 @@
 * skip_sams                 equ  1  ; Skip CPU support for SAMS memory expansion
 *
 * == VDP
-* skip_textmode_support     equ  1  ; Skip 40x24 textmode support
-* skip_vdp_f18a_support     equ  1  ; Skip f18a support
+* skip_textmode             equ  1  ; Skip 40x24 textmode support
+* skip_vdp_f18a             equ  1  ; Skip f18a support
 * skip_vdp_hchar            equ  1  ; Skip hchar, xchar
 * skip_vdp_vchar            equ  1  ; Skip vchar, xvchar
 * skip_vdp_boxes            equ  1  ; Skip filbox, putbox
@@ -137,8 +137,8 @@
         copy  "vdp_bitmap.asm"           ; VDP Bitmap functions
     .endif
 
-    .ifndef skip_vdp_f18a_support
-        copy  "vdp_f18a_support.asm"     ; VDP F18a low-level functions
+    .ifndef skip_vdp_f18a
+        copy  "vdp_f18a.asm"             ; VDP F18a low-level functions
     .endif
 
     .ifndef skip_vdp_hchar
