@@ -170,7 +170,9 @@ file.status:
 *--------------------------------------------------------------
 *  Remarks
 *  Private, only to be called from inside fio_level2 module
-*  via jump or branch instruction
+*  via jump or branch instruction.
+*
+*  Uses @waux1 for backup/restore of memory word @>8322
 ********|*****|*********************|**************************
 _file.record.fop:
         mov   r11,r1                ; Save return address
@@ -186,6 +188,8 @@ _file.record.fop:
 *--------------------------------------------------------------
 * Call DSRLINK for doing file operation
 *--------------------------------------------------------------
+        mov   @>8322,@waux1         ; Save word at @>8322
+
         blwp  @dsrlnk               ; Call DSRLNK 
         data  8                     ;         
 *--------------------------------------------------------------
@@ -196,6 +200,8 @@ _file.record.fop.pab:
                                     ; Upon DSRLNK return status register EQ bit
                                     ; 1 = No file error
                                     ; 0 = File error occured
+
+        mov   @waux1,@>8322         ; Restore word at @>83223
 *--------------------------------------------------------------
 * Get PAB byte 5 from VDP ram into tmp1 (character count)
 *--------------------------------------------------------------        
