@@ -304,7 +304,7 @@ runli7  bl    @loadmc
 runli9  clr   r1
         clr   r2
         clr   r3
-        li    stack,>8400           ; Set stack
+        li    stack,sp2.stktop      ; Set top of stack (grows downwards!)
         li    r15,vdpw              ; Set VDP write address
     .ifndef skip_sound_player
         bl    @mute                 ; Mute sound generators
