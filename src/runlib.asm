@@ -217,7 +217,7 @@
     .ifndef skip_file
         copy  "file.equ"                 ; File I/O equates
         copy  "file_dsrlnk.asm"          ; DSRLNK for peripheral communication 
-        copy  "file_level2.asm"          ; File I/O level 2 support
+        copy  "file_level3.asm"          ; File I/O level 3 support
     .endif
 
 *//////////////////////////////////////////////////////////////

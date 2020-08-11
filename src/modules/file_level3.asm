@@ -1,5 +1,5 @@
-* FILE......: file_level2.asm
-* Purpose...: File I/O level 2 support 
+* FILE......: file_level3.asm
+* Purpose...: File I/O level 3 support 
 
 
 ***************************************************************
@@ -26,13 +26,15 @@
 * file.open - Open File for procesing
 ***************************************************************
 *  bl   @file.open
-*       data P0
+*       data P0,P1
 *--------------------------------------------------------------
 *  P0 = Address of PAB in VDP RAM
+*  P1 = LSB contains File type/mode
 *--------------------------------------------------------------
 *  bl   @xfile.open
 *
 *  R0 = Address of PAB in VDP RAM
+*  R1 = LSB contains File type/mode
 *--------------------------------------------------------------
 *  Output:
 *  tmp0 LSB = VDP PAB byte 1 (status) 
@@ -41,10 +43,13 @@
 ********|*****|*********************|**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
+        mov   *r11+,r1              ; Get file type/mode
+        mov   r11,r2                ; Save return address        
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
 xfile.open:
+        mov   r1,@fh.filetype       ; Set file type/mode
         clr   tmp1                  ; io.op.open
         jmp   _file.record.fop      ; Do file operation
 
@@ -69,6 +74,7 @@ xfile.open:
 ********|*****|*********************|**************************
 file.close:
         mov   *r11+,r0              ; Get file descriptor (P0)
+        mov   r11,r2                ; Save return address        
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
@@ -96,6 +102,7 @@ xfile.close:
 ********|*****|*********************|**************************
 file.record.read:
         mov   *r11+,r0              ; Get file descriptor (P0)
+        mov   r11,r2                ; Save return address
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
@@ -112,7 +119,7 @@ file.record.read:
 *--------------------------------------------------------------
 *  P0 = Address of PAB in VDP RAM (without +9 offset!)
 *--------------------------------------------------------------
-*  bl   @xfile.record.read
+*  bl   @xfile.record.write
 *
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
@@ -123,9 +130,19 @@ file.record.read:
 ********|*****|*********************|**************************
 file.record.write:
         mov   *r11+,r0              ; Get file descriptor (P0)
+        mov   r11,r2                ; Save return address        
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
+        ai    tmp0,5                ; Position to PAB byte 5
+
+        mov   @fh.reclen,tmp1       ; Get record length
+
+        bl    @xvputb               ; Write character count to PAB
+                                    ; \ i  tmp0 = VDP target address
+                                    ; / i  tmp1 = Byte to write
+
         li    tmp1,io.op.write      ; io.op.write
         jmp   _file.record.fop      ; Do file operation
 
@@ -163,10 +180,14 @@ file.status:
 *--------------------------------------------------------------
 *  Input:
 *  r0   = Address of PAB in VDP RAM
+*  r1   = File type/mode
 *  tmp1 = File operation opcode
 *--------------------------------------------------------------
+*  Output:
+*  tmp2 = Saved status register
+*--------------------------------------------------------------
 *  Register usage:
-*  r0, r1, tmp0, tmp1, tmp2
+*  r0, r1, r2, tmp0, tmp1, tmp2
 *--------------------------------------------------------------
 *  Remarks
 *  Private, only to be called from inside fio_level2 module
@@ -175,14 +196,28 @@ file.status:
 *  Uses @waux1 for backup/restore of memory word @>8322
 ********|*****|*********************|**************************
 _file.record.fop:
-        mov   r11,r1                ; Save return address
+        ;------------------------------------------------------
+        ; Set file opcode in VDP PAB
+        ;------------------------------------------------------   
         mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB                
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
 
         bl    @xvputb               ; Write file opcode to VDP
                                     ; \ i  tmp0 = VDP target address
                                     ; / i  tmp1 = Byte to write
+        ;------------------------------------------------------
+        ; Set file type/mode in VDP PAB
+        ;------------------------------------------------------ 
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
+        inc   tmp0                  ; Next byte in PAB
+        mov   @fh.filetype,tmp1     ; Get file type/mode
 
+        bl    @xvputb               ; Write file type/mode to VDP
+                                    ; \ i  tmp0 = VDP target address
+                                    ; / i  tmp1 = Byte to write
+        ;------------------------------------------------------
+        ; Prepare for DSRLINK
+        ;------------------------------------------------------ 
         ai    r0,9                  ; Move to file descriptor length
         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
 *--------------------------------------------------------------
@@ -233,4 +268,4 @@ _file.record.fop.pab:
 ;       jeq   my_error_handler      
 *--------------------------------------------------------------
 _file.record.fop.exit:
-        b     *r1                   ; Return to caller
+        b     *r2                   ; Return to caller
