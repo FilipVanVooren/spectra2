@@ -64,7 +64,7 @@ xfile.open:
 *--------------------------------------------------------------
 *  Output:
 *  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
+*  tmp1 LSB = VDP PAB byte 5 (??????)
 *  tmp2     = Status register contents upon DSRLNK return
 ********|*****|*********************|**************************
 file.close:
@@ -112,7 +112,7 @@ file.record.read:
 *--------------------------------------------------------------
 *  P0 = Address of PAB in VDP RAM (without +9 offset!)
 *--------------------------------------------------------------
-*  bl   @xfile.record.read
+*  bl   @xfile.record.write
 *
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
