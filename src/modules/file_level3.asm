@@ -197,9 +197,12 @@ file.status:
 ********|*****|*********************|**************************
 _file.record.fop:
         ;------------------------------------------------------
+        ; Write to PAB required?
+        ;------------------------------------------------------   
+        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB 
+        ;------------------------------------------------------
         ; Set file opcode in VDP PAB
         ;------------------------------------------------------   
-        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB                
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
 
         bl    @xvputb               ; Write file opcode to VDP
@@ -218,7 +221,7 @@ _file.record.fop:
         ;------------------------------------------------------
         ; Prepare for DSRLINK
         ;------------------------------------------------------ 
-        ai    r0,9                  ; Move to file descriptor length
+!       ai    r0,9                  ; Move to file descriptor length
         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
 *--------------------------------------------------------------
 * Call DSRLINK for doing file operation
