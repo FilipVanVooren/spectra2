@@ -7,7 +7,7 @@
 ********|*****|*********************|**************************
 ; my_pab:
 ;       byte  io.op.open            ;  0    - OPEN
-;       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
+;       byte  io.seq.inp.dis.var    ;  1    - INPUT, VARIABLE, DISPLAY
 ;                                   ;         Bit 13-15 used by DSR for returning
 ;                                   ;         file error details to DSRLNK
 ;       data  vrecbuf               ;  2-3  - Record buffer in VDP memory
@@ -37,9 +37,9 @@
 *  R1 = LSB contains File type/mode
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -68,9 +68,9 @@ xfile.open:
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.close:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -96,9 +96,9 @@ xfile.close:
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.record.read:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -124,9 +124,9 @@ file.record.read:
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.record.write:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -184,7 +184,9 @@ file.status:
 *  tmp1 = File operation opcode
 *--------------------------------------------------------------
 *  Output:
-*  tmp2 = Saved status register
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 *--------------------------------------------------------------
 *  Register usage:
 *  r0, r1, r2, tmp0, tmp1, tmp2
@@ -228,8 +230,9 @@ _file.record.fop:
 *--------------------------------------------------------------
         mov   @>8322,@waux1         ; Save word at @>8322
 
-        blwp  @dsrlnk               ; Call DSRLNK 
-        data  8                     ;         
+        blwp  @dsrlnk               ; Call DSRLNK
+              data >8               ; \ i  p0 = >8 (DSR)
+                                    ; / o  r0 = Copy of VDP PAB byte 1                                    
 *--------------------------------------------------------------
 * Return PAB details to caller
 *--------------------------------------------------------------
@@ -239,7 +242,7 @@ _file.record.fop.pab:
                                     ; 1 = No file error
                                     ; 0 = File error occured
 
-        mov   @waux1,@>8322         ; Restore word at @>83223
+        mov   @waux1,@>8322         ; Restore word at @>8322
 *--------------------------------------------------------------
 * Get PAB byte 5 from VDP ram into tmp1 (character count)
 *--------------------------------------------------------------        

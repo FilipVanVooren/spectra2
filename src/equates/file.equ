@@ -40,42 +40,42 @@ io.op.status     equ >09            ; STATUS
 *                1 = VARIABLE
 ***************************************************************
 ; Bit position           43210
-***************************************************************
-io.seq.upd.dis.fix  equ :00000
-io.rel.upd.dis.fix  equ :00001
-io.rel.out.dis.fix  equ :00011
-io.seq.out.dis.fix  equ :00010
-io.seq.inp.dis.fix  equ :00100
-io.rel.inp.dis.fix  equ :00101
-io.seq.app.dis.fix  equ :00110
-io.rel.app.dis.fix  equ :00111
-io.seq.upd.int.fix  equ :01000
-io.rel.upd.int.fix  equ :01001
-io.seq.out.int.fix  equ :01010
-io.rel.out.int.fix  equ :01011
-io.seq.inp.int.fix  equ :01100
-io.rel.inp.int.fix  equ :01101
-io.seq.app.int.fix  equ :01110
-io.rel.app.int.fix  equ :01111
-io.seq.upd.dis.var  equ :10000
-io.rel.upd.dis.var  equ :10001
-io.seq.out.dis.var  equ :10010
-io.rel.out.dis.var  equ :10011
-io.seq.inp.dis.var  equ :10100
-io.rel.inp.dis.var  equ :10101
-io.seq.app.dis.var  equ :10110
-io.rel.app.dis.var  equ :10111
-io.seq.upd.int.var  equ :11000
-io.rel.upd.int.var  equ :11001
-io.seq.out.int.var  equ :11010
-io.rel.out.int.var  equ :11011
-io.seq.inp.int.var  equ :11100
-io.rel.inp.int.var  equ :11101
-io.seq.app.int.var  equ :11110
-io.rel.app.int.var  equ :11111
+************************************|**************************
+io.seq.upd.dis.fix  equ :00000      ; 00
+io.rel.upd.dis.fix  equ :00001      ; 01
+io.rel.out.dis.fix  equ :00011      ; 02
+io.seq.out.dis.fix  equ :00010      ; 03
+io.seq.inp.dis.fix  equ :00100      ; 04
+io.rel.inp.dis.fix  equ :00101      ; 05
+io.seq.app.dis.fix  equ :00110      ; 06
+io.rel.app.dis.fix  equ :00111      ; 07
+io.seq.upd.int.fix  equ :01000      ; 08 
+io.rel.upd.int.fix  equ :01001      ; 09
+io.seq.out.int.fix  equ :01010      ; 0A
+io.rel.out.int.fix  equ :01011      ; 0B
+io.seq.inp.int.fix  equ :01100      ; 0C
+io.rel.inp.int.fix  equ :01101      ; 0D
+io.seq.app.int.fix  equ :01110      ; 0E
+io.rel.app.int.fix  equ :01111      ; 0F
+io.seq.upd.dis.var  equ :10000      ; 10
+io.rel.upd.dis.var  equ :10001      ; 11
+io.seq.out.dis.var  equ :10010      ; 12
+io.rel.out.dis.var  equ :10011      ; 13
+io.seq.inp.dis.var  equ :10100      ; 14
+io.rel.inp.dis.var  equ :10101      ; 15
+io.seq.app.dis.var  equ :10110      ; 16
+io.rel.app.dis.var  equ :10111      ; 17
+io.seq.upd.int.var  equ :11000      ; 18
+io.rel.upd.int.var  equ :11001      ; 19
+io.seq.out.int.var  equ :11010      ; 1A
+io.rel.out.int.var  equ :11011      ; 1B
+io.seq.inp.int.var  equ :11100      ; 1C
+io.rel.inp.int.var  equ :11101      ; 1D
+io.seq.app.int.var  equ :11110      ; 1E
+io.rel.app.int.var  equ :11111      ; 1F
 ***************************************************************
 * File error codes - Byte 1 in PAB (Bits 5-7)
-************************************@**************************
+************************************|**************************
 io.err.no_error_occured             equ 0
         ; Error code 0 with condition bit reset, indicates that
         ; no error has occured

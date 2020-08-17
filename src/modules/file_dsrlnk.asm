@@ -227,8 +227,9 @@ dsrlnk.dsrscan.dsr.8:
         movb  r0,@vdpa              ; send low byte 
         swpb  r0                    ;
         movb  r0,@vdpa              ; send high byte
-        movb  @vdpr,r1              ; read byte from VDP ram
+        movb  @vdpr,r1              ; read byte from VDP ram        
         ;---------------------------; Inline VSBR end
+        
 
         ;------------------------------------------------------
         ; Return DSR error to caller 
@@ -250,7 +251,8 @@ dsrlnk.error.devicename_invalid:
 dsrlnk.error.io_error:        
         swpb  r1                    ; put error in hi byte
         movb  r1,*r13               ; store error flags in callers r0
-        socb  @hb$20,r15            ; set equal bit to indicate error
+        socb  @hb$20,r15            ; \ Set equal bit in copy of status register
+                                    ; / to indicate error
         rtwp                        ; Return from DSR workspace to caller
                                     ; workspace
 
