@@ -44,11 +44,12 @@
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
         mov   *r11+,r1              ; Get file type/mode
-        mov   r11,r2                ; Save return address        
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
 xfile.open:
+        dect  stack
+        mov   r11,*stack            ; Save return address
         mov   r1,@fh.filetype       ; Set file type/mode
         clr   tmp1                  ; io.op.open
         jmp   _file.record.fop      ; Do file operation
@@ -74,11 +75,12 @@ xfile.open:
 ********|*****|*********************|**************************
 file.close:
         mov   *r11+,r0              ; Get file descriptor (P0)
-        mov   r11,r2                ; Save return address        
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
 xfile.close:
+        dect  stack
+        mov   r11,*stack            ; Save return address
         li    tmp1,io.op.close      ; io.op.close
         jmp   _file.record.fop      ; Do file operation
 
@@ -102,10 +104,12 @@ xfile.close:
 ********|*****|*********************|**************************
 file.record.read:
         mov   *r11+,r0              ; Get file descriptor (P0)
-        mov   r11,r2                ; Save return address
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
+        dect  stack
+        mov   r11,*stack            ; Save return address
+
         li    tmp1,io.op.read       ; io.op.read
         jmp   _file.record.fop      ; Do file operation
         
@@ -130,10 +134,12 @@ file.record.read:
 ********|*****|*********************|**************************
 file.record.write:
         mov   *r11+,r0              ; Get file descriptor (P0)
-        mov   r11,r2                ; Save return address        
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
+        dect  stack
+        mov   r11,*stack            ; Save return address
+
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
         ai    tmp0,5                ; Position to PAB byte 5
 
@@ -189,7 +195,7 @@ file.status:
 *  tmp2 LSB = Copy of status register after operation
 *--------------------------------------------------------------
 *  Register usage:
-*  r0, r1, r2, tmp0, tmp1, tmp2
+*  r0, r1, tmp0, tmp1, tmp2
 *--------------------------------------------------------------
 *  Remarks
 *  Private, only to be called from inside fio_level2 module
@@ -274,4 +280,5 @@ _file.record.fop.pab:
 ;       jeq   my_error_handler      
 *--------------------------------------------------------------
 _file.record.fop.exit:
-        b     *r2                   ; Return to caller
+        mov   *stack+,r11           ; Pop R11
+        b     *r11                  ; Return to caller
