@@ -50,6 +50,13 @@ file.open:
 xfile.open:
         dect  stack
         mov   r11,*stack            ; Save return address
+        ;------------------------------------------------------
+        ; Set pointer to VDP disk buffer header
+        ;------------------------------------------------------        
+        li    tmp1,>37D7            ; \ VDP Disk buffer header
+        mov   tmp1,@>8370           ; | Pointer at Fixed scratchpad
+                                    ; / location
+
         mov   r1,@fh.filetype       ; Set file type/mode
         clr   tmp1                  ; io.op.open
         jmp   _file.record.fop      ; Do file operation
@@ -174,7 +181,7 @@ file.rename:
         nop
 
 
-file.status:
+file.status:        
         nop
 
 
@@ -227,7 +234,7 @@ _file.record.fop:
                                     ; \ i  tmp0 = VDP target address
                                     ; / i  tmp1 = Byte to write
         ;------------------------------------------------------
-        ; Prepare for DSRLINK
+        ; Prepare for DSRLNK
         ;------------------------------------------------------ 
 !       ai    r0,9                  ; Move to file descriptor length
         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
@@ -236,9 +243,13 @@ _file.record.fop:
 *--------------------------------------------------------------
         mov   @>8322,@waux1         ; Save word at @>8322
 
+        ;------------------------------------------------------
+        ; DSRLNK has workspace at @dsrlnk.dsrlws
+        ;------------------------------------------------------
         blwp  @dsrlnk               ; Call DSRLNK
               data >8               ; \ i  p0 = >8 (DSR)
-                                    ; / o  r0 = Copy of VDP PAB byte 1                                    
+                                    ; / o  r0 = Copy of VDP PAB byte 1                                                                    
+                                    
 *--------------------------------------------------------------
 * Return PAB details to caller
 *--------------------------------------------------------------
