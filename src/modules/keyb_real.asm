@@ -40,10 +40,11 @@ realk2  tb    >0009                 ; CTRL-key ?
 *--------------------------------------------------------------
 * ALPHA LOCK key down ?
 *--------------------------------------------------------------
-realk3  sbz   >0015                 ; Set P5
-        tb    >0007                 ; ALPHA-Lock key ?
-        jeq   realk4                ; No,  CONFIG register bit 0 = 0
-        soc   @wbit0,config         ; Yes, CONFIG register bit 0 = 1
+realk3  szc   @wbit10,config        ; CONFIG register bit 10=0
+        sbz   >0015                 ; Set P5        
+        tb    >0007                 ; ALPHA-Lock key down?        
+        jeq   realk4                ; No
+        soc   @wbit10,config        ; Yes, CONFIG register bit 10=1
 *--------------------------------------------------------------
 * Scan keyboard column
 *--------------------------------------------------------------
@@ -62,8 +63,8 @@ realk5  dec   tmp2
 * Scan keyboard row
 *--------------------------------------------------------------
         clr   tmp1                  ; Use TMP1 as row counter from now on
-realk6  sla   tmp3,1                ; R2 bitcombinations scanned by shifting left.
-        joc   realk8                ; If no carry after 8 loops, then it means no key
+realk6  sla   tmp3,1                ; R2 bitcombos scanned by shifting left.
+        joc   realk8                ; If no carry after 8 loops, then no key
 realk7  inc   tmp1                  ; was pressed on that line.
         ci    tmp1,8
         jl    realk6
@@ -76,14 +77,15 @@ realk7  inc   tmp1                  ; was pressed on that line.
 realk8  mov   tmp2,tmp4
         sla   tmp4,3                ; TMP4 = TMP2 * 8
         a     tmp1,tmp4             ; TMP4 = TMP4 + TMP1
-        a     r15,tmp4              ; TMP4 = TMP4 + base address of data table (R15)
+        a     r15,tmp4              ; TMP4 = TMP4 + base addr of data table(R15)
         movb  *tmp4,*tmp4           ; Is the byte on that address = >00 ?
-        jeq   realk7                ; Yes, then discard and continue scanning (FCTN, SHIFT, CTRL)
+        jeq   realk7                ; Yes, discard & continue scanning
+                                    ; (FCTN, SHIFT, CTRL)
 *--------------------------------------------------------------
 * Determine ASCII value of key
 *--------------------------------------------------------------
 realk9  movb  *tmp4,tmp2            ; Real keypress. It's safe to reuse TMP2 now
-        coc   @wbit0,config         ; ALPHA-Lock key pressed ?
+        coc   @wbit10,config        ; ALPHA-Lock key down ?
         jne   realka                ; No, continue saving key
         cb    tmp2,@kbsmal+42       ; Is ASCII of key pressed < 97 ('a') ?
         jl    realka
