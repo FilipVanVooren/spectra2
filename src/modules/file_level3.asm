@@ -76,7 +76,7 @@ xfile.open:
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
-*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp0 LSB = Copy of VDP PAB byte 1 after operation
 *  tmp1 LSB = Copy of VDP PAB byte 5 after operation
 *  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
