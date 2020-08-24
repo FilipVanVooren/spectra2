@@ -1,5 +1,5 @@
-* FILE......: file_level2.asm
-* Purpose...: File I/O level 2 support 
+* FILE......: file_level3.asm
+* Purpose...: File I/O level 3 support 
 
 
 ***************************************************************
@@ -7,7 +7,7 @@
 ********|*****|*********************|**************************
 ; my_pab:
 ;       byte  io.op.open            ;  0    - OPEN
-;       byte  io.ft.sf.ivd          ;  1    - INPUT, VARIABLE, DISPLAY
+;       byte  io.seq.inp.dis.var    ;  1    - INPUT, VARIABLE, DISPLAY
 ;                                   ;         Bit 13-15 used by DSR for returning
 ;                                   ;         file error details to DSRLNK
 ;       data  vrecbuf               ;  2-3  - Record buffer in VDP memory
@@ -26,25 +26,38 @@
 * file.open - Open File for procesing
 ***************************************************************
 *  bl   @file.open
-*       data P0
+*       data P0,P1
 *--------------------------------------------------------------
 *  P0 = Address of PAB in VDP RAM
+*  P1 = LSB contains File type/mode
 *--------------------------------------------------------------
 *  bl   @xfile.open
 *
 *  R0 = Address of PAB in VDP RAM
+*  R1 = LSB contains File type/mode
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.open:
         mov   *r11+,r0              ; Get file descriptor (P0)
+        mov   *r11+,r1              ; Get file type/mode
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
 xfile.open:
+        dect  stack
+        mov   r11,*stack            ; Save return address
+        ;------------------------------------------------------
+        ; Set pointer to VDP disk buffer header
+        ;------------------------------------------------------        
+        li    tmp1,>37D7            ; \ VDP Disk buffer header
+        mov   tmp1,@>8370           ; | Pointer at Fixed scratchpad
+                                    ; / location
+
+        mov   r1,@fh.filetype       ; Set file type/mode
         clr   tmp1                  ; io.op.open
         jmp   _file.record.fop      ; Do file operation
 
@@ -63,9 +76,9 @@ xfile.open:
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (??????)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0 LSB = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.close:
         mov   *r11+,r0              ; Get file descriptor (P0)
@@ -73,6 +86,8 @@ file.close:
 * Initialisation
 *--------------------------------------------------------------
 xfile.close:
+        dect  stack
+        mov   r11,*stack            ; Save return address
         li    tmp1,io.op.close      ; io.op.close
         jmp   _file.record.fop      ; Do file operation
 
@@ -90,15 +105,18 @@ xfile.close:
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.record.read:
         mov   *r11+,r0              ; Get file descriptor (P0)
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
+        dect  stack
+        mov   r11,*stack            ; Save return address
+
         li    tmp1,io.op.read       ; io.op.read
         jmp   _file.record.fop      ; Do file operation
         
@@ -117,15 +135,27 @@ file.record.read:
 *  R0 = Address of PAB in VDP RAM
 *--------------------------------------------------------------
 *  Output:
-*  tmp0 LSB = VDP PAB byte 1 (status) 
-*  tmp1 LSB = VDP PAB byte 5 (characters read)
-*  tmp2     = Status register contents upon DSRLNK return
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 ********|*****|*********************|**************************
 file.record.write:
         mov   *r11+,r0              ; Get file descriptor (P0)
 *--------------------------------------------------------------
 * Initialisation
 *--------------------------------------------------------------
+        dect  stack
+        mov   r11,*stack            ; Save return address
+
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
+        ai    tmp0,5                ; Position to PAB byte 5
+
+        mov   @fh.reclen,tmp1       ; Get record length
+
+        bl    @xvputb               ; Write character count to PAB
+                                    ; \ i  tmp0 = VDP target address
+                                    ; / i  tmp1 = Byte to write
+
         li    tmp1,io.op.write      ; io.op.write
         jmp   _file.record.fop      ; Do file operation
 
@@ -151,7 +181,7 @@ file.rename:
         nop
 
 
-file.status:
+file.status:        
         nop
 
 
@@ -163,31 +193,63 @@ file.status:
 *--------------------------------------------------------------
 *  Input:
 *  r0   = Address of PAB in VDP RAM
+*  r1   = File type/mode
 *  tmp1 = File operation opcode
+*--------------------------------------------------------------
+*  Output:
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
 *--------------------------------------------------------------
 *  Register usage:
 *  r0, r1, tmp0, tmp1, tmp2
 *--------------------------------------------------------------
 *  Remarks
 *  Private, only to be called from inside fio_level2 module
-*  via jump or branch instruction
+*  via jump or branch instruction.
+*
+*  Uses @waux1 for backup/restore of memory word @>8322
 ********|*****|*********************|**************************
 _file.record.fop:
-        mov   r11,r1                ; Save return address
-        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB                
+        ;------------------------------------------------------
+        ; Write to PAB required?
+        ;------------------------------------------------------   
+        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB 
+        ;------------------------------------------------------
+        ; Set file opcode in VDP PAB
+        ;------------------------------------------------------   
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
 
         bl    @xvputb               ; Write file opcode to VDP
                                     ; \ i  tmp0 = VDP target address
                                     ; / i  tmp1 = Byte to write
+        ;------------------------------------------------------
+        ; Set file type/mode in VDP PAB
+        ;------------------------------------------------------ 
+        mov   r0,tmp0               ; VDP write address (PAB byte 0)
+        inc   tmp0                  ; Next byte in PAB
+        mov   @fh.filetype,tmp1     ; Get file type/mode
 
-        ai    r0,9                  ; Move to file descriptor length
+        bl    @xvputb               ; Write file type/mode to VDP
+                                    ; \ i  tmp0 = VDP target address
+                                    ; / i  tmp1 = Byte to write
+        ;------------------------------------------------------
+        ; Prepare for DSRLNK
+        ;------------------------------------------------------ 
+!       ai    r0,9                  ; Move to file descriptor length
         mov   r0,@>8356             ; Pass file descriptor to DSRLNK
 *--------------------------------------------------------------
 * Call DSRLINK for doing file operation
 *--------------------------------------------------------------
-        blwp  @dsrlnk               ; Call DSRLNK 
-        data  8                     ;         
+        mov   @>8322,@waux1         ; Save word at @>8322
+
+        ;------------------------------------------------------
+        ; DSRLNK has workspace at @dsrlnk.dsrlws
+        ;------------------------------------------------------
+        blwp  @dsrlnk               ; Call DSRLNK
+              data >8               ; \ i  p0 = >8 (DSR)
+                                    ; / o  r0 = Copy of VDP PAB byte 1                                                                    
+                                    
 *--------------------------------------------------------------
 * Return PAB details to caller
 *--------------------------------------------------------------
@@ -196,6 +258,8 @@ _file.record.fop.pab:
                                     ; Upon DSRLNK return status register EQ bit
                                     ; 1 = No file error
                                     ; 0 = File error occured
+
+        mov   @waux1,@>8322         ; Restore word at @>8322
 *--------------------------------------------------------------
 * Get PAB byte 5 from VDP ram into tmp1 (character count)
 *--------------------------------------------------------------        
@@ -227,4 +291,5 @@ _file.record.fop.pab:
 ;       jeq   my_error_handler      
 *--------------------------------------------------------------
 _file.record.fop.exit:
-        b     *r1                   ; Return to caller
+        mov   *stack+,r11           ; Pop R11
+        b     *r11                  ; Return to caller

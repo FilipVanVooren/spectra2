@@ -217,7 +217,7 @@
     .ifndef skip_file
         copy  "file.equ"                 ; File I/O equates
         copy  "file_dsrlnk.asm"          ; DSRLNK for peripheral communication 
-        copy  "file_level2.asm"          ; File I/O level 2 support
+        copy  "file_level3.asm"          ; File I/O level 3 support
     .endif
 
 *//////////////////////////////////////////////////////////////
@@ -316,7 +316,7 @@ runli9  clr   r1
         ci    r0,>4a4a              ; Crash flag set?
         jne   runlia                 
         bl    @filv                 ; Clear 12K VDP memory instead
-        data  >0000,>00,>3fff       ; of 16K, so that PABs survive
+        data  >0000,>00,>3000       ; of 16K, so that PABs survive
     .else
         bl    @filv                 ; Clear 16K VDP memory
         data  >0000,>00,>3fff

@@ -17,7 +17,6 @@
 *  Output:
 *  r0 LSB = Bits 13-15 from VDP PAB byte 1, right aligned 
 *--------------------------------------------------------------
-; Spectra2 scratchpad memory needs to be paged out before.
 ; You need to specify following equates in main program
 ;
 ; dsrlnk.dsrlws      equ >????     ; Address of dsrlnk workspace
@@ -33,6 +32,15 @@
 ; Credits
 ; Originally appeared in Miller Graphics The Smart Programmer.
 ; This version based on version of Paolo Bagnaresi.
+;
+;
+; The following memory address can be used to directly jump 
+; into the DSR in consequtive calls without having to 
+; scan the PEB cards again:
+;
+;   @savver - save version
+;   @savent - save entry addr
+;   @savcru - save cru
 *--------------------------------------------------------------
 dsrlnk.dstype equ   dsrlnk.dsrlws + 10
                                     ; dstype is address of R5 of DSRLNK ws
@@ -190,16 +198,20 @@ dsrlnk.dsrscan.getentry:
         dec   r5                    ; loop until full length checked
         jne   -!
         ;------------------------------------------------------
-        ; Device name/Subprogram match
-        ;------------------------------------------------------
-dsrlnk.dsrscan.match:                
-        mov   r2,@>83d2             ; DSR entry addr must be saved at @>83d2
-
-        ;------------------------------------------------------
         ; Call DSR program in device card
         ;------------------------------------------------------
 dsrlnk.dsrscan.call_dsr:        
         inc   r1                    ; next version found
+
+        ; *** NOT YET ***
+        ;    mov   r1,@savver       ; save version
+        ;    mov   r9,@savent       ; save entry addr
+        ;    mov   r12,@savcru      ; save cru        
+        ; *** NOT YET ***
+
+        li    r15,>8C02             ; Set VDP port address, needed to prevent
+                                    ; lockup of TI Disk Controller DSR.
+                                    
         bl    *r9                   ; go run routine
         ;
         ; Depending on IO result the DSR in card ROM does RET
@@ -227,8 +239,9 @@ dsrlnk.dsrscan.dsr.8:
         movb  r0,@vdpa              ; send low byte 
         swpb  r0                    ;
         movb  r0,@vdpa              ; send high byte
-        movb  @vdpr,r1              ; read byte from VDP ram
+        movb  @vdpr,r1              ; read byte from VDP ram        
         ;---------------------------; Inline VSBR end
+        
 
         ;------------------------------------------------------
         ; Return DSR error to caller 
@@ -250,7 +263,8 @@ dsrlnk.error.devicename_invalid:
 dsrlnk.error.io_error:        
         swpb  r1                    ; put error in hi byte
         movb  r1,*r13               ; store error flags in callers r0
-        socb  @hb$20,r15            ; set equal bit to indicate error
+        socb  @hb$20,r15            ; \ Set equal bit in copy of status register
+                                    ; / to indicate error
         rtwp                        ; Return from DSR workspace to caller
                                     ; workspace
 

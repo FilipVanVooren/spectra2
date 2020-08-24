@@ -21,9 +21,17 @@ cpym2v  mov   *r11+,tmp0            ; VDP Start address
         mov   *r11+,tmp1            ; RAM/ROM start address
         mov   *r11+,tmp2            ; Bytes to copy
 *--------------------------------------------------------------
+*    Sanity check
+*--------------------------------------------------------------
+xpym2v  mov   tmp2,tmp2             ; Bytes to copy = 0 ?
+        jne   !                     ; No, continue
+         
+        mov   r11,@>ffce            ; \ Save caller address        
+        bl    @cpu.crash            ; / Crash and halt system       
+*--------------------------------------------------------------
 *    Setup VDP write address
 *--------------------------------------------------------------
-xpym2v  ori   tmp0,>4000
+!       ori   tmp0,>4000
         swpb  tmp0
         movb  tmp0,@vdpa
         swpb  tmp0
@@ -33,5 +41,8 @@ xpym2v  ori   tmp0,>4000
 *--------------------------------------------------------------
         li    r15,vdpw              ; Set VDP write address
         mov   @tmp008,@mcloop       ; Setup copy command
-        b     @mcloop               ; Write data to VDP
+        b     @mcloop               ; Write data to VDP and return
+*--------------------------------------------------------------
+* Data
+*--------------------------------------------------------------
 tmp008  data  >d7f5                 ; MOVB *TMP1+,*R15
