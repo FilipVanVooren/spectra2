@@ -209,6 +209,9 @@ dsrlnk.dsrscan.call_dsr:
         ;    mov   r12,@savcru      ; save cru        
         ; *** NOT YET ***
 
+        li    r15,>8C02             ; Set VDP port address, needed to prevent
+                                    ; lockup of TI Disk Controller DSR.
+                                    
         bl    *r9                   ; go run routine
         ;
         ; Depending on IO result the DSR in card ROM does RET
