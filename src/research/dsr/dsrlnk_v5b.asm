@@ -1,0 +1,415 @@
+* Da: "Sullivan, Bill" <sullivanbill@sbcglobal.net>
+* A: <ti99-4a@yahoogroups.com>
+* Oggetto: Re: [TI-99/4A] X4th99 update
+* Data: domenica 17 agosto 2008 2.29
+*
+* Here you go.
+* Hope it doesn't get to messed up in transition.
+*
+* Bill S
+* ------------------------------------------
+*
+*               NEW DSRLNK
+*
+* --- DIRECT ACCESS TO THE FDC DEVICES ---
+
+*   (paul.bagnaresi@gmail.com)
+* Version V3 allows starting searching
+* the DSR cards from a user's defined
+* CRU address (change value in MSCRU
+* to suit yor needs).
+* PAB is always suppposed to be in
+* VDP ram.
+*
+* Warning: this code has been briefly
+* (and not extensively) tested.
+* Try it at your own risk, but
+* please do report any problem to:
+* paul.bagnaresi@gmail.com.
+
+* I will gladly answer and help.
+* Make sure to supply your source code,
+* though, no matter how large it is.
+*
+* Improvements over standard DSRLNK:
+* 1) Avoids dangerous PAB+1 error checks on
+*    DSRLNK with DATA >A.
+* 2) Allows a faster new DSRLNK execution.
+*    After a first DSRLNK has been called, next
+*    DSRLNK calls to the same device and subrogram
+*    can be made by calling BLWP @DSRAGN
+*    The catch: no other DSRLNK for different
+*    purposes has to be called in between.
+* Example:
+*      LI   R0,PDNLP   Pointer to Device Name Length in PAB
+*      MOV  R0,@>8356
+*      BLWP @DSRLNK
+*      DATA >A         First time, DATA 8 or >A has to be added
+*      JNE  SUCCESS
+*      SRL  R0,8
+*      CI   R0,>00XX   See what error
+*       ...
+*               No pointer to Device Name Length in PAB this time
+*      BLWP @DSRAGN    Execute again same DSRLNK, no DATA this time
+*      JNE  SUCCES2    Much faster execution this time!
+*      SRL  R0,8
+*      CI   R0,>00XX   See what error
+*      ...
+* Why this modified version?
+* DSRLNK takes a lot of time searching the proper
+* subprogram/device in the suitable card
+* at >4000.
+* Once the desired subprogram/device has been found,
+* there is no need to search again all the available
+* devices/subprograms should another access be needed
+* to the same device/subprogram.
+*
+* Just get back the last used parameters
+* (SAVCRU, SAVENT, SAVLEN, SAVPAB and SAVVER),
+* and you'll avoid a lenghty new search
+* across all the DSR cards.
+*
+* This new version of DSRLNK (with DSRAGN)
+* has a new type of error checking routine.
+* The so called PAB+1 (which is truly PAB+1 only
+* for DATA 8 calls), gets now checked only if
+* there is a DATA 8 followed the BLWP @DSRLNK.
+* In all the other cases (DATA >A and similar),
+* the error checking is performed on byte at >8350.
+* This is unlike standard DSRLNK, which can
+* give you a false positive for DATA >A calls.
+*
+* As it happens with the standard DSRLNK,
+* if the EQ bit is set in STATUS, R0 MSByte
+* of caller's workspace will contain the error
+* code. This is true for both BLWP @DSRLNK and
+* BLWP @DSRAGN and will allow you replacing
+* DSRLNK in your code without having to
+* modifying anyhting, hopefully.
+* If you do have to adjust the source code,
+* (MULTIPLE SYMBOLs and the like),
+* please remember that the following
+* addresses must remain in the same order as
+* they are now:
+* SAVCRU, SAVENT, SAVLEN, SAVPAB, SAVVER.
+* Also, TYPE has to point to R5 of DSRLNK
+* workspace (currently DSRLWS).
+*
+* A tip: just get your code working with
+* multiple accesses to a standard DSRLNK.
+* Once you've reached that point, try
+* substituting any DSRLNK access
+* after the first one with BLWP @DSRAGN
+*
+* If more than one device has to be called,
+* the code has to be changed. Thus:
+* 1) a STACK containing the vital parameters
+*    of each DSRLNK has to be implemented.
+* 2) Each new DSRLNK will have to return
+*    its pointer to the STACK.
+* 3) Each new call to DSRAGN will have to
+*    use this pointer as a handle for the
+*    proper file.
+* 4) 60 bytes worth of memory space will be
+*    able to manage 5 open files at the same
+*    time.
+*
+*       REF VSBR -> You should provide a VSBR, as with
+*                  the standard DSRLNK
+
+***********************************************************
+* 14Feb2010:
+*------------
+* 1. CRU Scan correction
+* 2. Unneeded: LI   R8,>0F00    Starting point for new search. R8 not used.
+* 3. Modified to allow CPU PAB usage
+* 4. TO DO:  Fix SCLEN-1 move which wipes out MSBIT
+*
+* Myarc DSR extensions allow for both PAB and BUFFERS to
+* reside in CPU RAM:
+*
+* Buffers:  Set bit 1 (where bit 0 is MSB) of the PAB -OPCODE- byte
+*           Valid for level 1,2, and 3 routines
+*           Buffer usage determined by device/DSR, NOT DSRLNK
+*
+* PAB:      Set MSBit of @>8354
+*           DSRLNK must determine setting and use CPU/VDP accordingly
+* 
+* Caution -> controllers not supporting the extension will either
+*            use VDP RAM or produce strange results.
+* 
+* CPUPAB flag controls usage, could modify to register
+************************************************************ 
+* 5th Version (V5B). 15.Feb.2009 - Paolo Bagnaresi
+* V5B avoids overwriting the byte at >8354 and R0 GPLWS.
+************************************************************ 
+CPUPAB DATA 0  0=vdp; 1=cpu set via >8354
+*
+
+SCLEN  EQU >8355  Device Name Length (>8354 byte used by some controllerS)
+SCNAME EQU >8356  Pointer to Device Name Length in PAB
+CRULST EQU >83D0  Save last used CRU address
+SADDR  EQU >83D2  Save last used Devicew Name pointer
+GPLWS  EQU >83E0  GPL Workspace
+
+MSCRU  DATA >1100        Start searching DSR from this address
+
+DLNKWS DATA 0,0,0,0,0    DSRLNK workspace. TIPE is R5 of this
+TIPE   DATA 0,0,0,0,0    workspace
+       DATA 0,0,0,0,0,0
+
+NAMBUF BYTE 0,0,0,0,0,0,0,0,0,0,0
+
+C100   DATA 100
+H20
+       EVEN
+H2000  DATA >2000
+DECMAL TEXT '.'
+HAA    BYTE >AA
+       EVEN
+DATA8  DATA >8       - 8 is the normal DATA that
+*                      follows a BLWP @DSRLNK
+* Save parameters here
+SAV8A  DATA 0    Save data following BLWP @DSRLNK (8 or >A)
+* Paolo 15.2.2010 - Changed order in SAVCRU table. 
+* Now SAVLEN is BYTE (was DATA) and has been moved to 
+* the last position in table
+SAVCRU DATA 0    CRU Address of the Peripheral
+SAVENT DATA 0    Entry Address of DSR or Subprogram
+SAVPAB DATA 0    Pointer to Device or Subprogram in the PAB
+SAVVER DATA 0    Version # of DSR
+SAVLEN BYTE 0    Device or Subprogram name length 
+       EVEN 	
+* Paolo 15.2.2010 - SAVLEN Moved at end of the table and changed into BYTE
+
+
+
+FLGPTR DATA 0    Pointer to Flag in PAB (Byte 1 in PAB)
+
+*
+* Utility Vectors
+*
+*========================================
+*       DSRLNK
+*========================================
+DSRLNK DATA DLNKWS,DLENTR
+*** Link to device service routine *
+
+DLENTR MOV  *R14+,R5    Fetch program type for link
+       MOV  R5,@SAV8A   Save data after BLWP @DSRLNK (8 or >A)
+**       LI   R8,>0F00    Starting point for new search *not used 2.14
+
+* Test for CPU or VDP PAB  2.14.2010
+* This could be simplified to use R8 as the flag
+*
+       CLR  @CPUPAB  always assume vdp pab
+       MOV  @>8354,R8
+       ANDI R8,>8000     mask 
+       MOVB R8,@CPUPAB+1 set for ABS usage. Maybe use R8 going forward?
+*******
+       SZCB @H20,R15    Reset equal bit (for error return)
+       MOV  @SCNAME,R0  Fetch pointer into PAB
+       MOV  R0,R9       Save pointer
+       MOV  R0,@FLGPTR  Save again pointer to PAB+1
+*                       for DSRLNK DATA 8
+       AI   R9,-8       Adjust pointer to flag byte (level 3 PAB only!)
+
+* start combined cpu/vdp name check routine - 2.14.2010
+
+       MOVB *R0,R1   get CPU length (overwrite R1 when VDP)
+       ABS  @CPUPAB  CPU?
+       JNE  SKP1     yes
+       BLWP @VSBR    no, get byte from VDP into R1
+*       
+SKP1   MOVB R1,R3 store again  *common
+       SRL  R3,8  make a word
+       SETO R4
+       LI   R2,NAMBUF
+LNK$CP INC  R0
+       INC  R4
+       CI   R4,7
+       JGT  LNKERR
+       C    R4,R3
+       JEQ  LNK$CN
+       MOVB *R0,R1     Read character from CPU to R1 (overwrite if VDP)
+       ABS  @CPUPAB    CPU?
+       JNE  SKP2       Yes
+       BLWP @VSBR      No, Read character from VDP
+SKP2   MOVB R1,*R2+    *common, move character into NAMBUF buffer
+       CB   R1,@DECMAL decimal point?
+       JNE  LNK$CP     No
+LNK$CN MOV R4,R4       Is name length zero?
+       JEQ LNKERR      error
+
+*--start old VDP name copy/test
+*VDPP1  BLWP @VSBR       Read device name length
+*       MOVB R1,R3       Store it elsewhere
+*       SRL  R3,8        Make it a word value
+*       SETO R4          Initialize a counter
+*       LI   R2,NAMBUF   Point to NAMBUF
+*LNK$LP INC  R0          Point to next char of name
+*       INC  R4          Increment character counter
+*       CI   R4,7        Is name length >7?
+*       JGT  LNKERR      Yes, error
+*       C    R4,R3       End of name?
+*       JEQ  LNK$LN      Yes
+*       BLWP @VSBR       Read current character
+*       MOVB R1,*R2+     Move it to NAMBUF
+*       CB   R1,@DECMAL  Is it a decimal point?
+*       JNE  LNK$LP      No
+*LNK$LN MOV  R4,R4       Is name length zero?
+*       JEQ  LNKERR      Yes, error
+*--end old vdp name copy/test
+
+       CLR  @CRULST
+
+*
+* DANGER: This overwrites the MSByte at 8354! Will wipe CPU flag bit!
+*         Also need to restore byte-wise in DSRAGN
+* 
+* * Paolo 15.2.2010 - Fixed!
+
+       SWPB R4
+       MOVB R4,@SCLEN   * Paolo 15.2.2010 - Store name length for search  **Error? no;8355-1=8354. 14Feb2010
+       MOVB R4,@SAVLEN  * Paolo 15.2.2010 - Save device name length
+       SWPB R4
+       INC  R4          Adjust it
+       A    R4,@SCNAME  Point to position after name
+       MOV  @SCNAME,@SAVPAB   Save pointer into device name
+*
+*** Search ROM CROM GROM for DSR
+*
+SROM   LWPI GPLWS       Use GPL workspace to search
+       CLR  R1          Version found of DSR etc.
+       MOV  @MSCRU,R12  Starting CRU address is in MSCRU from Forth
+       JMP  NOOFF2      CRU selected
+*
+* New scan 14Feb2010 TAT
+*
+NOROM  SBZ  0           Yes, turn it off
+       CLR  @CRULST     Reset in case we are finished  (label NOOFF removed)
+       AI   R12,>0100   No, point to next ROM
+NOOFF1 C    R12,@MSCRU  Did we cycle back to the original CRU?
+       JEQ  NODSR       Yes, end the scan
+
+       CI   R12,>2000   At the end
+       JNE  NOOFF2      no
+       LI   R12,>1000   Yes, restart * Paolo 15.2.2010  Save a few CPU cycles
+       JMP  NOOFF1      restart properly - don't fall through
+* end scan changes 14Feb2010
+
+
+
+NOOFF2 MOV  R12,@CRULST Save address of current CRU
+       SBO  0           Turn on ROM
+       LI   R2,>4000    Start at beginning
+       CB   *R2,@HAA    Is it a valid ROM?
+       JNE  NOROM       No
+       A    @TIPE,R2    Go to first pointer (TYPE already used - BRS)
+       JMP  SGO2
+SGO    MOV  @SADDR,R2   Continue where we left off
+       SBO  0           Turn ROM back on
+SGO2   MOV  *R2,R2      Is address a zero
+       JEQ  NOROM       Yes, no program to look at
+       MOV  R2,@SADDR   Remember where we go next
+       INCT R2          Go to entry point
+       MOV  *R2+,R9     Get entry address
+*
+*** See if name matches
+*
+       MOVB @SCLEN,R5   Get length as counter
+       JEQ  NAME2       Zero length, don't do match
+       CB   R5,*R2+     Does length match?
+       JNE  SGO         No
+       SRL  R5,8        Move to right place
+       LI   R6,NAMBUF   Point to NAMBUF
+NAME1  CB   *R6+,*R2+   Is character correct?
+       JNE  SGO         No
+       DEC  R5          More to look at?
+       JNE  NAME1       Yes
+NAME2  INC  R1          Next version found
+       MOV  R1,@SAVVER  Save version number
+       MOV  R9,@SAVENT  Save entry address
+       MOV  R12,@SAVCRU Save CRU address
+       BL   *R9         Match, call subroutine
+       JMP  SGO         Not right version
+       SBZ  0           Turn off ROM
+       LWPI DLNKWS      Select DSRLNK workspace
+       MOV  R9,R0       Point to flag byte in PAB
+FRMDSR MOV  @SAV8A,R1   Get back data
+*                       following BLWP @DSRLNK (8 or >A)
+       CI   R1,8        Was it 8?
+       JEQ  DSRDT8      Yes, jump: Normal DSRLNK
+       MOVB @>8350,R1   No, we have a DATA >A.
+*                       Get Error byte from >8350
+       JMP  DSRDTA      Go and return error
+*                       byte to the caller
+
+*
+** 02.14.2010 -- now capture error flag from cpu/vdp
+*
+DSRDT8 MOVB *R0,R1      read error/flag byte from CPU
+       ABS  @CPUPAB     cpu pab? (1)
+       JNE  DSRDTA      yes, skip VDP read
+       BLWP @VSBR       no, doing VDP transfer
+
+* DSRDT8 BLWP @VSBR       Read flag byte
+DSRDTA SRL  R1,13       Just want the error flags
+       JNE  IOERR       Error!
+       RTWP
+*
+*** Error handling
+*
+
+NODSR  LWPI DLNKWS      Select DSRLNK workspace
+LNKERR CLR  R1          Clear the error flags
+IOERR  SWPB R1
+       MOVB R1,*R13     Store error flags in calling R0
+       SOCB @H20,R15    Indicate an error occured
+       RTWP             Return to caller
+
+*----------------*
+* ACCESS ONCE AGAIN THE SAME DSRLNK
+*----------------*
+* assumes cpu/vdp flag is still set! 2.14
+
+DSRAGN EQU  $
+       DATA DLNKWS
+       DATA LDGETR
+LDGETR SZCB @H20,R15     Reset Equal Bit in STATUS (V2)
+       LWPI GPLWS  
+* Paolo 15.2.2010 - Use R11 instead of R0 of GPLWS. We will be using R11 anyway
+*		    with the BL  *R9
+       LI   R11,SAVCRU    Get pointer to last used CPU address
+       MOV  *R11+,R12     Get CRU addr.
+       MOV  *R11+,R9      Get SAVENT (DSR entry address)
+* Paolo 15.2.2010 - Changed reloading order. SAVLEN, now BYTE and last in the 
+*                   SAVCRU table, will be the last one to be reloaded
+       MOV  *R11+,@>8356  Get pointer to Device Name or
+*                        Subprogram in PAB
+       MOV  *R11+,R1      Get DSR Version Number 
+       MOVB *R11,@>8355   * Paolo 15.2.2010 - Get Device Name length * Paolo 15.2.2010 - 
+       SBO  >00          Open CARD
+       CB   @>4000,@HAA  Valid Indentifier?
+       JNE  NODSR        No, Error Code 0 =
+*                        Bad Device Name
+*                        The above jump to NODSR
+*                        may happen only in case of either
+*                        card hardware malfunctioning
+*                        or if there are 2 cards opened
+*                        at the same time
+
+       BL   *R9          Execute DSR
+       JMP  NODSR        Execute this jump if DSR error
+*                        and issue Error Code 0 =
+*                        Bad Device Name
+
+       SBZ  >00          Otherwise, close CARD
+
+* NOW CHECK IF ANY DSR ERROR OCCURRED
+       LWPI DLNKWS       Load back LOADER workspace
+       MOV  @FLGPTR,R0   Get back pointer to PAB+1
+       JMP  FRMDSR      - 2008.8.15 - Keep on as
+*                       - 2008.8.15 - with a Normal DSRLNK
+
+* DSRLNK code ends here!  

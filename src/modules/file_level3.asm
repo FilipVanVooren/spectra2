@@ -51,12 +51,19 @@ xfile.open:
         dect  stack
         mov   r11,*stack            ; Save return address
         ;------------------------------------------------------
+        ; Initialisation
+        ;------------------------------------------------------        
+        li    tmp0,dsrlnk.savcru
+        clr   *tmp0+                ; Clear @dsrlnk.savcru
+        clr   *tmp0+                ; Clear @dsrlnk.savent
+        clr   *tmp0+                ; Clear @dsrlnk.savver
+        clr   *tmp0                 ; Clear @dsrlnk.pabflg
+        ;------------------------------------------------------
         ; Set pointer to VDP disk buffer header
         ;------------------------------------------------------        
         li    tmp1,>37D7            ; \ VDP Disk buffer header
         mov   tmp1,@>8370           ; | Pointer at Fixed scratchpad
                                     ; / location
-
         mov   r1,@fh.filetype       ; Set file type/mode
         clr   tmp1                  ; io.op.open
         jmp   _file.record.fop      ; Do file operation
@@ -214,7 +221,7 @@ _file.record.fop:
         ;------------------------------------------------------
         ; Write to PAB required?
         ;------------------------------------------------------   
-        mov   r0,@file.pab.ptr      ; Backup of pointer to current VDP PAB 
+        mov   r0,@fh.pab.ptr        ; Backup of pointer to current VDP PAB 
         ;------------------------------------------------------
         ; Set file opcode in VDP PAB
         ;------------------------------------------------------   
@@ -243,13 +250,24 @@ _file.record.fop:
 *--------------------------------------------------------------
         mov   @>8322,@waux1         ; Save word at @>8322
 
+        mov   @dsrlnk.savcru,tmp0   ; Call optimized or standard version?
+        jgt   _file.record.fop.optimized
+                                    ; Optimized version
+
         ;------------------------------------------------------
-        ; DSRLNK has workspace at @dsrlnk.dsrlws
+        ; First IO call. Call standard DSRLNK
         ;------------------------------------------------------
         blwp  @dsrlnk               ; Call DSRLNK
               data >8               ; \ i  p0 = >8 (DSR)
-                                    ; / o  r0 = Copy of VDP PAB byte 1                                                                    
-                                    
+                                    ; / o  r0 = Copy of VDP PAB byte 1  
+        jmp  _file.record.fop.pab   ; Return PAB to caller
+
+        ;------------------------------------------------------
+        ; Recurring IO call. Call optimized DSRLNK
+        ;------------------------------------------------------
+_file.record.fop.optimized:        
+        blwp  @dsrlnk.reuse         ; Call DSRLNK
+
 *--------------------------------------------------------------
 * Return PAB details to caller
 *--------------------------------------------------------------
@@ -263,7 +281,7 @@ _file.record.fop.pab:
 *--------------------------------------------------------------
 * Get PAB byte 5 from VDP ram into tmp1 (character count)
 *--------------------------------------------------------------        
-        mov   @file.pab.ptr,tmp0    ; Get VDP address of current PAB
+        mov   @fh.pab.ptr,tmp0      ; Get VDP address of current PAB
         ai    tmp0,5                ; Get address of VDP PAB byte 5
         bl    @xvgetb               ; VDP read PAB status byte into tmp0
         mov   tmp0,tmp1             ; Move to destination
