@@ -1,4 +1,4 @@
-* FILE......: file_dsrlnk.asm
+* FILE......: fio_dsrlnk.asm
 * Purpose...: Custom DSRLNK implementation
 
 *//////////////////////////////////////////////////////////////
@@ -41,13 +41,17 @@
 *  into the DSR in consequtive calls without having to 
 *  scan the PEB cards again:
 * 
-*  @dsrlnk.savcru - CRU address of device in previous DSR call
-*  @dsrlnk.savent - DSR entry address of previous DSR call
-*  @dsrlnk.savver - Version used in previous DSR call
+*  dsrlnk.namsto  -  8-byte RAM buf for holding device name
+*  dsrlnk.savcru  -  CRU address of device in prev. DSR call
+*  dsrlnk.savent  -  DSR entry addr of prev. DSR call
+*  dsrlnk.savpab  -  Pointer to Device or Subprogram in PAB
+*  dsrlnk.savver  -  Version used in prev. DSR call
+*  dsrlnk.savlen  -  Length of DSR name of prev. DSR call (in MSB)
+*  dsrlnk.flgptr  -  Pointer to VDP PAB byte 1 (flag byte) 
+
 *--------------------------------------------------------------
 dsrlnk.dstype equ   dsrlnk.dsrlws + 10
-                                    ; dstype is address of R5 of DSRLNK ws
-dsrlnk.sav8a  equ   >8322           ; Scratchpad @>8322. Contains >08 or >0a                                           
+                                    ; dstype is address of R5 of DSRLNK ws.
 ********|*****|*********************|**************************                                     
 dsrlnk  data  dsrlnk.dsrlws         ; dsrlnk workspace
         data  dsrlnk.init           ; Entry point
@@ -63,9 +67,9 @@ dsrlnk.init:
         ;------------------------------------------------------
         ; Fetch file descriptor length from PAB
         ;------------------------------------------------------ 
-        ai    r9,>fff8              ; Adjust r9 to addr PAB byte 1 (FLAG byte)
+        ai    r9,>fff8              ; Adjust r9 to addr PAB byte 1
                                     ; FLAG byte->(pabaddr+9)-8
-        mov   r9,@dsrlnk.pabflg     ; Save pointer
+        mov   r9,@dsrlnk.flgptr     ; Save pointer to PAB byte 1
         ;---------------------------; Inline VSBR start
         swpb  r0                    ; 
         movb  r0,@vdpa              ; Send low byte 
@@ -113,9 +117,11 @@ dsrlnk.device_name.get_length:
         clr   @>83d0
         mov   r4,@>8354             ; Save name length for search (length
                                     ; goes to >8355 but overwrites >8354!)
+        mov   r4,@dsrlnk.savlen     ; Save name length for nextr dsrlnk call                                    
 
         inc   r4                    ; Adjust for dot
         a     r4,@>8356             ; Point to position after name
+        mov   @>8356,@dsrlnk.savpab ; Save pointer for next dsrlnk call
         ;------------------------------------------------------
         ; Prepare for DSR scan >1000 - >1f00
         ;------------------------------------------------------ 
@@ -208,15 +214,14 @@ dsrlnk.dsrscan.getentry:
         ;------------------------------------------------------
 dsrlnk.dsrscan.call_dsr:        
         inc   r1                    ; Next version found
-
-        mov   r1,@dsrlnk.savver     ; Save DSR Version number
-        mov   r9,@dsrlnk.savent     ; Save DSR entry address
         mov   r12,@dsrlnk.savcru    ; Save CRU address
+        mov   r9,@dsrlnk.savent     ; Save DSR entry address        
+        mov   r1,@dsrlnk.savver     ; Save DSR Version number
 
         li    r15,>8C02             ; Set VDP port address, needed to prevent
                                     ; lockup of TI Disk Controller DSR.
                                     
-        bl    *r9                   ; go run routine
+        bl    *r9                   ; Execute DSR
         ;
         ; Depending on IO result the DSR in card ROM does RET
         ; or (INCT R11 + RET), meaning either (1) or (2) get executed.
@@ -311,14 +316,15 @@ dsrlnk.reuse.init:
 
         szcb  @hb$20,r15            ; reset equal bit in status register
         ;------------------------------------------------------
-        ; Restore @dsrlnk.savcru, @dsrlnk.savent, @dsrlnk.savver
+        ; Restore dsrlnk variables of previous DSR call
         ;------------------------------------------------------ 
         li    r11,dsrlnk.savcru     ; Get pointer to last used CRU
-        mov   *r11+,r12             ; Get CRU address         => @dsrlnk.savcru
-        mov   *r11+,r9              ; Get DSR entry address   => @dsrlnk.savent
-        mov   *r11+,R1              ; Get DSR Version number  => @dsrlnk.savver
-        mov   *r11+,@>8356          ; \ Get pointer to Device => @file.pab.ptr
-                                    ; / name or subprogram in PAB
+        mov   *r11+,r12             ; Get CRU address         < @dsrlnk.savcru
+        mov   *r11+,r9              ; Get DSR entry address   < @dsrlnk.savent
+        mov   *r11+,@>8356          ; \ Get pointer to Device name or  
+                                    ; / or subprogram in PAB  < @dsrlnk.savpab
+        mov   *r11+,R1              ; Get DSR Version number  < @dsrlnk.savver
+        mov   *r11,@>8354           ; Get device name length  < @dsrlnk.savlen
         ;------------------------------------------------------
         ; Call DSR program in card/device
         ;------------------------------------------------------ 
@@ -334,20 +340,19 @@ dsrlnk.reuse.init:
                                     ; either card hardware malfunction or if
                                     ; there are 2 cards opened at the same time.
 
-        bl    *r9                   ; go run routine
+        bl    *r9                   ; Execute DSR
         ;
         ; Depending on IO result the DSR in card ROM does RET
         ; or (INCT R11 + RET), meaning either (1) or (2) get executed.
         ;
-        nop
-        ;jmp   dsrlnk.error.nodsr_found_off
+        jmp   dsrlnk.error.nodsr_found_off
                                     ; (1) error return
         sbz   >00                   ; (2) turn off card ROM if good return        
         ;------------------------------------------------------
         ; Now check if any DSR error occured
         ;------------------------------------------------------ 
         lwpi  dsrlnk.dsrlws         ; Restore workspace
-        mov   @dsrlnk.pabflg,r0     ; Point to flag byte (PAB+1) in VDP PAB
+        mov   @dsrlnk.flgptr,r0     ; Get pointer to VDP PAB byte 1
 
         jmp   dsrlnk.dsrscan.return_dsr
                                     ; Rest is the same as with normal DSRLNK
