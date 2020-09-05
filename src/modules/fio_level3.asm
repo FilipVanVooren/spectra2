@@ -202,6 +202,9 @@ file.status:
 *  r0   = Address of PAB in VDP RAM
 *  r1   = File type/mode
 *  tmp1 = File operation opcode
+*
+*  @fh.offsetopcode = >00  Data buffer in VDP RAM
+*  @fh.offsetopcode = >40  Data buffer in CPU RAM
 *--------------------------------------------------------------
 *  Output:
 *  tmp0     = Copy of VDP PAB byte 1 after operation
@@ -227,7 +230,11 @@ _file.record.fop:
         ;------------------------------------------------------   
         mov   r0,tmp0               ; VDP write address (PAB byte 0)
 
-        bl    @xvputb               ; Write file opcode to VDP
+        a     @fh.offsetopcode,tmp1 ; Inject offset for file I/O opcode
+                                    ; >00 = Data buffer in VDP RAM
+                                    ; >40 = Data buffer in CPU RAM
+
+        bl    @xvputb               ; Write file I/O opcode to VDP
                                     ; \ i  tmp0 = VDP target address
                                     ; / i  tmp1 = Byte to write
         ;------------------------------------------------------
