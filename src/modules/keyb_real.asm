@@ -91,10 +91,11 @@ realk9  movb  *tmp4,tmp2            ; Real keypress. It's safe to reuse TMP2 now
         jl    realka
         cb    tmp2,@kbsmal+40       ; and ASCII of key pressed > 122 ('z') ?
         jh    realka                ; No, continue
-        ai    tmp2,->2000           ; ASCII = ASCII - 32 (lowercase to uppercase!)
+        ai    tmp2,->2000           ; ASCII = ASCII-32 (lowercase to uppercase!)
 realka  mov   tmp2,@waux1           ; Store ASCII value of key in WAUX1
         soc   @wbit11,config        ; Set ANYKEY flag in CONFIG register
-realkz  li    r15,vdpw              ; Setup VDP write address again after using R15 as temp storage
+realkz  li    r15,vdpw              ; \ Setup VDP write address again after
+                                    ; / using R15 as temp storage
         b     *r11                  ; Exit
 ********|*****|*********************|**************************
 kbsmal  data  >ff00,>0000,>ff0d,>203D
