@@ -80,6 +80,7 @@ mknum5  andi  config,>7fff          ; Reset bit 0
 *  The new string starts at index 5 in buffer, overwriting
 *  anything that is located there !
 *
+*               01234|56789A
 *  Before...:   XXXXX
 *  After....:   XXXXX|zY       where length byte z=1
 *               XXXXX|zYY      where length byte z=2 
