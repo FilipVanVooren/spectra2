@@ -191,10 +191,10 @@ cpu.crash.showreg.content:
                                     ; /         LSB offset for ASCII digit 0-9
 
         bl    @setx                 ; Set cursor X position
-              data 6                ; \ i  p0 =  Cursor Y position
+              data 4                ; \ i  p0 =  Cursor Y position
                                     ; /
 
-        bl    @putstr
+        bl    @putstr               ; Put '  >'
               data cpu.crash.msg.marker
 
         bl    @setx                 ; Set cursor X position
@@ -223,7 +223,7 @@ cpu.crash.showreg.content:
 cpu.crash.msg.crashed      #string 'System crashed near >'
 cpu.crash.msg.caller       #string 'Caller address near >'
 cpu.crash.msg.r            #string 'R'
-cpu.crash.msg.marker       #string '>'
+cpu.crash.msg.marker       #string '  >'
 cpu.crash.msg.wp           #string '**WP'
 cpu.crash.msg.st           #string '**ST'
 cpu.crash.msg.source       #string 'Source    %%build_id%%'
