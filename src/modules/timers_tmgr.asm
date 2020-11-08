@@ -8,7 +8,7 @@
 *--------------------------------------------------------------
 *  REMARKS
 *  Timer/Thread scheduler. Normally called from MAIN.
-*  This is basically the kernel keeping everything togehter.
+*  This is basically the kernel keeping everything together.
 *  Do not forget to set BTIHI to highest slot in use.
 *
 *  Register usage in TMGR8 - TMGR11
