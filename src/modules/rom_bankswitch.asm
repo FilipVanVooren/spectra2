@@ -24,6 +24,12 @@
 ********|*****|*********************|**************************
 swbnk   mov   *r11+,tmp0
         mov   *r11+,tmp1
-swbnkx  clr   *tmp0                 ; Select bank in TMP0
+        clr   *tmp0                 ; Select bank in TMP0
         mov   *tmp1,tmp1
         b     *tmp1                 ; Switch to routine in TMP1
+
+swbnkx  clr   *tmp0                 ; Select bank in TMP0
+        b     *tmp1                 ; Switch to routine in TMP1
+
+
+
