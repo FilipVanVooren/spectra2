@@ -68,7 +68,7 @@ mknum5  andi  config,>7fff          ; Reset bit 0
 * trimnum - Trim unsigned number string
 ***************************************************************
 *  bl   @trimnum
-*  data p0,p1
+*  data p0,p1,p2
 *--------------------------------------------------------------
 *  p0   = Pointer to 5 byte string buffer (no length byte!)
 *  p1   = Pointer to output variable
