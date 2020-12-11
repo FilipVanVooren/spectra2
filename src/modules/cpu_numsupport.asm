@@ -115,7 +115,7 @@ trimnum_setlen:
         ;------------------------------------------------------
         ; Start filling new string
         ;------------------------------------------------------
-trimnum_fill 
+trimnum_fill: 
         movb  *tmp0+,*tmp1+         ; Copy character
         dec   tmp3                  ; Last character ?
         jne   trimnum_fill          ; Not yet, repeat
