@@ -161,7 +161,7 @@ string.getlenc.loop:
         cb    *tmp0+,tmp1           ; Compare character
         jeq   string.getlenc.putlength
         ;-----------------------------------------------------------------------
-        ; Sanity check on string length
+        ; Assert on string length
         ;-----------------------------------------------------------------------
         ci    tmp2,255              
         jgt   string.getlenc.panic

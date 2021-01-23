@@ -102,7 +102,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 1.7.0
 0039               * v1.3    2019/04   Multiple enhancements
 0040               *         New       All equates moved to own equate files.
 0041               *         Bug-Fix   Removed hardwired registers in sound player prepare routine
-0042               *         New       Added length sanity check in cpym2m and introduced
+0042               *         New       Added length Assert in cpym2m and introduced
 0043               *                   crash handler.
 0044               *         New       Added F18a reset function f18rst.
 0045               *         Bug-fix   Upon runlib initialisation the VDP color table and

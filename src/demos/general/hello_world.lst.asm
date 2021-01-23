@@ -1915,7 +1915,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 2.0.1
 0147 6588 09C5  56         srl   tmp1,12               ; Reduce address to 4K chunks
 0148 658A 0A15  56         sla   tmp1,1                ; Registers are 2 bytes appart
 0149               *--------------------------------------------------------------
-0150               * Sanity check on SAMS register
+0150               * Assert on SAMS register
 0151               *--------------------------------------------------------------
 0152 658C 0285  22         ci    tmp1,>1e              ; r@401e   >f000 - >ffff
      658E 001E 

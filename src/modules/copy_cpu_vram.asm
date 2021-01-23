@@ -21,7 +21,7 @@ cpym2v  mov   *r11+,tmp0            ; VDP Start address
         mov   *r11+,tmp1            ; RAM/ROM start address
         mov   *r11+,tmp2            ; Bytes to copy
 *--------------------------------------------------------------
-*    Sanity check
+*    Assert
 *--------------------------------------------------------------
 xpym2v  mov   tmp2,tmp2             ; Bytes to copy = 0 ?
         jne   !                     ; No, continue

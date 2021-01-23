@@ -86,7 +86,7 @@ film    mov   *r11+,tmp0            ; Memory start
         mov   *r11+,tmp1            ; Byte to fill
         mov   *r11+,tmp2            ; Repeat count
 *--------------------------------------------------------------
-* Sanity check
+* Assert
 *--------------------------------------------------------------
 xfilm   mov   tmp2,tmp3             ; Bytes to fill = 0 ?
         jne   filchk                ; No, continue checking

@@ -55,7 +55,7 @@
 *                   Added scratchpad paging functions
 *         New       All equates moved to own equate files.
 *         Bug-Fix   Removed hardwired registers in sound player prepare routine
-*         New       Added length sanity check in cpym2m and introduced 
+*         New       Added length Assert in cpym2m and introduced 
 *                   crash handler.
 *         New       Added F18a reset function f18rst.
 *         Bug-fix   Upon runlib initialisation the VDP color table and 
