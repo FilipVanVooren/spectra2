@@ -115,7 +115,7 @@ filchk2 ci    tmp2,2                ; Byte to fill = 2 ?
 *--------------------------------------------------------------
 filchk3 mov   tmp0,tmp3
         andi  tmp3,1                ; TMP3=1 -> ODD else EVEN
-        jne   fil16b
+        jeq   fil16b
         movb  tmp1,*tmp0+           ; Copy 1st byte
         dec   tmp2
         ci    tmp2,2                ; Do we only have 1 word left?
