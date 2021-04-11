@@ -474,6 +474,9 @@ yx2pnt  mov   r14,tmp0              ; Save VDP#0 & VDP#1
 *--------------------------------------------------------------
 *  REMARKS
 *  First byte of string must contain length
+*--------------------------------------------------------------
+*  Register usage
+*  tmp1, tmp2, tmp3
 ********|*****|*********************|**************************
 putstr  mov   *r11+,tmp1
 xutst0  movb  *tmp1+,tmp2           ; Get length byte
@@ -513,3 +516,65 @@ xutstr  mov   r11,tmp3
 ********|*****|*********************|**************************
 putat   mov   *r11+,@wyx            ; Set YX position
         b     @putstr
+
+
+***************************************************************
+* putlst
+* Loop over string list and display
+***************************************************************
+* bl  @_put.strings
+*--------------------------------------------------------------
+* INPUT
+* @wyx = Cursor position
+* tmp1 = Pointer to first length-prefixed string in list
+* tmp2 = Number of strings to display
+*--------------------------------------------------------------
+* OUTPUT
+* none
+*--------------------------------------------------------------
+* Register usage
+* tmp0, tmp1, tmp2, tmp3
+********|*****|*********************|**************************
+putlst:
+        dect  stack
+        mov   r11,*stack            ; Save return address
+        dect  stack
+        mov   tmp0,*stack           ; Push tmp0
+        ;------------------------------------------------------
+        ; Dump strings to VDP
+        ;------------------------------------------------------
+putlst.loop:
+        movb  *tmp1,tmp3            ; Get string length byte
+        srl   tmp3,8                ; Right align
+
+        dect  stack
+        mov   tmp1,*stack           ; Push tmp1
+        dect  stack
+        mov   tmp2,*stack           ; Push tmp2
+        dect  stack
+        mov   tmp3,*stack           ; Push tmp3
+
+        bl    @xutst0               ; Display string
+                                    ; \ i  tmp1 = Pointer to string
+                                    ; / i  @wyx = Cursor position at
+
+        mov   *stack+,tmp3          ; Pop tmp3
+        mov   *stack+,tmp2          ; Pop tmp2
+        mov   *stack+,tmp1          ; Pop tmp1
+
+        bl    @down                 ; Move cursor down
+
+        a     tmp3,tmp1             ; Add string length to pointer
+        inc   tmp1                  ; Consider length byte
+        czc   @w$0001,tmp1          ; Is address even ?
+        jeq   !                     ; Yes, skip adjustment
+        inc   tmp1                  ; Make address even
+!       dec   tmp2
+        jgt   putlst.loop
+        ;------------------------------------------------------
+        ; Exit
+        ;------------------------------------------------------
+putlst.exit:
+        mov   *stack+,tmp0          ; Pop tmp0      
+        mov   *stack+,r11           ; Pop r11
+        b     *r11                  ; Return
