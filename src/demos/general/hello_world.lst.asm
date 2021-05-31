@@ -2580,7 +2580,7 @@ XAS99 CROSS-ASSEMBLER   VERSION 2.0.1
 0040 6794 C20B  18 f18chk  mov   r11,tmp4              ; Save R11
 0041 6796 06A0  32         bl    @cpym2v
      6798 643C 
-0042 679A 3F00             data  >3f00,f18chk_gpu,6    ; Copy F18A GPU code to VRAM
+0042 679A 3F00             data  >3f00,f18chk_gpu,8    ; Copy F18A GPU code to VRAM
      679C 67D8 
      679E 0006 
 0043 67A0 06A0  32         bl    @putvr

@@ -39,7 +39,7 @@ f18lck  mov   r11,tmp4              ; Save R11
 ********|*****|*********************|**************************
 f18chk  mov   r11,tmp4              ; Save R11
         bl    @cpym2v
-        data  >3f00,f18chk_gpu,6    ; Copy F18A GPU code to VRAM
+        data  >3f00,f18chk_gpu,8    ; Copy F18A GPU code to VRAM
         bl    @putvr
         data  >363f                 ; Load MSB of GPU PC (>3f) into VR54 (>36)
         bl    @putvr
@@ -71,6 +71,7 @@ f18chk_gpu
         data  >04e0                 ; 3f00 \ 04e0  clr @>3f00
         data  >3f00                 ; 3f02 / 3f00
         data  >0340                 ; 3f04   0340  idle
+        data  >10ff                 ; 3f06   10ff  jmp $
 
 
 ***************************************************************

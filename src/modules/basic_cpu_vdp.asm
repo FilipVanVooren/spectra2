@@ -522,7 +522,7 @@ putat   mov   *r11+,@wyx            ; Set YX position
 * putlst
 * Loop over string list and display
 ***************************************************************
-* bl  @_put.strings
+* bl  @putlst
 *--------------------------------------------------------------
 * INPUT
 * @wyx = Cursor position
