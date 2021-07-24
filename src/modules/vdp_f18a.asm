@@ -15,6 +15,8 @@ f18unl  mov   r11,tmp4              ; Save R11
         data  >391c                 ; VR1/57, value 00011100
         bl    @putvr                ; Write twice
         data  >391c                 ; VR1/57, value 00011100
+        bl    @putvr
+        data  >01e0                 ; VR1, value 11100000, a sane setting
         b     *tmp4                 ; Exit
 
 
@@ -47,7 +49,7 @@ f18chk  mov   r11,tmp4              ; Save R11
                                     ; GPU code should run now
 ***************************************************************
 * VDP @>3f00 == 0 ? F18A present : F18a not present
-***************************************************************        
+***************************************************************
         li    tmp0,>3f00
         bl    @vdra                 ; Set VDP read address to >3f00
         movb  @vdpr,tmp0            ; Read MSB byte
