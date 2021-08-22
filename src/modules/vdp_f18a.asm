@@ -26,8 +26,8 @@ f18unl  mov   r11,tmp4              ; Save R11
 *  bl   @f18lck
 ********|*****|*********************|**************************
 f18lck  mov   r11,tmp4              ; Save R11 
-        bl    @putvr                ; VR1/57, value 00011100
-        data  >391c
+        bl    @putvr                ; VR1/57, value 00000000
+        data  >3900
         b     *tmp4                 ; Exit
 
 
@@ -37,7 +37,8 @@ f18lck  mov   r11,tmp4              ; Save R11
 *  bl   @f18chk
 *--------------------------------------------------------------
 *  REMARKS
-*  VDP memory >3f00->3f05 still has part of GPU code upon exit.
+*  Expects that the f18a is unlocked when calling this function.
+*  Runs GPU code at VDP >3f00
 ********|*****|*********************|**************************
 f18chk  mov   r11,tmp4              ; Save R11
         bl    @cpym2v
@@ -63,7 +64,7 @@ f18chk_no:
 f18chk_yes:
         ori   config,>4000          ; CONFIG Register bit 1=1
 f18chk_exit:
-        bl    @filv                 ; Clear VDP mem >3f00->3f07
+        bl    @filv                 ; Clear VDP mem >3f00->3f05
         data  >3f00,>00,6 
         b     *tmp4                 ; Exit
 ***************************************************************
@@ -84,6 +85,8 @@ f18chk_gpu
 *  This is used to leave the F18A mode and revert all settings
 *  that could lead to corruption when doing BLWP @0
 *
+*  Is expected to run while the f18a is unlocked. 
+* 
 *  There are some F18a settings that stay on when doing blwp @0
 *  and the TI title screen cannot recover from that.
 * 
@@ -98,8 +101,8 @@ f18rst  mov   r11,tmp4              ; Save R11
         bl    @putvr 
         data  >3280                 ; F18a VR50 (>32), MSB 8=1
 
-        bl    @putvr                ; VR1/57, value 00011100
-        data  >391c                 ; Lock the F18a
+        bl    @putvr                ; VR1/57, value 00000000
+        data  >3900                 ; Lock the F18a
         b     *tmp4                 ; Exit
 
 
