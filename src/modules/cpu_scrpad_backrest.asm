@@ -60,24 +60,13 @@ cpu.scrpad.backup.exit:
 *  bl   @cpu.scrpad.restore
 *--------------------------------------------------------------
 *  Register usage
-*  r0-r2, but values restored before exit
+*  r0-r2
 *--------------------------------------------------------------
 *  Restore scratchpad from memory area @cpu.scrpad.tgt (+ >ff).
 *  Current workspace can be outside scratchpad when called.
 ********|*****|*********************|**************************
 cpu.scrpad.restore:
-        ;------------------------------------------------------
-        ; Restore scratchpad >8300 - >8304
-        ;------------------------------------------------------
-        mov   @cpu.scrpad.tgt,@>8300
-        mov   @cpu.scrpad.tgt + 2,@>8302
-        mov   @cpu.scrpad.tgt + 4,@>8304
-        ;------------------------------------------------------
-        ; save current r0 - r2 (WS can be outside scratchpad!)
-        ;------------------------------------------------------
-        mov   r0,@cpu.scrpad.tgt
-        mov   r1,@cpu.scrpad.tgt + 2
-        mov   r2,@cpu.scrpad.tgt + 4
+        mov   r11,@rambuf           ; Backup return address
         ;------------------------------------------------------
         ; Prepare for copy loop, WS 
         ;------------------------------------------------------
@@ -95,13 +84,14 @@ cpu.scrpad.restore.copy:
         mov   @cpu.scrpad.tgt + > fe,@>83fe   
                                     ; Copy last word        
         ;------------------------------------------------------
-        ; Restore register r0 - r2
+        ; Restore scratchpad >8300 - >8304
         ;------------------------------------------------------
-        mov   @cpu.scrpad.tgt,r0
-        mov   @cpu.scrpad.tgt + 2,r1                                             
-        mov   @cpu.scrpad.tgt + 4,r2
+        mov   @cpu.scrpad.tgt,@>8300       ; r0
+        mov   @cpu.scrpad.tgt + 2,@>8302   ; r1
+        mov   @cpu.scrpad.tgt + 4,@>8304   ; r2
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
 cpu.scrpad.restore.exit:        
+        mov   @rambuf,r11           ; Restore return address
         b     *r11                  ; Return to caller

@@ -66,7 +66,8 @@
 * skip_fio                  equ  1  ; Skip support for file I/O, dsrlnk
 *
 * == Startup behaviour 
-* startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300:>83ff to @>2000
+* startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300->83ff
+*                                   ; to pre-defined backup address
 * startup_keep_vdpmemory    equ  1  ; Do not clear VDP vram upon startup
 *******************************************************************************
 
