@@ -11,8 +11,6 @@
 *                    to CPU memory destination P0 (tmp1)
 *                    and replace with 256 bytes of memory from
 *                    predefined destination @cpu.scrpad.target 
-*
-*                    Workspace at 
 ***************************************************************
 *  bl   @cpu.scrpad.pgout
 *       DATA p0
@@ -23,8 +21,9 @@
 *  tmp1 = CPU memory destination
 *--------------------------------------------------------------
 *  Register usage
-*  tmp0-tmp2 = Used as temporary registers
 *  tmp3      = Copy of CPU memory destination
+*  tmp0-tmp2 = Used as temporary registers
+*  @waux1    = Copy of r5 (tmp1)
 *--------------------------------------------------------------
 *  Remarks
 *  Copies 256 bytes from scratchpad to CPU memory destination
@@ -34,14 +33,26 @@
 *  >8300 and activates workspace in >8300
 ********|*****|*********************|**************************
 cpu.scrpad.pgout:
+        mov   tmp1,@waux1           ; Backup tmp1
         mov   *r11+,tmp1            ; tmp1 = Memory target address
+        ;------------------------------------------------------
+        ; Copy registers r0-r7
+        ;------------------------------------------------------
+        mov   r0,*tmp1+             ; Backup r0
+        mov   r1,*tmp1+             ; Backup r1
+        mov   r2,*tmp1+             ; Backup r2
+        mov   r3,*tmp1+             ; Backup r3
+        mov   r4,*tmp1+             ; Backup r4
+        mov   @waux1,*tmp1+         ; Backup r5 (old value tmp1)
+        mov   r6,*tmp1+             ; Backup r6
+        mov   r7,*tmp1+             ; Backup r7
         ;------------------------------------------------------
         ; Copy scratchpad memory to destination
         ;------------------------------------------------------
 xcpu.scrpad.pgout:
-        li    tmp0,>8300            ; tmp0 = Memory source address
-        mov   tmp1,tmp3             ; tmp3 = copy of tmp1
-        li    tmp2,16               ; tmp2 = 256/16        
+        li    tmp0,>8310            ; tmp0 = Memory source address
+                                    ;        as of register r8
+        li    tmp2,15               ; tmp2 = 15 iterations
         ;------------------------------------------------------
         ; Copy memory
         ;------------------------------------------------------
@@ -58,7 +69,7 @@ xcpu.scrpad.pgout:
         ;------------------------------------------------------
         ; Switch to new workspace
         ;------------------------------------------------------
-        mov   tmp3,r13              ; R13=WP   (pop tmp1 from stack)
+        mov   @waux1,r13            ; R13=WP   (pop tmp1 from stack)
         li    r14,cpu.scrpad.pgout.after.rtwp
                                     ; R14=PC
         clr   r15                   ; R15=STATUS
