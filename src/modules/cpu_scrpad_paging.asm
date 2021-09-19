@@ -33,8 +33,7 @@
 *  >8300 and activates workspace in >8300
 ********|*****|*********************|**************************
 cpu.scrpad.pgout:
-        mov   tmp1,@waux1           ; Backup tmp1
-        mov   *r11+,tmp1            ; tmp1 = Memory target address
+        mov   *r11,tmp1             ; tmp1 = Memory target address
         ;------------------------------------------------------
         ; Copy registers r0-r7
         ;------------------------------------------------------
@@ -43,7 +42,7 @@ cpu.scrpad.pgout:
         mov   r2,*tmp1+             ; Backup r2
         mov   r3,*tmp1+             ; Backup r3
         mov   r4,*tmp1+             ; Backup r4
-        mov   @waux1,*tmp1+         ; Backup r5 (old value tmp1)
+        mov   r5,*tmp1+             ; Backup r5 (is tmp1, so is bogus)
         mov   r6,*tmp1+             ; Backup r6
         mov   r7,*tmp1+             ; Backup r7
         ;------------------------------------------------------
@@ -69,7 +68,7 @@ xcpu.scrpad.pgout:
         ;------------------------------------------------------
         ; Switch to new workspace
         ;------------------------------------------------------
-        mov   @waux1,r13            ; R13=WP   (pop tmp1 from stack)
+        mov   *r11+,r13             ; R13=WP   (pop tmp1 from stack)
         li    r14,cpu.scrpad.pgout.after.rtwp
                                     ; R14=PC
         clr   r15                   ; R15=STATUS
@@ -140,3 +139,9 @@ xcpu.scrpad.pgin:
         ;------------------------------------------------------
 cpu.scrpad.pgin.exit:
         b     *r11                  ; Return to caller 
+
+
+
+************************************************************************
+
+; TODO scrpad.pgout may not switch to WS it has just copied!
