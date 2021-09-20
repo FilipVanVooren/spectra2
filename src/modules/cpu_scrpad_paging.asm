@@ -27,10 +27,12 @@
 *--------------------------------------------------------------
 *  Remarks
 *  Copies 256 bytes from scratchpad to CPU memory destination
-*  specified in P0 (TMP1).
+*  specified in P0 (tmp1).
 *
-*  Then copies 256 bytes from @cpu.scrpad.tgt to scratchpad 
-*  >8300 and activates workspace in >8300
+*  Then switches to the newly copied workspace in P0 (tmp1).
+*
+*  Finally it copies 256 bytes from @cpu.scrpad.tgt
+*  to scratchpad >8300 and activates workspace at >8300
 ********|*****|*********************|**************************
 cpu.scrpad.pgout:
         mov   *r11,tmp1             ; tmp1 = Memory target address
@@ -66,7 +68,7 @@ xcpu.scrpad.pgout:
         dec   tmp2
         jne   -!                    ; Loop until done
         ;------------------------------------------------------
-        ; Switch to new workspace
+        ; Switch to newly copied workspace
         ;------------------------------------------------------
         mov   *r11+,r13             ; R13=WP   (pop tmp1 from stack)
         li    r14,cpu.scrpad.pgout.after.rtwp
@@ -83,6 +85,7 @@ xcpu.scrpad.pgout:
 cpu.scrpad.pgout.after.rtwp:
         b     @cpu.scrpad.restore   ; Restore scratchpad memory 
                                     ; from @cpu.scrpad.tgt to @>8300
+                                    ; and switch workspace to >8300.
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
@@ -108,6 +111,9 @@ cpu.scrpad.pgout.exit:
 *  Remarks
 *  Copies 256 bytes from CPU memory source to scratchpad >8300 
 *  and activates workspace in scratchpad >8300
+*
+*  It's expected that the workspace is outside scratchpad >8300
+*  when calling this function.
 ********|*****|*********************|**************************
 cpu.scrpad.pgin:
         mov   *r11+,tmp0            ; tmp0 = Memory source address
@@ -139,9 +145,3 @@ xcpu.scrpad.pgin:
         ;------------------------------------------------------
 cpu.scrpad.pgin.exit:
         b     *r11                  ; Return to caller 
-
-
-
-************************************************************************
-
-; TODO scrpad.pgout may not switch to WS it has just copied!

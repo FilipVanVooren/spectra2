@@ -63,16 +63,23 @@ cpu.scrpad.backup.exit:
 *  r0-r2
 *--------------------------------------------------------------
 *  Restore scratchpad from memory area @cpu.scrpad.tgt (+ >ff).
-*  Current workspace can be outside scratchpad when called.
+*  Current workspace may not be in scratchpad >8300 when called.
 ********|*****|*********************|**************************
 cpu.scrpad.restore:
-        mov   r11,@rambuf           ; Backup return address
+        dect  stack
+        mov   r11,*stack            ; Save return address
+        dect  stack
+        mov   r0,*stack             ; Push r0
+        dect  stack
+        mov   r1,*stack             ; Push r1
+        dect  stack
+        mov   r2,*stack             ; Push r2
         ;------------------------------------------------------
         ; Prepare for copy loop, WS 
         ;------------------------------------------------------
-        li    r0,cpu.scrpad.tgt + 6
-        li    r1,>8306
-        li    r2,62
+        li    r0,cpu.scrpad.tgt
+        li    r1,>8300
+        li    r2,64
         ;------------------------------------------------------
         ; Copy memory range @cpu.scrpad.tgt <-> @cpu.scrpad.tgt + >ff
         ;------------------------------------------------------
@@ -81,17 +88,12 @@ cpu.scrpad.restore.copy:
         mov   *r0+,*r1+        
         dect  r2
         jne   cpu.scrpad.restore.copy
-        mov   @cpu.scrpad.tgt + > fe,@>83fe   
-                                    ; Copy last word        
-        ;------------------------------------------------------
-        ; Restore scratchpad >8300 - >8304
-        ;------------------------------------------------------
-        mov   @cpu.scrpad.tgt,@>8300       ; r0
-        mov   @cpu.scrpad.tgt + 2,@>8302   ; r1
-        mov   @cpu.scrpad.tgt + 4,@>8304   ; r2
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
 cpu.scrpad.restore.exit:        
-        mov   @rambuf,r11           ; Restore return address
+        mov   *stack+,r2            ; Pop r2
+        mov   *stack+,r1            ; Pop r1
+        mov   *stack+,r0            ; Pop r0
+        mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return to caller
