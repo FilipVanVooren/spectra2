@@ -86,7 +86,7 @@ cpu.scrpad.restore:
 cpu.scrpad.restore.copy:
         mov   *r0+,*r1+
         mov   *r0+,*r1+        
-        dect  r2
+        dec   r2
         jne   cpu.scrpad.restore.copy
         ;------------------------------------------------------
         ; Exit
