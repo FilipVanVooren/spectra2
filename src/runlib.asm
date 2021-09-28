@@ -331,7 +331,9 @@ runlia  bl    @filv
 *       <<skipped>>
     .else
         bl    @f18unl               ; Unlock the F18A
-        bl    @f18chk               ; Check if F18A is there
+        bl    @f18chk               ; Check if F18A is there \ 
+        bl    @f18chk               ; Check if F18A is there | js99er bug?
+        bl    @f18chk               ; Check if F18A is there /
         bl    @f18lck               ; Lock the F18A again
 
         bl    @putvr                ; Reset all F18a extended registers
