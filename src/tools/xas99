@@ -33,8 +33,8 @@ g_preproc="$g_prepdir/$g_source.$$"           # Preprocessor source file
 # Defaults
 g_asmrc=99                                    # xas99 return code
 g_binary="${g_basename}.bin"                  # Output filename
-g_date="$(date '+%y%m%d')-$$"                 # Current date & PID
-g_now="$(date '+%y-%m-%d %H:%M:%S')"          # Current date & time
+g_date="$(date '+%y%m%d-%H%M%S0')"            # Current date & time format 1
+g_now="$(date '+%y-%m-%d %H:%M:%S')"          # Current date & time format 2
 g_prog="$g_prog ($g_date)"                    # Cartridge title
 g_list="${g_basename}.lst.asm"                # Always create list file
 g_xas99="${BASH_SOURCE[0]}"                   # This wrapper
@@ -87,7 +87,8 @@ function preproc_source() {
       #------------------------------------------------------------------------
       sed -i -e "s/%%build_date%%/${g_date}/"                     \
              -e "s/%%build_date.length%%/${#g_date}/"             \
-             -e "s/%%build_id%%/${g_list}/"                       \
+             -e "s/%%build_id%%/${g_date}/"                       \
+             -e "s/%%build_src%%/${g_list}/"                      \
              -e "s/%%spectra2%%/${g_spectra2}/"                   \
              ${i}
 
