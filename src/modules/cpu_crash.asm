@@ -75,15 +75,19 @@ cpu.crash.main:
         ; Load "32x24" video mode & font
         ;------------------------------------------------------
         bl    @vidtab               ; Load video mode table into VDP
-              data graph1           ; Equate selected video mode table
+              data graph1           ; \ i  p0 = pointer to video mode table
+                                    ; /
 
         bl    @ldfnt
               data >0900,fnopt3     ; Load font (upper & lower case)
-      
+
+        bl    @filv
+              data >0000,32,32*24   ; Clear screen
+
         bl    @filv
               data >0380,>f0,32*24  ; Load color table
         ;------------------------------------------------------
-        ; Show crash details
+        ; Show crash address
         ;------------------------------------------------------
         bl    @putat                ; Show crash message
               data >0000,cpu.crash.msg.crashed
@@ -95,7 +99,7 @@ cpu.crash.main:
               byte 65,48            ; | i  p3 = MSB offset for ASCII digit a-f
                                     ; /         LSB offset for ASCII digit 0-9
         ;------------------------------------------------------
-        ; Show caller details
+        ; Show caller address
         ;------------------------------------------------------
         bl    @putat                ; Show caller message
               data >0100,cpu.crash.msg.caller
@@ -160,6 +164,9 @@ cpu.crash.showreg.label:
               data 0                ; \ i  p0 =  Cursor Y position
                                     ; /
 
+        li    tmp0,>0400            ; Set string length-prefix byte
+        movb  tmp0,@rambuf          ;
+
         bl    @putstr               ; Put length-byte prefixed string at current YX
               data rambuf           ; \ i  p0 = Pointer to ram buffer
                                     ; /
@@ -200,6 +207,9 @@ cpu.crash.showreg.content:
         bl    @setx                 ; Set cursor X position
               data 7                ; \ i  p0 =  Cursor Y position
                                     ; /
+
+        li    tmp0,>0400            ; Set string length-prefix byte
+        movb  tmp0,@rambuf          ;
 
         bl    @putstr               ; Put length-byte prefixed string at current YX
               data rambuf           ; \ i  p0 = Pointer to ram buffer
