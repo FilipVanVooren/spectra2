@@ -164,7 +164,8 @@ function assemble() {
   echo "Run suffix .............. $g_date"                >>$g_xas99hdr
   echo "************************************************" >>$g_xas99hdr
 
-  xas99.py -b $g_preproc     \
+  xas99.py -q \
+           -b $g_preproc     \
            -o bin/$g_binary  \
            -L list/$g_list   \
            -D build_date=$g_date   1>${g_xas99run}    2>&1
