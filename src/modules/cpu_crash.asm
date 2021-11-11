@@ -227,7 +227,7 @@ cpu.crash.showreg.content:
         ;------------------------------------------------------
         ; Kernel takes over
         ;------------------------------------------------------
-        b     @tmgr                 ; Start kernel again for polling keyboard
+        b     @cpu.crash.showbank   ; Expected to be included in
         
 
 cpu.crash.msg.crashed      #string 'System crashed near >'
