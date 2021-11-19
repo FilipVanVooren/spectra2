@@ -116,7 +116,7 @@ kbfctn  data  >ff00,>0000,>ff0d,>2005
         data  >7f5b,>7b02,>015f,>c0C3
         data  >be5d,>7d0e,>0cc6,>bfC4
         data  >5cb9,>7c03,>bc22,>bdBA
-kbctrl  data  >ff00,>0000,>ff0d,>209D
+kbctrl  data  >ff00,>0000,>ff0d,>f09D
         data  >9897,>93b2,>9f8f,>8c9B
         data  >8385,>84b3,>9e89,>8b80
         data  >9692,>86b4,>b795,>8a8D
