@@ -32,6 +32,21 @@ f18lck  mov   r11,tmp4              ; Save R11
 
 
 ***************************************************************
+* f18idl - Put GPU in F18A VDP in idle mode (stop GPU program)
+***************************************************************
+*  bl   @f18idl
+*--------------------------------------------------------------
+*  REMARKS
+*  Expects that the f18a is unlocked when calling this function.
+********|*****|*********************|**************************
+f18idl  mov   r11,tmp4              ; Save R11 
+        bl    @putvr                ; VR56 >38, value 00000000
+        data  >3800                 ; Reset and load PC (GPU idle!)
+        b     *tmp4                 ; Exit
+
+
+
+***************************************************************
 * f18chk - Check if F18A VDP present
 ***************************************************************
 *  bl   @f18chk
@@ -42,12 +57,15 @@ f18lck  mov   r11,tmp4              ; Save R11
 ********|*****|*********************|**************************
 f18chk  mov   r11,tmp4              ; Save R11
         bl    @cpym2v
-        data  >3f00,f18chk_gpu,6    ; Copy F18A GPU code to VRAM
+        data  >3f00,f18chk_gpu,8    ; Copy F18A GPU code to VRAM
         bl    @putvr
         data  >363f                 ; Load MSB of GPU PC (>3f) into VR54 (>36)
         bl    @putvr
         data  >3700                 ; Load LSB of GPU PC (>00) into VR55 (>37)
                                     ; GPU code should run now
+
+        bl    @putvr                ; VR56 >38, value 00000000
+        data  >3800                 ; Reset and load PC (GPU idle!)        
 ***************************************************************
 * VDP @>3f00 == 0 ? F18A present : F18a not present
 ***************************************************************
@@ -63,6 +81,7 @@ f18chk_no:
         jmp   f18chk_exit 
 f18chk_yes:
         ori   config,>4000          ; CONFIG Register bit 1=1
+
 f18chk_exit:
         bl    @filv                 ; Clear VDP mem >3f00->3f05
         data  >3f00,>00,6 
@@ -74,7 +93,10 @@ f18chk_gpu
         data  >04e0                 ; 3f00 \ 04e0  clr @>3f00
         data  >3f00                 ; 3f02 / 3f00
         data  >0340                 ; 3f04   0340  idle
-
+        data  >10ff                 ; 3f06   10ff  \ jmp $  
+                                    ;              | Make classic99 debugger
+                                    ;              | happy if break on illegal
+                                    ;              / opcode is on.
 
 ***************************************************************
 * f18rst - Reset f18a into standard settings
