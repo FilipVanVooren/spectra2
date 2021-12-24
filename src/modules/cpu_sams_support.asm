@@ -244,103 +244,65 @@ sams.mapping.off.exit:
 *     data P0
 *--------------------------------------------------------------
 * INPUT
-* P0 = Pointer to SAMS page layout table (16 words).
+* P0 = Pointer to SAMS page layout table
 *--------------------------------------------------------------
 * bl  @xsams.layout
 *
-* tmp0 = Pointer to SAMS page layout table (16 words).
+* tmp0 = Pointer to SAMS page layout table
 *--------------------------------------------------------------
 * OUTPUT
 * none
 *--------------------------------------------------------------
 * Register usage
-* tmp0, tmp1, tmp2, tmp3
+* tmp0, r12
 ********|*****|*********************|**************************
 sams.layout:
-        mov   *r11+,tmp3            ; Get P0
+        mov   *r11+,tmp0            ; Get P0
 xsams.layout:          
         dect  stack
         mov   r11,*stack            ; Save return address
         dect  stack
         mov   tmp0,*stack           ; Save tmp0
         dect  stack
-        mov   tmp1,*stack           ; Save tmp1
-        dect  stack
-        mov   tmp2,*stack           ; Save tmp2
-        dect  stack
-        mov   tmp3,*stack           ; Save tmp3
+        mov   r12,*stack            ; Save r12
         ;------------------------------------------------------
-        ; Initialize
+        ; Set SAMS registers
         ;------------------------------------------------------
-        li    tmp2,8                ; Set loop counter
-        ;------------------------------------------------------
-        ; Set SAMS memory pages
-        ;------------------------------------------------------
-sams.layout.loop:        
-        mov   *tmp3+,tmp1           ; Get memory address
-        mov   *tmp3+,tmp0           ; Get SAMS page
+        li    r12,>1e00             ; SAMS CRU address
+        sbz   1                     ; Disable SAMS mapper                
+        sbo   0                     ; Enable access to SAMS registers
 
-        bl    @xsams.page.set       ; \ Switch SAMS page
-                                    ; | i  tmp0 = SAMS page
-                                    ; / i  tmp1 = Memory address
+        mov  *tmp0+,@>4004          ; Set page for >2000 - >2fff
+        mov  *tmp0+,@>4006          ; Set page for >3000 - >3fff
+        mov  *tmp0+,@>4014          ; Set page for >a000 - >afff
+        mov  *tmp0+,@>4016          ; Set page for >b000 - >bfff
+        mov  *tmp0+,@>4018          ; Set page for >c000 - >cfff
+        mov  *tmp0+,@>401a          ; Set page for >d000 - >dfff
+        mov  *tmp0+,@>401c          ; Set page for >e000 - >efff
+        mov  *tmp0+,@>401e          ; Set page for >f000 - >ffff        
 
-        dec   tmp2                  ; Next iteration
-        jne   sams.layout.loop      ; Loop until done
+        sbz   0                     ; Disable access to SAMS registers
+        sbo   1                     ; Enable SAMS mapper
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
-sams.init.exit:        
-        bl    @sams.mapping.on      ; \ Turn on SAMS mapping for
-                                    ; / activating changes.
-
-        mov   *stack+,tmp3          ; Pop tmp3
-        mov   *stack+,tmp2          ; Pop tmp2
-        mov   *stack+,tmp1          ; Pop tmp1
+sams.layout.exit:        
+        mov   *stack+,r12           ; Pop r12
         mov   *stack+,tmp0          ; Pop tmp0 
         mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return to caller
-
-
-
 ***************************************************************
-* sams.layout.reset
-* Reset SAMS memory banks to standard layout
-***************************************************************
-* bl  @sams.layout.reset
-*--------------------------------------------------------------
-* OUTPUT
-* none
-*--------------------------------------------------------------
-* Register usage
-* none
-********|*****|*********************|**************************
-sams.layout.reset:
-        dect  stack
-        mov   r11,*stack            ; Save return address
-        ;------------------------------------------------------
-        ; Set SAMS standard layout
-        ;------------------------------------------------------        
-        bl    @sams.layout
-              data sams.layout.standard
-        ;------------------------------------------------------
-        ; Exit
-        ;------------------------------------------------------
-sams.layout.reset.exit:
-        mov   *stack+,r11           ; Pop r11
-        b     *r11                  ; Return to caller
-***************************************************************
-* SAMS standard page layout table (16 words)
+* SAMS standard page layout table
 *--------------------------------------------------------------
 sams.layout.standard:
-        data  >2000,>0002           ; >2000-2fff, SAMS page >02
-        data  >3000,>0003           ; >3000-3fff, SAMS page >03
-        data  >a000,>000a           ; >a000-afff, SAMS page >0a
-        data  >b000,>000b           ; >b000-bfff, SAMS page >0b
-        data  >c000,>000c           ; >c000-cfff, SAMS page >0c
-        data  >d000,>000d           ; >d000-dfff, SAMS page >0d
-        data  >e000,>000e           ; >e000-efff, SAMS page >0e
-        data  >f000,>000f           ; >f000-ffff, SAMS page >0f
-
+        data  >0200                 ; >2000-2fff, SAMS page >02
+        data  >0300                 ; >3000-3fff, SAMS page >03
+        data  >0a00                 ; >a000-afff, SAMS page >0a
+        data  >0b00                 ; >b000-bfff, SAMS page >0b
+        data  >0c00                 ; >c000-cfff, SAMS page >0c
+        data  >0d00                 ; >d000-dfff, SAMS page >0d
+        data  >0e00                 ; >e000-efff, SAMS page >0e
+        data  >0f00                 ; >f000-ffff, SAMS page >0f
 
 
 ***************************************************************
@@ -400,16 +362,3 @@ sams.layout.copy.exit:
         mov   *stack+,tmp0          ; Pop tmp0                
         mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return to caller
-***************************************************************
-* SAMS memory range table (8 words)
-*--------------------------------------------------------------
-sams.layout.copy.data:
-        data  >2000                 ; >2000-2fff
-        data  >3000                 ; >3000-3fff
-        data  >a000                 ; >a000-afff
-        data  >b000                 ; >b000-bfff
-        data  >c000                 ; >c000-cfff
-        data  >d000                 ; >d000-dfff
-        data  >e000                 ; >e000-efff
-        data  >f000                 ; >f000-ffff
-
