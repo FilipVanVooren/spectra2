@@ -64,16 +64,10 @@ cpu.scrpad.backup.exit:
 *--------------------------------------------------------------
 *  Restore scratchpad from memory area @cpu.scrpad.tgt (+ >ff).
 *  Current workspace may not be in scratchpad >8300 when called.
+*
+*  Destroys r0,r1,r2
 ********|*****|*********************|**************************
 cpu.scrpad.restore:
-        dect  stack
-        mov   r11,*stack            ; Save return address
-        dect  stack
-        mov   r0,*stack             ; Push r0
-        dect  stack
-        mov   r1,*stack             ; Push r1
-        dect  stack
-        mov   r2,*stack             ; Push r2
         ;------------------------------------------------------
         ; Prepare for copy loop, WS 
         ;------------------------------------------------------
@@ -92,8 +86,4 @@ cpu.scrpad.restore.copy:
         ; Exit
         ;------------------------------------------------------
 cpu.scrpad.restore.exit:        
-        mov   *stack+,r2            ; Pop r2
-        mov   *stack+,r1            ; Pop r1
-        mov   *stack+,r0            ; Pop r0
-        mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return to caller
