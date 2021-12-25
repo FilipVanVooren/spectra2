@@ -24,7 +24,7 @@
 * skip_cpu_cpu_copy         equ  1  ; Skip CPU  to CPU copy functions
 * skip_grom_cpu_copy        equ  1  ; Skip GROM to CPU copy functions
 * skip_grom_vram_copy       equ  1  ; Skip GROM to VRAM copy functions
-* skip_sams                 equ  1  ; Skip CPU support for SAMS memory expansion
+* skip_sams                 equ  1  ; Skip support for SAMS memory expansion
 *
 * == VDP
 * skip_textmode             equ  1  ; Skip 40x24 textmode support
@@ -111,7 +111,7 @@
     .endif
 
     .ifndef skip_sams
-        copy  "cpu_sams_support.asm"     ; CPU support for SAMS memory card
+        copy  "cpu_sams.asm"             ; Support for SAMS memory card
     .endif                             
 
     .ifndef skip_vdp_intscr

@@ -1,4 +1,4 @@
-* FILE......: cpu_sams_support.asm
+* FILE......: cpu_sams.asm
 * Purpose...: Low level support for SAMS memory expansion card
 
 *//////////////////////////////////////////////////////////////
@@ -201,12 +201,15 @@ sams.page.set.exit:
 *  r12
 ********|*****|*********************|**************************
 sams.mapping.on:
+        dect  stack
+        mov   r12,*stack            ; Push r12
         li    r12,>1e00             ; SAMS CRU address
         sbo   1                     ; Enable SAMS mapper
 *--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
 sams.mapping.on.exit:
+        mov   *stack+,r12           ; Pop r12
         b     *r11                  ; Return to caller       
 
 
@@ -224,12 +227,15 @@ sams.mapping.on.exit:
 * r12
 ********|*****|*********************|**************************
 sams.mapping.off:
+        dect  stack
+        mov   r12,*stack            ; Push r12
         li    r12,>1e00             ; SAMS CRU address
         sbz   1                     ; Disable SAMS mapper
 *--------------------------------------------------------------
 * Exit
 *--------------------------------------------------------------
 sams.mapping.off.exit:
+        mov   *stack+,r12           ; Pop r12
         b     *r11                  ; Return to caller       
 
 
@@ -269,7 +275,7 @@ xsams.layout:
         ; Set SAMS registers
         ;------------------------------------------------------
         li    r12,>1e00             ; SAMS CRU address
-        sbz   1                     ; Disable SAMS mapper                
+
         sbo   0                     ; Enable access to SAMS registers
 
         mov  *tmp0+,@>4004          ; Set page for >2000 - >2fff
@@ -362,3 +368,15 @@ sams.layout.copy.exit:
         mov   *stack+,tmp0          ; Pop tmp0                
         mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return to caller
+***************************************************************
+* SAMS memory range table
+*--------------------------------------------------------------
+sams.layout.copy.data:
+        data  >2000                 ; >2000-2fff
+        data  >3000                 ; >3000-3fff
+        data  >a000                 ; >a000-afff
+        data  >b000                 ; >b000-bfff
+        data  >c000                 ; >c000-cfff
+        data  >d000                 ; >d000-dfff
+        data  >e000                 ; >e000-efff
+        data  >f000                 ; >f000-ffff
