@@ -277,7 +277,6 @@ xsams.layout:
         ; Set SAMS registers
         ;------------------------------------------------------
         li    r12,>1e00             ; SAMS CRU address
-
         sbo   0                     ; Enable access to SAMS registers
 
         mov  *tmp0+,@>4004          ; Set page for >2000 - >2fff
