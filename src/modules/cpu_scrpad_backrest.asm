@@ -65,7 +65,7 @@ cpu.scrpad.backup.exit:
 *  Restore scratchpad from memory area @cpu.scrpad.tgt (+ >ff).
 *  Current workspace may not be in scratchpad >8300 when called.
 *
-*  Destroys r0,r1,r2
+*  Destroys r0,r1
 ********|*****|*********************|**************************
 cpu.scrpad.restore:
         ;------------------------------------------------------
@@ -73,15 +73,14 @@ cpu.scrpad.restore:
         ;------------------------------------------------------
         li    r0,cpu.scrpad.tgt
         li    r1,>8300
-        li    r2,64
         ;------------------------------------------------------
-        ; Copy memory range @cpu.scrpad.tgt <-> @cpu.scrpad.tgt + >ff
+        ; Copy 256 bytes from @cpu.scrpad.tgt to >8300
         ;------------------------------------------------------
 cpu.scrpad.restore.copy:
         mov   *r0+,*r1+
         mov   *r0+,*r1+        
-        dec   r2
-        jne   cpu.scrpad.restore.copy
+        ci    r1,>8400
+        jlt   cpu.scrpad.restore.copy
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
