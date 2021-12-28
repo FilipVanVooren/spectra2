@@ -60,7 +60,7 @@ cpu.scrpad.backup.exit:
 *  bl   @cpu.scrpad.restore
 *--------------------------------------------------------------
 *  Register usage
-*  r0-r2
+*  r0-r1
 *--------------------------------------------------------------
 *  Restore scratchpad from memory area @cpu.scrpad.tgt (+ >ff).
 *  Current workspace may not be in scratchpad >8300 when called.
