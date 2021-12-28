@@ -99,7 +99,8 @@ cpu.scrpad.pgout.exit:
 *                   p0 (tmp0)
 ***************************************************************
 *  bl   @cpu.scrpad.pgin
-*  DATA p0
+*       DATA p0
+*
 *  P0 = CPU memory source
 *--------------------------------------------------------------
 *  bl   @memx.scrpad.pgin
