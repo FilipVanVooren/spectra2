@@ -194,7 +194,7 @@ file.status:
 
 
 ***************************************************************
-* file.record.fop - File operation
+* _file.record.fop - File operation
 ***************************************************************
 * Called internally via JMP/B by file operations
 *--------------------------------------------------------------
