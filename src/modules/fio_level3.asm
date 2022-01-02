@@ -215,7 +215,7 @@ file.status:
 *  r0, r1, tmp0, tmp1, tmp2
 *--------------------------------------------------------------
 *  Remarks
-*  Private, only to be called from inside fio_level2 module
+*  Private, only to be called from inside fio_level3 module
 *  via jump or branch instruction.
 *
 *  Uses @waux1 for backup/restore of memory word @>8322
