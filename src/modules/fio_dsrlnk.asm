@@ -218,6 +218,9 @@ dsrlnk.dsrscan.call_dsr:
         mov   r9,@dsrlnk.savent     ; Save DSR entry address        
         mov   r1,@dsrlnk.savver     ; Save DSR Version number
 
+        li    r13,>9800             ; Set GROM base to >9800 to prevent
+                                    ; lockup of TI Disk Controller DSR.
+         
         li    r15,>8C02             ; Set VDP port address, needed to prevent
                                     ; lockup of TI Disk Controller DSR.
                                     
