@@ -1,0 +1,119 @@
+* FILE......: fio.equ
+* Purpose...: Equates for file I/O operations
+
+***************************************************************
+* File IO operations - Byte 0 in PAB
+************************************@**************************
+io.op.open       equ >00            ; OPEN
+io.op.close      equ >01            ; CLOSE
+io.op.read       equ >02            ; READ
+io.op.write      equ >03            ; WRITE
+io.op.rewind     equ >04            ; RESTORE/REWIND
+io.op.load       equ >05            ; LOAD
+io.op.save       equ >06            ; SAVE
+io.op.delfile    equ >07            ; DELETE FILE
+io.op.scratch    equ >08            ; SCRATCH 
+io.op.status     equ >09            ; STATUS
+***************************************************************
+* File & data type - Byte 1 in PAB (Bit 0-4)
+***************************************************************
+* Bit position: 4  3  21  0
+*               |  |  ||   \
+*               |  |  ||    File type
+*               |  |  ||    0 = INTERNAL
+*               |  |  ||    1 = FIXED               
+*               |  |  \\
+*               |  |   File operation 
+*               |  |   00 - UPDATE
+*               |  |   01 - OUTPUT
+*               |  |   10 - INPUT
+*               |  |   11 - APPEND
+*               |  | 
+*               |  \
+*               |   Data type                 
+*               |   0 = DISPLAY
+*               |   1 = INTERNAL
+*               |
+*               \
+*                Record type
+*                0 = FIXED
+*                1 = VARIABLE
+***************************************************************
+; Bit position           43210
+************************************|**************************
+io.seq.upd.dis.fix  equ :00000      ; 00
+io.rel.upd.dis.fix  equ :00001      ; 01
+io.rel.out.dis.fix  equ :00011      ; 02
+io.seq.out.dis.fix  equ :00010      ; 03
+io.seq.inp.dis.fix  equ :00100      ; 04
+io.rel.inp.dis.fix  equ :00101      ; 05
+io.seq.app.dis.fix  equ :00110      ; 06
+io.rel.app.dis.fix  equ :00111      ; 07
+io.seq.upd.int.fix  equ :01000      ; 08 
+io.rel.upd.int.fix  equ :01001      ; 09
+io.seq.out.int.fix  equ :01010      ; 0A
+io.rel.out.int.fix  equ :01011      ; 0B
+io.seq.inp.int.fix  equ :01100      ; 0C
+io.rel.inp.int.fix  equ :01101      ; 0D
+io.seq.app.int.fix  equ :01110      ; 0E
+io.rel.app.int.fix  equ :01111      ; 0F
+io.seq.upd.dis.var  equ :10000      ; 10
+io.rel.upd.dis.var  equ :10001      ; 11
+io.seq.out.dis.var  equ :10010      ; 12
+io.rel.out.dis.var  equ :10011      ; 13
+io.seq.inp.dis.var  equ :10100      ; 14
+io.rel.inp.dis.var  equ :10101      ; 15
+io.seq.app.dis.var  equ :10110      ; 16
+io.rel.app.dis.var  equ :10111      ; 17
+io.seq.upd.int.var  equ :11000      ; 18
+io.rel.upd.int.var  equ :11001      ; 19
+io.seq.out.int.var  equ :11010      ; 1A
+io.rel.out.int.var  equ :11011      ; 1B
+io.seq.inp.int.var  equ :11100      ; 1C
+io.rel.inp.int.var  equ :11101      ; 1D
+io.seq.app.int.var  equ :11110      ; 1E
+io.rel.app.int.var  equ :11111      ; 1F
+***************************************************************
+* File error codes - Byte 1 in PAB (Bits 5-7)
+************************************|**************************
+io.err.no_error_occured             equ 0
+        ; Error code 0 with condition bit reset, indicates that
+        ; no error has occured
+
+io.err.bad_device_name              equ 0
+        ; Device indicated not in system
+        ; Error code 0 with condition bit set, indicates a
+        ; device not present in system
+
+io.err.device_write_prottected      equ 1   
+        ; Device is write protected
+
+io.err.bad_open_attribute           equ 2   
+        ; One or more of the OPEN attributes are illegal or do
+        ; not match the file's actual characteristics.
+        ; This could be:
+        ;   * File type
+        ;   * Record length
+        ;   * I/O mode
+        ;   * File organization
+
+io.err.illegal_operation            equ 3
+        ; Either an issued I/O command was not supported, or a 
+        ; conflict with the OPEN mode has occured
+
+io.err.out_of_table_buffer_space    equ 4
+        ; The amount of space left on the device is insufficient
+        ; for the requested operation
+
+io.err.eof                          equ 5
+        ; Attempt to read past end of file.
+        ; This error may also be given for non-existing records
+        ; in a relative record file
+
+io.err.device_error                 equ 6
+        ; Covers all hard device errors, such as parity and
+        ; bad medium errors
+
+io.err.file_error                   equ 7
+        ; Covers all file-related error like: program/data
+        ; file mismatch, non-existing file opened for input mode, etc.

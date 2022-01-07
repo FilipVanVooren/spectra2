@@ -1,0 +1,30 @@
+* FILE......: param.equ
+* Purpose...: Equates used for subroutine parameters
+
+***************************************************************                                     
+* Subroutine parameter equates                                                                      
+***************************************************************                                     
+eol     equ   >ffff                 ; End-Of-List                                                   
+nofont  equ   >ffff                 ; Skip loading font in RUNLIB                                   
+norep   equ   0                     ; PUTBOX > Value for P3. Don't repeat box                       
+num1    equ   >3030                 ; MKNUM  > ASCII 0-9, leading 0's                               
+num2    equ   >3020                 ; MKNUM  > ASCII 0-9, leading spaces                            
+sdopt1  equ   7                     ; SDPLAY > 111 (Player on, repeat, tune in CPU memory)          
+sdopt2  equ   5                     ; SDPLAY > 101 (Player on, no repeat, tune in CPU memory)       
+sdopt3  equ   6                     ; SDPLAY > 110 (Player on, repeat, tune in VRAM)                
+sdopt4  equ   4                     ; SDPLAY > 100 (Player on, no repeat, tune in VRAM)             
+fnopt1  equ   >0000                 ; LDFNT  > Load TI title screen font                            
+fnopt2  equ   >0006                 ; LDFNT  > Load upper case font                                 
+fnopt3  equ   >000c                 ; LDFNT  > Load upper/lower case font                           
+fnopt4  equ   >0012                 ; LDFNT  > Load lower case font                                 
+fnopt5  equ   >8000                 ; LDFNT  > Load TI title screen font  & bold                    
+fnopt6  equ   >8006                 ; LDFNT  > Load upper case font       & bold                    
+fnopt7  equ   >800c                 ; LDFNT  > Load upper/lower case font & bold                    
+fnopt8  equ   >8012                 ; LDFNT  > Load lower case font       & bold                    
+*--------------------------------------------------------------                                     
+*   Speech player                                                                                   
+*--------------------------------------------------------------                                     
+talkon  equ   >60                   ; 'start talking' command code for speech synth                 
+talkof  equ   >ff                   ; 'stop talking' command code for speech synth                  
+spkon   equ   >6000                 ; 'start talking' command code for speech synth                 
+spkoff  equ   >ff00                 ; 'stop talking' command code for speech synth      

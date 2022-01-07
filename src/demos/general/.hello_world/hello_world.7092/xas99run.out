@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/storage/tifun/xdt99/xas99.py", line 3044, in <module>
+    status = main()
+  File "/storage/tifun/xdt99/xas99.py", line 2941, in main
+    asm.assemble(dirname, basename)
+  File "/storage/tifun/xdt99/xas99.py", line 1906, in assemble
+    self.symasm.assemble_pass_1(srcname)  # continue even with errors, to display them all
+  File "/storage/tifun/xdt99/xas99.py", line 1785, in assemble_pass_1
+    label, mnemonic, operands, comment, stmt = self.parser.line(line)
+  File "/storage/tifun/xdt99/xas99.py", line 1320, in line
+    parts = self.escape(line).split(';')
+  File "/storage/tifun/xdt99/xas99.py", line 1330, in escape
+    parts = re.split(r"('(?:[^']|'')*'|\"[^\"]*\")", text)  # not-lit, lit, not-lit, lit, ...
+  File "/usr/lib/python3.9/re.py", line 223, in split
+    def split(pattern, string, maxsplit=0, flags=0):
+KeyboardInterrupt
