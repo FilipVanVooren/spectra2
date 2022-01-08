@@ -6,7 +6,7 @@
 *//////////////////////////////////////////////////////////////
 
 ***************************************************************
-* RKSCAN - Scan keyboard using console KSCAN
+* RKSCAN - Scan keyboard using ROM#0 OS monitor KSCAN
 ***************************************************************
 *  BL @RKSCAN
 *--------------------------------------------------------------
@@ -61,8 +61,11 @@ rkscan:
         ;------------------------------------------------------
         ; Key pressed
         ;------------------------------------------------------     
-rkscan.pressed:
-        mov   tmp0,@waux1           ; Store ASCII value of key in WAUX1
+   .ifdef rom0_kscan_out
+        mov   tmp0,@rom0_kscan_out  ; Store ASCII value in user location
+   .else   
+        mov   tmp0,@waux1           ; Store ASCII value in WAUX1 location
+   .endif        
         soc   @wbit11,config        ; Set ANYKEY flag in CONFIG register
         ;------------------------------------------------------
         ; Exit

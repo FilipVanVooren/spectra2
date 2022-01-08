@@ -38,7 +38,11 @@ kthread_kb
     .ifdef skip_real_keyboard
 *       <<skipped>>
     .else
+      .ifeq rom0_kscan_on,1
+        bl    @rkscan               ; Scan full keyboard with ROM#0 KSCAN
+      .else
         bl    @realkb               ; Scan full keyboard
+      .endif
     .endif
 *--------------------------------------------------------------
 kthread_exit

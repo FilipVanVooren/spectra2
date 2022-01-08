@@ -8,7 +8,7 @@
 *                                  for
 *              the Texas Instruments TI-99/4A Home Computer
 *
-*                      2010-2020 by Filip Van Vooren
+*                      2010-2022 by Filip Van Vooren
 *
 *              https://github.com/FilipVanVooren/spectra2.git
 *******************************************************************************
@@ -47,9 +47,10 @@
 * skip_speech_detection     equ  1  ; Skip speech synthesizer detection
 * skip_speech_player        equ  1  ; Skip inclusion of speech player code
 *
-* ==  Keyboard 
+* == Keyboard 
 * skip_virtual_keyboard     equ  1  ; Skip virtual keyboard scann
 * skip_real_keyboard        equ  1  ; Skip real keyboard scan
+* use_rom0_kscan            equ  1  ; Use KSCAN in console ROM#0
 *
 * == Utilities
 * skip_random_generator     equ  1  ; Skip random generator functions
@@ -180,7 +181,11 @@
     .endif
 
     .ifndef skip_real_keyboard
+      .ifeq rom0_kscan_on,1
+        copy  "keyb_rkscan.asm"          ; Use ROM#0 OS monitor KSCAN
+      .else
         copy  "keyb_real.asm"            ; Real Keyboard support 
+      .endif
     .endif
 
     .ifndef skip_cpu_hexsupport
