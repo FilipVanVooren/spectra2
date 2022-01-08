@@ -1,5 +1,5 @@
 * FILE......: portaddr.equ
-* Purpose...: Equates for hardware port addresses
+* Purpose...: Equates for hardware port addresses and vectors
 
 ***************************************************************                                     
 * Equates for VDP, GROM, SOUND, SPEECH ports                                                        
@@ -15,4 +15,5 @@ grmrd   equ   >9800                 ; GROM read byte
 grmwd   equ   >9c00                 ; GROM write byte                                               
 spchrd  equ   >9000                 ; Address of speech synth Read Data Register                    
 spchwt  equ   >9400                 ; Address of speech synth Write Data Register                
-kscan   equ   >02b2                 ; Address of KSCAN routine in console ROM 0
+
+kscan   equ   >000e                 ; Address of KSCAN routine in console ROM 0

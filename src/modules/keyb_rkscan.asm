@@ -39,19 +39,40 @@ rkscan:
         dect  stack
         mov   tmp0,*stack           ; Push tmp0
         ;------------------------------------------------------
-        ; Prepare for OS monitor kscan
+        ; (1) Check for alpha lock
+        ;------------------------------------------------------ 
+        szc   @wbit10,config        ; Reset CONFIG register bit 10=0        
+
+        li    r12,>002a             ; Address of alpha lock
+        sbz   0                     ; Set wire low
+        li    r12,>000e             ; Select keyboard row 5
+        tb    0                     ; Test input wire (ALPHA-Lock key down?)
+        sbo   0                     ; Set wire high
+        jeq   rkscan.prepare        ; No, alpha lock is off
+        soc   @wbit10,config        ; \ Yes, alpha lock is on, so
+                                    ; / set CONFIG register bit 10=1
+        ;------------------------------------------------------
+        ; (2) Prepare for OS monitor kscan
         ;------------------------------------------------------     
+rkscan.prepare:        
         mov   @scrpad.83fa,@>83fa   ; Load GPLWS R13
         mov   @scrpad.83fe,@>83fe   ; Load GPLWS R15
 
-        clr   @>8374                ; Clear byte at @>8374
+        ; Byte at scratchpad @>836c = 02 if mode is 5 (mixed case)
+        ; Byte at scratchpad @>836c = 00 if mode is 0 (upper case only)
+
+        li    tmp0,>0500            ; \ Keyboard mode in MSB
+                                    ; | 00=Upper case only
+                                    ; / 05=Mixed case
+
+        movb  tmp0,@>8374           ; Set keyboard mode at @>8374
                                     ; (scan entire keyboard)
 
         lwpi  >83e0                 ; Activate GPL workspace
         bl    @kscan                ; Call KSCAN 
         lwpi  ws1                   ; Activate user workspace
         ;------------------------------------------------------
-        ; Check if key pressed
+        ; (3) Check if key pressed
         ;------------------------------------------------------
         mov   @>8374,tmp0           ; \ Key pressed is at @>8375
         andi  tmp0,>00ff            ; / Only keep LSB
@@ -59,7 +80,7 @@ rkscan:
         ci    tmp0,>ff              ; Key pressed?
         jeq   rkscan.exit           ; No, exit early
         ;------------------------------------------------------
-        ; Key pressed
+        ; (4) Key detected, store in memory
         ;------------------------------------------------------     
    .ifdef rom0_kscan_out
         mov   tmp0,@rom0_kscan_out  ; Store ASCII value in user location
