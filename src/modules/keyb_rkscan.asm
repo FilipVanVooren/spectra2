@@ -55,16 +55,13 @@ rkscan:
         ; (2) Prepare for OS monitor kscan
         ;------------------------------------------------------     
 rkscan.prepare:        
+        mov   @scrpad.83c6,@>83c6   ; Required for lowercase support
         mov   @scrpad.83fa,@>83fa   ; Load GPLWS R13
         mov   @scrpad.83fe,@>83fe   ; Load GPLWS R15
 
-        ; Byte at scratchpad @>836c = 02 if mode is 5 (mixed case)
-        ; Byte at scratchpad @>836c = 00 if mode is 0 (upper case only)
-
-        li    tmp0,>0500            ; \ Keyboard mode in MSB
-                                    ; | 00=Upper case only
-                                    ; / 05=Mixed case
-
+        clr   tmp0                  ; \ Keyboard mode in MSB
+                                    ; / 00=Scan all of keyboard
+                                  
         movb  tmp0,@>8374           ; Set keyboard mode at @>8374
                                     ; (scan entire keyboard)
 
@@ -74,14 +71,14 @@ rkscan.prepare:
         ;------------------------------------------------------
         ; (3) Check if key pressed
         ;------------------------------------------------------
-        mov   @>8374,tmp0           ; \ Key pressed is at @>8375
-        andi  tmp0,>00ff            ; / Only keep LSB
-
-        ci    tmp0,>ff              ; Key pressed?
-        jeq   rkscan.exit           ; No, exit early
+        movb  @>837c,tmp0           ; Get flag
+        sla   tmp0,3                ; Flag value is >20
+        jnc   rkscan.exit           ; No key pressed, exit early
         ;------------------------------------------------------
         ; (4) Key detected, store in memory
-        ;------------------------------------------------------     
+        ;------------------------------------------------------  
+        movb  @>8375,tmp0           ; \ Key pressed is at @>8375
+        srl   tmp0,8                ; / Move to LSB
    .ifdef rom0_kscan_out
         mov   tmp0,@rom0_kscan_out  ; Store ASCII value in user location
    .else   
@@ -97,7 +94,7 @@ rkscan.exit:
         b     *r11                  ; Return to caller
 
 
-
+scrpad.83c6   data >0200            ; Required for KSCAN to support lowercase
 scrpad.83fa   data >9800
 
 ; Dummy value for GPLWS R15 (instead of VDP write address port 8c02)
