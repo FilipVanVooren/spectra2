@@ -41,16 +41,26 @@ rkscan:
         ;------------------------------------------------------
         ; (1) Check for alpha lock
         ;------------------------------------------------------ 
-        szc   @wbit10,config        ; Reset CONFIG register bit 10=0        
+        szc   @wbit10,config        ; Reset CONFIG register bit 10=0
+         
+        ; See CRU interface and keyboard sections for details
+        ; http://www.nouspikel.com/ti99/titechpages.htm
 
-        li    r12,>002a             ; Address of alpha lock
-        sbz   0                     ; Set wire low
-        li    r12,>000e             ; Select keyboard row 5
-        tb    0                     ; Test input wire (ALPHA-Lock key down?)
-        sbo   0                     ; Set wire high
+        clr   r12                   ; Set base address (to bit 0) so 
+                                    ; following offsets correspond 
+
+        sbz   >0015                 ; \ Set bit 21 (PIN 5 attached to alpha
+                                    ; / lock column) to 0.
+
+        tb    7                     ; \ Copy CRU bit 7 into EQ bit
+                                    ; | That is CRU INT7*/P15 pin (keyboard row
+                                    ; | with keys FCTN, 2,3,4,5,1,
+                                    ; / [joy1-up,joy2-up, Alpha Lock])
+
         jeq   rkscan.prepare        ; No, alpha lock is off
-        soc   @wbit10,config        ; \ Yes, alpha lock is on, so
-                                    ; / set CONFIG register bit 10=1
+
+        soc   @wbit10,config        ; \ Yes, alpha lock is on.
+                                    ; / Set CONFIG register bit 10=1
         ;------------------------------------------------------
         ; (2) Prepare for OS monitor kscan
         ;------------------------------------------------------     
