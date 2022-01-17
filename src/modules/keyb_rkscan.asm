@@ -49,22 +49,26 @@ rkscan:
         clr   r12                   ; Set base address (to bit 0) so 
                                     ; following offsets correspond 
 
-        sbz   >0015                 ; \ Set bit 21 (PIN 5 attached to alpha
+        sbz   21                    ; \ Set bit 21 (PIN 5 attached to alpha
                                     ; / lock column) to 0.
+
+        src   r12,14                ; Burn some time (r12=0 no problem shifting)
 
         tb    7                     ; \ Copy CRU bit 7 into EQ bit
                                     ; | That is CRU INT7*/P15 pin (keyboard row
                                     ; | with keys FCTN, 2,3,4,5,1,
                                     ; / [joy1-up,joy2-up, Alpha Lock])
 
-        jeq   rkscan.prepare        ; No, alpha lock is off
+        jeq   !                     ; No, alpha lock is off
 
         soc   @wbit10,config        ; \ Yes, alpha lock is on.
                                     ; / Set CONFIG register bit 10=1
+
+!       sbo   21                    ; \ Reset bit 21 (Pin 5 attached to alpha
+                                    ; / lock column) to 1.
         ;------------------------------------------------------
         ; (2) Prepare for OS monitor kscan
         ;------------------------------------------------------     
-rkscan.prepare:        
         mov   @scrpad.83c6,@>83c6   ; Required for lowercase support
         mov   @scrpad.83fa,@>83fa   ; Load GPLWS R13
         mov   @scrpad.83fe,@>83fe   ; Load GPLWS R15
