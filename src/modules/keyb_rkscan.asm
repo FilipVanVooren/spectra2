@@ -2,7 +2,7 @@
 * Purpose...: Full (real) keyboard support module
 
 *//////////////////////////////////////////////////////////////
-*                     KEYBOARD FUNCTIONS 
+*                     KEYBOARD FUNCTIONS
 *//////////////////////////////////////////////////////////////
 
 ***************************************************************
@@ -23,9 +23,9 @@
 * >837c  Output: GPL status byte (>20 if key pressed)
 * >838a  I/O:    GPL substack
 * >838c  I/O:    GPL substack
-* >83c6  I/O:    ISRWS R3 Keyboard state and debounce info 
-* >83c8  I/O:    ISRWS R4 Keyboard state and debounce info 
-* >83ca  I/O:    ISRWS R5 Keyboard state and debounce info 
+* >83c6  I/O:    ISRWS R3 Keyboard state and debounce info
+* >83c8  I/O:    ISRWS R4 Keyboard state and debounce info
+* >83ca  I/O:    ISRWS R5 Keyboard state and debounce info
 * >83d4  I/O:    ISRWS R10 Contents of VDP register 01
 * >83d6  I/O:    ISRWS R11 Screen timeout counter, blanks when 0000
 * >83d8  I/O:    ISRWS R12 (Backup return address old R11 in GPLWS)
@@ -40,14 +40,15 @@ rkscan:
         mov   tmp0,*stack           ; Push tmp0
         ;------------------------------------------------------
         ; (1) Check for alpha lock
-        ;------------------------------------------------------ 
+        ;------------------------------------------------------
         szc   @wbit10,config        ; Reset CONFIG register bit 10=0
-         
+                                    ; (alpha lock off)
+
         ; See CRU interface and keyboard sections for details
         ; http://www.nouspikel.com/ti99/titechpages.htm
 
-        clr   r12                   ; Set base address (to bit 0) so 
-                                    ; following offsets correspond 
+        clr   r12                   ; Set base address (to bit 0) so
+                                    ; following offsets correspond
 
         sbz   21                    ; \ Set bit 21 (PIN 5 attached to alpha
                                     ; / lock column) to 0.
@@ -68,19 +69,20 @@ rkscan:
                                     ; / lock column) to 1.
         ;------------------------------------------------------
         ; (2) Prepare for OS monitor kscan
-        ;------------------------------------------------------     
+        ;------------------------------------------------------
         mov   @scrpad.83c6,@>83c6   ; Required for lowercase support
         mov   @scrpad.83fa,@>83fa   ; Load GPLWS R13
         mov   @scrpad.83fe,@>83fe   ; Load GPLWS R15
 
         clr   tmp0                  ; \ Keyboard mode in MSB
                                     ; / 00=Scan all of keyboard
-                                  
+
         movb  tmp0,@>8374           ; Set keyboard mode at @>8374
                                     ; (scan entire keyboard)
 
         lwpi  >83e0                 ; Activate GPL workspace
-        bl    @kscan                ; Call KSCAN 
+
+        bl    @kscan                ; Call KSCAN
         lwpi  ws1                   ; Activate user workspace
         ;------------------------------------------------------
         ; (3) Check if key pressed
@@ -90,18 +92,18 @@ rkscan:
         jnc   rkscan.exit           ; No key pressed, exit early
         ;------------------------------------------------------
         ; (4) Key detected, store in memory
-        ;------------------------------------------------------  
+        ;------------------------------------------------------
         movb  @>8375,tmp0           ; \ Key pressed is at @>8375
         srl   tmp0,8                ; / Move to LSB
    .ifdef rom0_kscan_out
         mov   tmp0,@rom0_kscan_out  ; Store ASCII value in user location
-   .else   
+   .else
         mov   tmp0,@waux1           ; Store ASCII value in WAUX1 location
-   .endif        
+   .endif
         soc   @wbit11,config        ; Set ANYKEY flag in CONFIG register
         ;------------------------------------------------------
         ; Exit
-        ;------------------------------------------------------        
+        ;------------------------------------------------------
 rkscan.exit:
         mov   *stack+,tmp0          ; Pop tmp0
         mov   *stack+,r11           ; Pop r11
