@@ -1,0 +1,32 @@
+* FILE......: classic99.equ
+* Purpose...: Extra opcodes for the classic99 emulator
+
+***************************************************************
+*              Extra opcodes for classic99
+********|*****|*********************|**************************
+c99_norm      equ  >0110            ; CPU normal
+c99_ovrd      equ  >0111            ; CPU overdrive
+c99_smax      equ  >0112            ; System Maximum
+c99_brk       equ  >0113            ; Breakpoint
+c99_quit      equ  >0114            ; Quit emulator
+*--------------------------------------------------------------
+* Attention:
+* Debug opcodes are part of a 3 words instruction!
+* See classic99 user manual for details on proper usage.
+*--------------------------------------------------------------
+c99_dbgr0     equ  >0120            ; debug printf R0
+c99_dbgr1     equ  >0121            ; debug printf R1
+c99_dbgr2     equ  >0122            ; debug printf R2
+c99_dbgr3     equ  >0123            ; debug printf R3
+c99_dbgr4     equ  >0124            ; debug printf R4
+c99_dbgr5     equ  >0125            ; debug printf R5
+c99_dbgr6     equ  >0126            ; debug printf R6
+c99_dbgr7     equ  >0127            ; debug printf R7
+c99_dbgr8     equ  >0128            ; debug printf R8
+c99_dbgr9     equ  >0129            ; debug printf R9
+c99_dbgr10    equ  >012a            ; debug printf R10
+c99_dbgr11    equ  >012b            ; debug printf R11
+c99_dbgr12    equ  >012c            ; debug printf R12
+c99_dbgr13    equ  >012d            ; debug printf R13
+c99_dbgr14    equ  >012e            ; debug printf R14
+c99_dbgr15    equ  >012f            ; debug printf R15

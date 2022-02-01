@@ -3,7 +3,7 @@
 *             / __)(  _ \( ___)/ __)(_  _)(  _ \  /__\  (__ \  v.2021
 *             \__ \ )___/ )__)( (__   )(   )   / /(__)\  / _/
 *             (___/(__)  (____)\___) (__) (_)\_)(__)(__)(____)
-*    
+*
 *                TMS9900 Monitor with Arcade Game support
 *                                  for
 *              the Texas Instruments TI-99/4A Home Computer
@@ -47,7 +47,7 @@
 * skip_speech_detection     equ  1  ; Skip speech synthesizer detection
 * skip_speech_player        equ  1  ; Skip inclusion of speech player code
 *
-* == Keyboard 
+* == Keyboard
 * skip_virtual_keyboard     equ  1  ; Skip virtual keyboard scann
 * skip_real_keyboard        equ  1  ; Skip real keyboard scan
 * use_rom0_kscan            equ  1  ; Use KSCAN in console ROM#0
@@ -64,10 +64,10 @@
 
 * == Kernel/Multitasking
 * skip_timer_alloc          equ  1  ; Skip support for timers allocation
-* skip_mem_paging           equ  1  ; Skip support for memory paging 
+* skip_mem_paging           equ  1  ; Skip support for memory paging
 * skip_fio                  equ  1  ; Skip support for file I/O, dsrlnk
 *
-* == Startup behaviour 
+* == Startup behaviour
 * startup_backup_scrpad     equ  1  ; Backup scratchpad @>8300->83ff
 *                                   ; to pre-defined backup address
 * startup_keep_vdpmemory    equ  1  ; Do not clear VDP vram upon startup
@@ -77,10 +77,11 @@
 *                       RUNLIB SETUP
 *//////////////////////////////////////////////////////////////
 
-        copy  "memsetup.equ"             ; Equates runlib scratchpad mem setup
-        copy  "registers.equ"            ; Equates runlib registers
-        copy  "portaddr.equ"             ; Equates runlib hw port addresses
-        copy  "param.equ"                ; Equates runlib parameters
+        copy  "memsetup.equ"             ; runlib scratchpad memory setup
+        copy  "registers.equ"            ; runlib registers
+        copy  "portaddr.equ"             ; runlib hardware port addresses
+        copy  "param.equ"                ; runlib parameters
+        copy  "classic99.equ"            ; classic99 emulator opcodes
 
     .ifndef skip_rom_bankswitch
         copy  "rom_bankswitch.asm"       ; Bank switch routine
@@ -114,18 +115,18 @@
 
     .ifndef skip_sams
         copy  "cpu_sams.asm"             ; Support for SAMS memory card
-    .endif                             
+    .endif
 
     .ifndef skip_sams_layout
         copy  "cpu_sams_layout.asm"      ; SAMS memory banks layout
-    .endif                             
+    .endif
 
     .ifndef skip_vdp_intscr
         copy  "vdp_intscr.asm"           ; VDP interrupt & screen on/off
     .endif
 
     .ifndef skip_vdp_sprites
-        copy  "vdp_sprites.asm"          ; VDP sprites 
+        copy  "vdp_sprites.asm"          ; VDP sprites
     .endif
 
     .ifndef skip_vdp_cursor
@@ -184,7 +185,7 @@
       .ifeq rom0_kscan_on,1
         copy  "keyb_rkscan.asm"          ; Use ROM#0 OS monitor KSCAN
       .else
-        copy  "keyb_real.asm"            ; Real Keyboard support 
+        copy  "keyb_real.asm"            ; Real Keyboard support
       .endif
     .endif
 
@@ -212,22 +213,22 @@
         copy  "vdp_rle_decompress.asm"   ; VDP RLE decompression support
     .endif
 
-    .ifndef skip_cpu_strings      
+    .ifndef skip_cpu_strings
         copy  "cpu_strings.asm"          ; String utilities support
-    .endif 
+    .endif
 
     .ifndef skip_random_generator
         copy  "rnd_support.asm"          ; Random number generator
     .endif
 
     .ifndef skip_mem_paging
-        copy  "cpu_scrpad_backrest.asm"  ; Scratchpad backup/restore 
+        copy  "cpu_scrpad_backrest.asm"  ; Scratchpad backup/restore
         copy  "cpu_scrpad_paging.asm"    ; Scratchpad memory paging
     .endif
 
     .ifndef skip_fio
         copy  "fio.equ"                  ; File I/O equates
-        copy  "fio_dsrlnk.asm"           ; DSRLNK for peripheral communication 
+        copy  "fio_dsrlnk.asm"           ; DSRLNK for peripheral communication
         copy  "fio_level3.asm"           ; File I/O level 3 support
     .endif
 
@@ -259,11 +260,11 @@
 *  crash handler so we return there after initialisation.
 
 *  If R1 in WS1 equals >FFFF we return to the TI title screen
-*  after clearing scratchpad memory. This has higher priority 
+*  after clearing scratchpad memory. This has higher priority
 *  as crash handler flag R0.
 ********|*****|*********************|**************************
     .ifdef startup_backup_scrpad
-runlib  bl    @cpu.scrpad.backup    ; Backup scratchpad memory to 
+runlib  bl    @cpu.scrpad.backup    ; Backup scratchpad memory to
                                     ; @cpu.scrpad.tgt (>00..>ff)
 
         clr   @>8302                ; Reset exit flag (R1 in workspace WS1!)
@@ -308,7 +309,7 @@ runli6  dec   r2                    ; Next test
 *--------------------------------------------------------------
 * Copy machine code to scratchpad (prepare tight loop)
 *--------------------------------------------------------------
-runli7  bl    @loadmc              
+runli7  bl    @loadmc
 *--------------------------------------------------------------
 * Initialize registers, memory, ...
 *--------------------------------------------------------------
@@ -325,7 +326,7 @@ runli9  clr   r1
 *--------------------------------------------------------------
     .ifdef startup_keep_vdpmemory
         ci    r0,>4a4a              ; Crash flag set?
-        jne   runlia                 
+        jne   runlia
         bl    @filv                 ; Clear 12K VDP memory instead
         data  >0000,>00,>3000       ; of 16K, so that PABs survive
     .else
@@ -341,7 +342,7 @@ runlia  bl    @filv
 *       <<skipped>>
     .else
         bl    @f18unl               ; Unlock the F18A
-        bl    @f18chk               ; Check if F18A is there \ 
+        bl    @f18chk               ; Check if F18A is there \
         bl    @f18chk               ; Check if F18A is there | js99er bug?
         bl    @f18chk               ; Check if F18A is there /
         bl    @f18lck               ; Lock the F18A again
@@ -355,7 +356,7 @@ runlia  bl    @filv
     .ifdef skip_speech_detection
 *       <<skipped>>
     .else
-        bl    @spconn 
+        bl    @spconn
     .endif
 *--------------------------------------------------------------
 * Load video mode table & font
