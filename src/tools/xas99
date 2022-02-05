@@ -5,7 +5,7 @@
 #
 # This script is a wrapper for the excellent xas99.py TMS9900 cross-assembler
 # included in the xdt99 package (TI 99 Cross-Development Tools) by endlos99.
-# 
+#
 # You get the xdt99 package here: https://endlos99.github.io/xdt99/
 ###############################################################################
 # Author: Filip van Vooren
@@ -59,14 +59,14 @@ function assert() {
      echo "Aborting! Unknown source file extension '$g_suffix'"
      exit 99
   fi
-  
+
   if [ ! -e $g_source ]; then
      echo "Aborting! Source file '$g_source' not found/specified."
      exit 99
   fi
 
   if [[ ${PWD##*/} =~ equates|modules ]]; then
-     echo "Aborting! Assembly not supported in project subdirectory."    
+     echo "Aborting! Assembly not supported in project subdirectory."
      exit 99
   fi
 
@@ -78,10 +78,10 @@ function assert() {
 
 #------------------------------------------------------------------------------
 # Preprocess source code
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 function preproc_source() {
   for i in $(ls ${g_prepdir}/*.asm ${g_prepdir}/*.asm.*); do
-      echo "Preprocessing source file.... $i" >>$g_xas99hdr  
+      echo "Preprocessing source file.... $i" >>$g_xas99hdr
       #------------------------------------------------------------------------
       # Preprocess source file. PASS 1
       #------------------------------------------------------------------------
@@ -97,7 +97,7 @@ function preproc_source() {
       #------------------------------------------------------------------------
       awk -f ${g_xas99}.awk -i inplace ${i}
       #view $i                                           # DEBUG
-   done   
+   done
 }
 
 
@@ -115,7 +115,7 @@ function preprocess() {
   if [[ $? > 0 ]]; then
      echo "Aborting! Could not create preprocessing directory $g_prepdir"
      exit 99
-  fi 
+  fi
 
 
   #------
@@ -137,10 +137,10 @@ function preprocess() {
   # Copy all sources to preprocessing directory
   #-------
   cp $g_source                 ${g_prepdir}/$g_source.$$
-  cp ${g_spectra2}/*.asm       ${g_prepdir}/ 
-  cp ${g_spectra2}/equates/*   ${g_prepdir}/ 
-  cp ${g_spectra2}/modules/*   ${g_prepdir}/ 
-  cp ./modules/*               ${g_prepdir}/ 
+  cp ${g_spectra2}/*.asm       ${g_prepdir}/
+  cp ${g_spectra2}/equates/*   ${g_prepdir}/
+  cp ${g_spectra2}/modules/*   ${g_prepdir}/
+  cp ./modules/*               ${g_prepdir}/
 
 
   #-------
@@ -156,7 +156,7 @@ function assemble() {
   echo "starting assembly..."
   echo "************************************************" >>$g_xas99hdr
   echo "Assembly started ........ $g_now"                 >>$g_xas99hdr
-  echo "Source file ............. $g_source"              >>$g_xas99hdr 
+  echo "Source file ............. $g_source"              >>$g_xas99hdr
   echo "Assembly run ............ $g_xas99run"            >>$g_xas99hdr
   echo "Preprocessed source ..... $g_preproc"             >>$g_xas99hdr
   echo "ROM cart binary ......... $g_binary"              >>$g_xas99hdr
@@ -175,7 +175,7 @@ function assemble() {
   if [[ g_asmrc -eq 0 ]]; then
      l_high=$(tail -n1 ${g_list} | cut -f2 -d' ')
      echo "Highest ROM address...... $l_high" >>$g_xas99hdr
-  else 
+  else
      cat ${g_xas99run}
   fi
 
@@ -197,7 +197,7 @@ function postprocess() {
   #   echo "Stitching binary: $f >> $g_binary" >>$g_xas99run
   #   cat $f >> $g_binary
   #done
-  
+
   #-----------
   # Remove _<6000> file suffix from resulting binary
   #-----------
@@ -205,27 +205,28 @@ function postprocess() {
   if [ "${#g_file}" -gt "0" ] && [ -e "$g_file" ]; then
      mv  $g_file $g_binary
      rm -f $g_file
-  fi 
+  fi
   echo "***** Assembly process returned with RC=$g_asmrc" >>$g_xas99run
 
-  
+
   #------------
   # Show assembly results
   #------------
-  if [[ -e "$g_xas99run" ]]; then 
+  if [[ -e "$g_xas99run" ]]; then
      filesize=$(stat --printf="%s" "${g_xas99run}")
      if (( $filesize > 0 )); then
         cat $g_xas99hdr $g_xas99run | tee ./xas99.log
      else
         cat $g_xas99hdr | tee ./xas99.log
      fi
-     #view ./xas99.log     
+     #view ./xas99.log
   fi
 
-   
+
   # Preprocess. Stitch ROMS
   source /storage/bitbucket/projects/ti994a/venv/bin/activate
   python3 $g_spasm/mixer.py
+
 
   #-----------
   # Cleanup, remove any work files of previous run.
