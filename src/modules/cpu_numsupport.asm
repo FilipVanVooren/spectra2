@@ -81,11 +81,12 @@ mknum5  andi  config,>7fff          ; Reset bit 0
 *  anything that is located there !
 *
 *               01234|56789A
-*  Before...:   XXXXX
-*  After....:   XXXXX|zY       where length byte z=1
-*               XXXXX|zYY      where length byte z=2 
-*                 ..
-*               XXXXX|zYYYYY   where length byte z=5
+*  Before...:   XXXXX          length
+*  After....:   XXXXY|zY       z=1
+*               XXXYY|zYY      z=2
+*               XXYYY|zYYY     z=3
+*               XYYYY|zYYYY    z=4
+*               YYYYY|zYYYYY   z=5
 *--------------------------------------------------------------
 *  Destroys registers tmp0-tmp3
 ********|*****|*********************|**************************
@@ -115,7 +116,7 @@ trimnum_setlen:
         ;------------------------------------------------------
         ; Start filling new string
         ;------------------------------------------------------
-trimnum_fill: 
+trimnum_fill:
         movb  *tmp0+,*tmp1+         ; Copy character
         dec   tmp3                  ; Last character ?
         jne   trimnum_fill          ; Not yet, repeat
