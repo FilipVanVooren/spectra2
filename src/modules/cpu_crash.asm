@@ -3,7 +3,7 @@
 
 
 ***************************************************************
-* cpu.crash - CPU program crashed handler 
+* cpu.crash - CPU program crashed handler
 ***************************************************************
 *  bl   @cpu.crash
 *--------------------------------------------------------------
@@ -18,7 +18,7 @@
 * >ffdc  wp
 * >ffde  st
 * >ffe0  r0
-* >ffe2  r1               
+* >ffe2  r1
 * >ffe4  r2  (config)
 * >ffe6  r3
 * >ffe8  r4  (tmp0)
@@ -34,8 +34,8 @@
 * >fffc  r14
 * >fffe  r15
 ********|*****|*********************|**************************
-cpu.crash:  
-        ai    r11,-4                ; Remove opcode offset         
+cpu.crash:
+        ai    r11,-4                ; Remove opcode offset
 *--------------------------------------------------------------
 *    Save registers to high memory
 *--------------------------------------------------------------
@@ -58,7 +58,7 @@ cpu.crash:
         stwp  r0
         mov   r0,@>ffdc
         stst  r0
-        mov   r0,@>ffde 
+        mov   r0,@>ffde
 *--------------------------------------------------------------
 *    Reset system
 *--------------------------------------------------------------
@@ -91,9 +91,9 @@ cpu.crash.main:
         ;------------------------------------------------------
         bl    @putat                ; Show crash message
               data >0000,cpu.crash.msg.crashed
-                
+
         bl    @puthex               ; Put hex value on screen
-              byte 0,21             ; \ i  p0 = YX position              
+              byte 0,21             ; \ i  p0 = YX position
               data >fff6            ; | i  p1 = Pointer to 16 bit word
               data rambuf           ; | i  p2 = Pointer to ram buffer
               byte 65,48            ; | i  p3 = MSB offset for ASCII digit a-f
@@ -105,7 +105,7 @@ cpu.crash.main:
               data >0100,cpu.crash.msg.caller
 
         bl    @puthex               ; Put hex value on screen
-              byte 1,21             ; \ i  p0 = YX position              
+              byte 1,21             ; \ i  p0 = YX position
               data >ffce            ; | i  p1 = Pointer to 16 bit word
               data rambuf           ; | i  p2 = Pointer to ram buffer
               byte 65,48            ; | i  p3 = MSB offset for ASCII digit a-f
@@ -129,14 +129,14 @@ cpu.crash.main:
         ; Show crash registers WP, ST, R0 - R15
         ;------------------------------------------------------
         bl    @at                   ; Put cursor at YX
-              byte 3,4              ; \ i p0 = YX position         
+              byte 3,4              ; \ i p0 = YX position
                                     ; /
 
         li    tmp0,>ffdc            ; Crash registers >ffdc - >ffff
         clr   tmp2                  ; Loop counter
 
 cpu.crash.showreg:
-        mov   *tmp0+,r0             ; Move crash register content to r0       
+        mov   *tmp0+,r0             ; Move crash register content to r0
 
         dect  stack
         mov   tmp0,*stack           ; Push tmp0
@@ -147,7 +147,7 @@ cpu.crash.showreg:
         ;------------------------------------------------------
         ; Display crash register number
         ;------------------------------------------------------
-cpu.crash.showreg.label:                
+cpu.crash.showreg.label:
         mov   tmp2,r1               ; Save register number
         ci    tmp2,1                ; Skip labels WP/ST?
         jle   cpu.crash.showreg.content
@@ -190,9 +190,9 @@ cpu.crash.showreg.label:
         ;------------------------------------------------------
         ; Display crash register content
         ;------------------------------------------------------
-cpu.crash.showreg.content:        
+cpu.crash.showreg.content:
         bl    @mkhex                ; Convert hex word to string
-              data r0hb             ; \ i  p0 = Pointer to 16 bit word  
+              data r0hb             ; \ i  p0 = Pointer to 16 bit word
               data rambuf           ; | i  p1 = Pointer to ram buffer
               byte 65,48            ; | i  p2 = MSB offset for ASCII digit a-f
                                     ; /         LSB offset for ASCII digit 0-9
@@ -228,13 +228,13 @@ cpu.crash.showreg.content:
         ; Kernel takes over
         ;------------------------------------------------------
         b     @cpu.crash.showbank   ; Expected to be included in
-        
 
-cpu.crash.msg.crashed      #string 'System crashed near >'
-cpu.crash.msg.caller       #string 'Caller address near >'
-cpu.crash.msg.r            #string 'R'
-cpu.crash.msg.marker       #string '  >'
-cpu.crash.msg.wp           #string '**WP'
-cpu.crash.msg.st           #string '**ST'
-cpu.crash.msg.source       #string 'Source    %%build_src%%'
-cpu.crash.msg.id           #string 'Build-ID  %%build_date%%'
+
+cpu.crash.msg.crashed      stri 'System crashed near >'
+cpu.crash.msg.caller       stri 'Caller address near >'
+cpu.crash.msg.r            stri 'R'
+cpu.crash.msg.marker       stri '  >'
+cpu.crash.msg.wp           stri '**WP'
+cpu.crash.msg.st           stri '**ST'
+cpu.crash.msg.source       stri 'Source    %%build_src%%'
+cpu.crash.msg.id           stri 'Build-ID  %%build_date%%'
