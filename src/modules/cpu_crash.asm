@@ -231,10 +231,18 @@ cpu.crash.showreg.content:
 
 
 cpu.crash.msg.crashed      stri 'System crashed near >'
+                           even
 cpu.crash.msg.caller       stri 'Caller address near >'
+                           even
 cpu.crash.msg.r            stri 'R'
+                           even
 cpu.crash.msg.marker       stri '  >'
+                           even
 cpu.crash.msg.wp           stri '**WP'
+                           even
 cpu.crash.msg.st           stri '**ST'
+                           even
 cpu.crash.msg.source       stri 'Source    %%build_src%%'
+                           even
 cpu.crash.msg.id           stri 'Build-ID  %%build_date%%'
+                           even
