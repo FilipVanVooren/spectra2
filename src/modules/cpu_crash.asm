@@ -119,12 +119,6 @@ cpu.crash.main:
         bl    @putat
               byte 4,0
               data cpu.crash.msg.st
-        bl    @putat
-              byte 22,0
-              data cpu.crash.msg.source
-        bl    @putat
-              byte 23,0
-              data cpu.crash.msg.id
         ;------------------------------------------------------
         ; Show crash registers WP, ST, R0 - R15
         ;------------------------------------------------------
@@ -236,5 +230,3 @@ cpu.crash.msg.r            stri 'R'
 cpu.crash.msg.marker       stri '  >'
 cpu.crash.msg.wp           stri '**WP'
 cpu.crash.msg.st           stri '**ST'
-cpu.crash.msg.source       stri 'Source    %%build_src%%'
-cpu.crash.msg.id           stri 'Build-ID  %%build_date%%'
