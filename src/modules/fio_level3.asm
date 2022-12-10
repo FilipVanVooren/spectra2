@@ -169,23 +169,22 @@ file.record.write:
 
 
 file.record.seek:
-        nop
+        nop                         ; Not yet supported
 
 
 file.image.load:
-        nop
+        nop                         ; Not yet supported
 
 
 file.image.save:
-        nop
+        nop                         ; Not yet supported
 
 
 file.delete:
-        nop
-
+        nop                         ; Not yet supported
 
 file.rename:
-        nop
+        nop                         ; Not yet supported
 
 
 file.status:        
