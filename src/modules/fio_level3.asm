@@ -8,16 +8,17 @@
 ; my_pab:
 ;       byte  io.op.open            ;  0    - OPEN
 ;       byte  io.seq.inp.dis.var    ;  1    - INPUT, VARIABLE, DISPLAY
-;                                   ;         Bit 13-15 used by DSR for returning
+;                                   ;         Bit 13-15 used by DSR to return
 ;                                   ;         file error details to DSRLNK
 ;       data  vrecbuf               ;  2-3  - Record buffer in VDP memory
-;       byte  80                    ;  4    - Record length (80 characters maximum)
+;       byte  80                    ;  4    - Record length (80 chars maximum)
 ;       byte  0                     ;  5    - Character count (bytes read)
-;       data  >0000                 ;  6-7  - Seek record (only for fixed records)
+;       data  >0000                 ;  6-7  - Seek record (fixed records only)
 ;       byte  >00                   ;  8    - Screen offset (cassette DSR only)
 ; -------------------------------------------------------------
 ;       byte  11                    ;  9    - File descriptor length
-;       text 'DSK1.MYFILE'          ; 10-.. - File descriptor name (Device + '.' + File name)
+;       text 'DSK1.MYFILE'          ; 10-.. - File descriptor name 
+;                                             (Device + '.' + File name)
 ;       even
 ***************************************************************
 
@@ -166,7 +167,7 @@ file.record.write:
         li    tmp1,io.op.write      ; io.op.write
         jmp   _file.record.fop      ; Do file operation
 
-
+                                                                                                                
 
 file.record.seek:
         nop                         ; Not yet supported
