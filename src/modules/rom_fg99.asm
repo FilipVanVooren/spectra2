@@ -47,8 +47,8 @@ fg99.send.loop:
         dec   r2                    ; Prepare for next iteration
         jne   fg99.send.loop        ; Next byte
 
-        clr   @>6000                ; done sending filename
-        src   r0, 8                 ; burn at least 21 cycles        
+        clr   @>6000                ; Done sending filename
+        src   r0, 8                 ; Burn at least 21 cycles        
 *--------------------------------------------------------------
 * (3) Wait for image to be loaded by FinalGROM
 *-------------------------------------------------------------- 
