@@ -15,7 +15,7 @@
 *--------------------------------------------------------------
 *  bl   @xfg99
 *
-*  tmp0   = Pointer to FG99 cartridge table entry
+*  tmp0 = Pointer to FG99 cartridge table entry
 *--------------------------------------------------------------
 * Remark
 * https://github.com/endlos99/finalgrom99/blob/master/lib/reload_example.a99
