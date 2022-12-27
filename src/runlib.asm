@@ -234,7 +234,7 @@
     .endif
 
     .ifndef skip_fg99
-        copy  "fg99.asm"                 ; FinalGROM 99 support
+        copy  "rom_fg99.asm"             ; FinalGROM 99 support
     .endif
 
 *//////////////////////////////////////////////////////////////
