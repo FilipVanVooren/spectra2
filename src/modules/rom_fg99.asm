@@ -27,14 +27,20 @@
 *       "~3", ... to select the correct file.
 *
 *       PAD filename with >00 bytes so that it's always 8 bytes.
-*       Code is expected to run from RAM, not from the cartridge space
-*       and will not return to caller!
+*       Code is expected to run from RAM, not from the cartridge space.
 ********|*****|*********************|**************************
 fg99    mov   *r11+,tmp0            ; Get p0
 *--------------------------------------------------------------
-* (1) Send prefix and filename to FinalGROM
-*--------------------------------------------------------------        
+* Register version
+*--------------------------------------------------------------   
 xfg99:
+        dect  stack
+        mov   r11,*stack            ; Save return address
+        dect  stack
+        mov   tmp0,*stack           ; Push tmp0        
+*--------------------------------------------------------------
+* (1) Send prefix and filename to FinalGROM
+*--------------------------------------------------------------     
         mov   tmp0,r0               ; Get Pointer
         li    r2,20                 ; Len = prefix (8) + fname (8) + suffix (4)
 fg99.send.loop:
@@ -48,7 +54,7 @@ fg99.send.loop:
         jne   fg99.send.loop        ; Next byte
 
         clr   @>6000                ; Done sending filename
-        src   r0, 8                 ; Burn at least 21 cycles        
+        src   r0,8                  ; Burn at least 21 cycles        
 *--------------------------------------------------------------
 * (3) Wait for image to be loaded by FinalGROM
 *-------------------------------------------------------------- 
@@ -56,12 +62,14 @@ fg99.wait:
         li    r0,>6000              ; check >6000->6200
         li    r2,>100
 !       mov   *r0+, r1
-        jne   fg99.go               ; Done loading, run cartridge
+        jne   fg99.exit             ; Done loading, run cartridge
         dec   r2
         jne   -!
         jmp   fg99.wait
 *--------------------------------------------------------------
-* (4) Image finished loading. Start cartridge.
+* (4) Image finished loading
 *--------------------------------------------------------------
-fg99.go:
-        blwp  @0                    ; Reset TI-99/4a
+fg99.exit:
+        mov   *stack+,tmp0          ; Pop tmp0        
+        mov   *stack+,r11           ; Pop R11
+        b     *r11                  ; Return to caller
