@@ -56,12 +56,12 @@ fg99.wait:
         li    r0,>6000              ; check >6000->6200
         li    r2,>100
 !       mov   *r0+, r1
-        jne   fg99.run              ; Done loading, run cartridge
+        jne   fg99.go               ; Done loading, run cartridge
         dec   r2
         jne   -!
         jmp   fg99.wait
 *--------------------------------------------------------------
 * (4) Image finished loading. Start cartridge.
 *--------------------------------------------------------------
-fg99.run:
+fg99.go:
         blwp  @0                    ; Reset TI-99/4a
