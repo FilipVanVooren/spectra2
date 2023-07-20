@@ -8,7 +8,7 @@
 *                                  for
 *              the Texas Instruments TI-99/4A Home Computer
 *
-*                      2010-2022 by Filip Van Vooren
+*                      2010-2023 by Filip Van Vooren
 *
 *              https://github.com/FilipVanVooren/spectra2.git
 *******************************************************************************
@@ -26,6 +26,7 @@
 * skip_grom_vram_copy       equ  1  ; Skip GROM to VRAM copy functions
 * skip_sams                 equ  1  ; Skip support for SAMS memory expansion
 * skip_sams_layout          equ  1  ; Skip SAMS memory layout routine
+* skip_sams_size            equ  1  ; Skip SAMS card size check
 *
 * == VDP
 * skip_textmode             equ  1  ; Skip 40x24 textmode support
@@ -120,6 +121,10 @@
 
     .ifndef skip_sams_layout
         copy  "cpu_sams_layout.asm"      ; SAMS memory banks layout
+    .endif
+
+    .ifndef skip_sams_size
+        copy  "cpu_sams_size.asm"        ; SAMS card size
     .endif
 
     .ifndef skip_vdp_intscr
