@@ -540,13 +540,10 @@ putat   mov   *r11+,@wyx            ; Set YX position
 putlst:
         dect  stack
         mov   r11,*stack            ; Save return address
-        dect  stack
-        mov   tmp0,*stack           ; Push tmp0
         ;------------------------------------------------------
         ; Prepare
         ;------------------------------------------------------
         mov   @wyx,tmp4             ; Backup @wyx position
-
         ;------------------------------------------------------
         ; Dump strings to VDP
         ;------------------------------------------------------
@@ -557,7 +554,6 @@ putlst.loop:
 
         dect  stack
         mov   tmp0,*stack           ; Push tmp0
-
         dect  stack
         mov   tmp1,*stack           ; Push tmp1
         dect  stack
@@ -582,8 +578,8 @@ putlst.loop:
         mov   tmp0,tmp0             ; \ Single column list?
         jeq   !                     ; / Yes, skip next column handling
 
-        cb    tmp0,@wyx             ; Cutover row reached?
-        jle   !                     ; Not yet, move down
+        cb    @wyx,tmp0             ; Cutover row reached?
+        jlt   !                     ; Not yet, move down
 
         movb  tmp4,@wyx             ; Restore Y-position
         ab    @tmp0lb,@wyx+1        ; Add column offset
@@ -602,6 +598,5 @@ putlst.next:
         ; Exit
         ;------------------------------------------------------
 putlst.exit:
-        mov   *stack+,tmp0          ; Pop tmp0      
         mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return
