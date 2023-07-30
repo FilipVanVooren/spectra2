@@ -546,6 +546,7 @@ putlst:
 putlst.loop:
         movb  *tmp1,tmp3            ; Get string length byte
         srl   tmp3,8                ; Right align
+        jeq   putlst.exit           ; Exit early if 0-byte string length
 
         dect  stack
         mov   tmp1,*stack           ; Push tmp1
@@ -566,9 +567,6 @@ putlst.loop:
 
         a     tmp3,tmp1             ; Add string length to pointer
         inc   tmp1                  ; Consider length byte
-        czc   @w$0001,tmp1          ; Is address even ?
-        jeq   !                     ; Yes, skip adjustment
-        inc   tmp1                  ; Make address even
 !       dec   tmp2
         jgt   putlst.loop
         ;------------------------------------------------------
