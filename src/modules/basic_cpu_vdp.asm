@@ -526,7 +526,8 @@ putat   mov   *r11+,@wyx            ; Set YX position
 *--------------------------------------------------------------
 * INPUT
 * @wyx = Cursor position
-* tmp0 = Cutover row and column offset for next column
+* tmp0 = Cutover row and column offset for next column.
+*        Set to >0000 for single-column list
 * tmp1 = Pointer to first length-prefixed string in list
 * tmp2 = Number of strings to display
 *--------------------------------------------------------------
@@ -578,6 +579,9 @@ putlst.loop:
         ;------------------------------------------------------
         ; Next column?
         ;------------------------------------------------------
+        mov   tmp0,tmp0             ; \ Single column list?
+        jeq   !                     ; / Yes, skip next column handling
+
         cb    tmp0,@wyx             ; Cutover row reached?
         jle   !                     ; Not yet, move down
 
