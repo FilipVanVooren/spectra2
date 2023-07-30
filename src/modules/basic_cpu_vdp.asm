@@ -520,12 +520,13 @@ putat   mov   *r11+,@wyx            ; Set YX position
 
 ***************************************************************
 * putlst
-* Loop over string list and display
+* Loop over string list and display in columns
 ***************************************************************
 * bl  @putlst
 *--------------------------------------------------------------
 * INPUT
 * @wyx = Cursor position
+* tmp0 = Cutover row and column offset for next column
 * tmp1 = Pointer to first length-prefixed string in list
 * tmp2 = Number of strings to display
 *--------------------------------------------------------------
@@ -541,6 +542,11 @@ putlst:
         dect  stack
         mov   tmp0,*stack           ; Push tmp0
         ;------------------------------------------------------
+        ; Prepare
+        ;------------------------------------------------------
+        mov   @wyx,tmp4             ; Backup @wyx position
+
+        ;------------------------------------------------------
         ; Dump strings to VDP
         ;------------------------------------------------------
 putlst.loop:
@@ -549,25 +555,44 @@ putlst.loop:
         jeq   putlst.exit           ; Exit early if 0-byte string length
 
         dect  stack
+        mov   tmp0,*stack           ; Push tmp0
+
+        dect  stack
         mov   tmp1,*stack           ; Push tmp1
         dect  stack
         mov   tmp2,*stack           ; Push tmp2
-        dect  stack
+        dect  stack        
         mov   tmp3,*stack           ; Push tmp3
+        dect  stack
+        mov   tmp4,*stack           ; Push tmp4        
 
         bl    @xutst0               ; Display string
                                     ; \ i  tmp1 = Pointer to string
                                     ; / i  @wyx = Cursor position at
 
+        mov   *stack+,tmp4          ; Pop tmp4
         mov   *stack+,tmp3          ; Pop tmp3
         mov   *stack+,tmp2          ; Pop tmp2
         mov   *stack+,tmp1          ; Pop tmp1
+        mov   *stack+,tmp0          ; Pop tmp0        
+        ;------------------------------------------------------
+        ; Next column?
+        ;------------------------------------------------------
+        cb    tmp0,@wyx             ; Cutover row reached?
+        jle   !                     ; Not yet, move down
 
-        bl    @down                 ; Move cursor down
+        movb  tmp4,@wyx             ; Restore Y-position
+        ab    @tmp0lb,@wyx+1        ; Add column offset
 
+        jmp   putlst.next           ; Next iteration
+!       bl    @down                 ; Move cursor down
+        ;------------------------------------------------------
+        ; Prepare for next iteration
+        ;------------------------------------------------------
+putlst.next:        
         a     tmp3,tmp1             ; Add string length to pointer
         inc   tmp1                  ; Consider length byte
-!       dec   tmp2
+        dec   tmp2
         jgt   putlst.loop
         ;------------------------------------------------------
         ; Exit
