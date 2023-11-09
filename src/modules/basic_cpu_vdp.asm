@@ -532,7 +532,7 @@ putat   mov   *r11+,@wyx            ; Set YX position
 * tmp2 = Number of strings to display
 *--------------------------------------------------------------
 * OUTPUT
-* none
+* @waux1 = Pointer to next entry in list after display
 *--------------------------------------------------------------
 * Register usage
 * tmp0, tmp1, tmp2, tmp3
