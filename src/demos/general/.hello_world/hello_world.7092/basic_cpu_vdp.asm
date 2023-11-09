@@ -530,7 +530,7 @@ putat   mov   *r11+,@wyx            ; Set YX position
 * tmp2 = Number of strings to display
 *--------------------------------------------------------------
 * OUTPUT
-* none
+* @waux1 = Pointer to next entry in list after display
 *--------------------------------------------------------------
 * Register usage
 * tmp0, tmp1, tmp2, tmp3
@@ -570,7 +570,8 @@ putlst.loop:
         jeq   !                     ; Yes, skip adjustment
         inc   tmp1                  ; Make address even
 !       dec   tmp2
-        jgt   putlst.loop
+        jgt   putlst.loop           ; Display next entry in list
+        mov   tmp1,@waux1           ; Save pointer to next entry in list
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
