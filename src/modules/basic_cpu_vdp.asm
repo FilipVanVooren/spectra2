@@ -593,7 +593,8 @@ putlst.next:
         a     tmp3,tmp1             ; Add string length to pointer
         inc   tmp1                  ; Consider length byte
         dec   tmp2
-        jgt   putlst.loop
+        jgt   putlst.loop           ; Display next entry in list
+        mov   tmp1,@waux1           ; Save pointer to next entry in list        
         ;------------------------------------------------------
         ; Exit
         ;------------------------------------------------------
