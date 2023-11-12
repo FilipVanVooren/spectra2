@@ -532,7 +532,8 @@ putat   mov   *r11+,@wyx            ; Set YX position
 * tmp2 = Number of strings to display
 *--------------------------------------------------------------
 * OUTPUT
-* @waux1 = Pointer to next entry in list after display
+* @waux1 = Pointer to next entry in list after display.
+*          Only set if tmp2 < entries in list
 *--------------------------------------------------------------
 * Register usage
 * tmp0, tmp1, tmp2, tmp3
@@ -544,7 +545,6 @@ putlst:
         ; Prepare
         ;------------------------------------------------------
         mov   @wyx,tmp4             ; Backup @wyx position
-        clr   @waux1                ; Set null pointer
         ;------------------------------------------------------
         ; Dump strings to VDP
         ;------------------------------------------------------
