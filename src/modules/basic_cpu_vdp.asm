@@ -517,7 +517,6 @@ xutstr  mov   r11,tmp3
 putat   mov   *r11+,@wyx            ; Set YX position
         b     @putstr
 
-
 ***************************************************************
 * putlst
 * Loop over string list and display in columns
@@ -530,13 +529,18 @@ putat   mov   *r11+,@wyx            ; Set YX position
 *        Set to >0000 for single-column list
 * tmp1 = Pointer to first length-prefixed string in list
 * tmp2 = Number of strings to display
+* tmp3 = String padding length
 *--------------------------------------------------------------
 * OUTPUT
 * @waux1 = Pointer to next entry in list after display.
 *          Only set if tmp2 < entries in list
 *--------------------------------------------------------------
 * Register usage
-* tmp0, tmp1, tmp2, tmp3
+* r0 (!), tmp0, tmp1, tmp2, tmp3, tmp4
+*
+* Memory usage
+* @waux1 = Backup string padding
+* @waux2 = Backup YX position
 ********|*****|*********************|**************************
 putlst:
         dect  stack
@@ -544,6 +548,7 @@ putlst:
         ;------------------------------------------------------
         ; Prepare
         ;------------------------------------------------------
+	mov   tmp3,@waux1           ; Backup string padding length 
         mov   @wyx,tmp4             ; Backup @wyx position
         ;------------------------------------------------------
         ; Dump strings to VDP
@@ -552,7 +557,9 @@ putlst.loop:
         movb  *tmp1,tmp3            ; Get string length byte
         srl   tmp3,8                ; Right align
         jeq   putlst.exit           ; Exit early if 0-byte string length
-
+        ;------------------------------------------------------
+        ; Display string
+        ;------------------------------------------------------
         dect  stack
         mov   tmp0,*stack           ; Push tmp0
         dect  stack
@@ -572,10 +579,48 @@ putlst.loop:
         mov   *stack+,tmp3          ; Pop tmp3
         mov   *stack+,tmp2          ; Pop tmp2
         mov   *stack+,tmp1          ; Pop tmp1
-        mov   *stack+,tmp0          ; Pop tmp0        
+        mov   *stack+,tmp0          ; Pop tmp0
+        ;------------------------------------------------------
+        ; Pad string?
+        ;------------------------------------------------------
+        abs   @waux1                ; Padding length set?
+        jeq   putlst.nextcol        ; No, skip padding
+
+        c     @waux1,tmp3           ; Padding length < string length?
+        jeq   putlst.nextcol        ; Yes, skip padding        
+        ;------------------------------------------------------
+        ; Pad string
+        ;------------------------------------------------------
+        mov   @wyx,@waux2           ; Backup YX
+        a     tmp3,@wyx             ; Add string length
+        mov   @waux1,r0             ; Set counter      
+
+putlst.loop.pad:
+        dect  stack
+        mov   tmp0,*stack           ; Push tmp0
+        dect  stack
+        mov   tmp1,*stack           ; Push tmp1
+
+        bl    @yx2pnt               ; Get VDP destination address (tmp0)
+
+        li    tmp1,42
+        bl    @xvputb               ; Write byte to VDP
+                                    ; \ i  tmp0 = VDP destination address
+                                    ; / i  tmp1 = Byte to write in LSB
+
+        mov   *stack+,tmp1          ; Pop tmp1
+        mov   *stack+,tmp0          ; Pop tmp0
+
+        inc   @wyx                  ; X=X+1
+        dec   r0
+        c     r0,tmp3
+        jgt   putlst.loop.pad		
+
+        mov   @waux2,@wyx           ; Restore YX
         ;------------------------------------------------------
         ; Next column?
         ;------------------------------------------------------
+putlst.nextcol:
         mov   tmp0,tmp0             ; \ Single column list?
         jeq   !                     ; / Yes, skip next column handling
 

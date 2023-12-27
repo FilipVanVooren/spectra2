@@ -528,6 +528,7 @@ putat   mov   *r11+,@wyx            ; Set YX position
 * @wyx = Cursor position
 * tmp1 = Pointer to first length-prefixed string in list
 * tmp2 = Number of strings to display
+* tmp3 = String padding length
 *--------------------------------------------------------------
 * OUTPUT
 * @waux1 = Pointer to next entry in list after display
@@ -544,24 +545,66 @@ putlst:
         ; Dump strings to VDP
         ;------------------------------------------------------
 putlst.loop:
+        mov   tmp3,tmp4             ; Put padding length in register tmp4
+
         movb  *tmp1,tmp3            ; Get string length byte
         srl   tmp3,8                ; Right align
-
+        ;------------------------------------------------------
+        ; Display string
+        ;------------------------------------------------------
         dect  stack
         mov   tmp1,*stack           ; Push tmp1
         dect  stack
         mov   tmp2,*stack           ; Push tmp2
         dect  stack
         mov   tmp3,*stack           ; Push tmp3
+        dect  stack
+        mov   tmp4,*stack           ; Push tmp4
 
         bl    @xutst0               ; Display string
                                     ; \ i  tmp1 = Pointer to string
                                     ; / i  @wyx = Cursor position at
 
+        mov   *stack+,tmp4          ; Pop tmp4
+        mov   *stack+,tmp3          ; Pop tmp3
+        mov   *stack+,tmp2          ; Pop tmp2
+        mov   *stack+,tmp1          ; Pop tmp1
+        ;------------------------------------------------------
+        ; Pad string?
+        ;------------------------------------------------------
+        ci    tmp4,0                ; Padding length set?
+        jeq   putlst.loop.next      ; No, skip padding
+
+        c     tmp4,tmp3             ; Padding length < string length?
+        jeq   putlst.loop.next      ; Yes, skip padding
+        ;------------------------------------------------------
+        ; Pad string
+        ;------------------------------------------------------
+putlst.loop.pad:
+        dect  stack
+        mov   tmp1,*stack           ; Push tmp1
+        dect  stack
+        mov   tmp2,*stack           ; Push tmp2
+        dect  stack
+        mov   tmp3,*stack           ; Push tmp3
+        dect  stack
+        mov   tmp4,*stack           ; Push tmp4
+
+        bl    putstr                ; \
+              data putlst.txt.space ; / Pad character
+
+        mov   *stack+,tmp4          ; Pop tmp4
         mov   *stack+,tmp3          ; Pop tmp3
         mov   *stack+,tmp2          ; Pop tmp2
         mov   *stack+,tmp1          ; Pop tmp1
 
+        dec   tmp4
+        c     tmp4,tmp3
+        jgt   putlst.loop.pad
+        ;------------------------------------------------------
+        ; Next string
+        ;------------------------------------------------------
+putlst.loop.next:
         bl    @down                 ; Move cursor down
 
         a     tmp3,tmp1             ; Add string length to pointer
@@ -579,3 +622,7 @@ putlst.exit:
         mov   *stack+,tmp0          ; Pop tmp0      
         mov   *stack+,r11           ; Pop r11
         b     *r11                  ; Return
+
+putlst.txt.space:
+        stri  ' '
+        even
