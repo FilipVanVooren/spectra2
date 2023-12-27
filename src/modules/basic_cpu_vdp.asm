@@ -539,8 +539,9 @@ putat   mov   *r11+,@wyx            ; Set YX position
 * r0 (!), tmp0, tmp1, tmp2, tmp3, tmp4
 *
 * Memory usage
-* @waux1 = Backup string padding
-* @waux2 = Backup YX position
+* r0     = Counter used in padding
+* r1     = Backup YX used in padding
+* @waux1 = Backup string padding length
 ********|*****|*********************|**************************
 putlst:
         dect  stack
@@ -591,7 +592,7 @@ putlst.loop:
         ;------------------------------------------------------
         ; Pad string
         ;------------------------------------------------------
-        mov   @wyx,@waux2           ; Backup YX
+        mov   @wyx,r1               ; Backup YX
         a     tmp3,@wyx             ; Add string length
         mov   @waux1,r0             ; Set counter      
 
@@ -603,7 +604,7 @@ putlst.loop.pad:
 
         bl    @yx2pnt               ; Get VDP destination address (tmp0)
 
-        li    tmp1,42
+        li    tmp1,32
         bl    @xvputb               ; Write byte to VDP
                                     ; \ i  tmp0 = VDP destination address
                                     ; / i  tmp1 = Byte to write in LSB
@@ -616,7 +617,7 @@ putlst.loop.pad:
         c     r0,tmp3
         jgt   putlst.loop.pad		
 
-        mov   @waux2,@wyx           ; Restore YX
+        mov   r1,@wyx               ; Restore YX
         ;------------------------------------------------------
         ; Next column?
         ;------------------------------------------------------
