@@ -62,7 +62,7 @@ fg99.wait:
         li    r0,>6000              ; check >6000->6200
         li    r2,>100
 !       mov   *r0+, r1
-        jne   fg99.exit             ; Done loading, run cartridge
+        jne   fg99.exit             ; Done loading, exit
         dec   r2
         jne   -!
         jmp   fg99.wait

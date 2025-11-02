@@ -167,26 +167,48 @@ file.record.write:
         li    tmp1,io.op.write      ; io.op.write
         jmp   _file.record.fop      ; Do file operation
 
-                                                                                                                
+
+***************************************************************
+* file.load - Load binary file into VDP memory
+***************************************************************
+*  bl   @file.load
+*       data P0
+*--------------------------------------------------------------
+*  P0 = Address of PAB in VDP RAM (without +9 offset!)
+*--------------------------------------------------------------
+*  bl   @xfile.load
+*
+*  R0 = Address of PAB in VDP RAM
+*--------------------------------------------------------------
+*  Output:
+*  tmp0     = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
+********|*****|*********************|**************************
+file.load:
+        mov   *r11+,r0              ; Get file descriptor (P0)
+*--------------------------------------------------------------
+* Initialisation
+*--------------------------------------------------------------
+xfile.load:
+        dect  stack
+        mov   r11,*stack            ; Save return address
+
+        li    tmp1,io.op.load       ; io.op.load
+        jmp   _file.record.fop      ; Do file operation
+
 
 file.record.seek:
         nop                         ; Not yet supported
 
-
-file.image.load:
-        nop                         ; Not yet supported
-
-
 file.image.save:
         nop                         ; Not yet supported
-
 
 file.delete:
         nop                         ; Not yet supported
 
 file.rename:
         nop                         ; Not yet supported
-
 
 file.status:        
         nop
