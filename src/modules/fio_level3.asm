@@ -193,10 +193,23 @@ file.load:
 xfile.load:
         dect  stack
         mov   r11,*stack            ; Save return address
-
+        ;------------------------------------------------------
+        ; Initialisation
+        ;------------------------------------------------------        
+        li    tmp0,dsrlnk.savcru
+        clr   *tmp0+                ; Clear @dsrlnk.savcru
+        clr   *tmp0+                ; Clear @dsrlnk.savent
+        clr   *tmp0+                ; Clear @dsrlnk.savver
+        clr   *tmp0                 ; Clear @dsrlnk.pabflg
+        ;------------------------------------------------------
+        ; Set pointer to VDP disk buffer header
+        ;------------------------------------------------------        
+        li    tmp1,>37D7            ; \ VDP Disk buffer header
+        mov   tmp1,@>8370           ; | Pointer at Fixed scratchpad
+                                    ; / location
+        mov   r1,@fh.filetype       ; Set file type/mode
         li    tmp1,io.op.load       ; io.op.load
         jmp   _file.record.fop      ; Do file operation
-
 
 file.record.seek:
         nop                         ; Not yet supported
