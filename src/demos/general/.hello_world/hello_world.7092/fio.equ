@@ -76,6 +76,8 @@ io.rel.app.int.var  equ :11111      ; 1F
 ***************************************************************
 * File error codes - Byte 1 in PAB (Bits 5-7)
 ************************************|**************************
+* Attention: SRL Rx,5  ; Shift bits 5-7 to 0-2 before testing!
+************************************|**************************
 io.err.no_error_occured             equ 0
         ; Error code 0 with condition bit reset, indicates that
         ; no error has occured
