@@ -241,6 +241,7 @@
 
     .ifndef skip_fio_memprep
         copy  "fio_memprep.asm"          ; File I/O level 3 VDP memory setup
+    .endif
 
     .ifndef skip_fg99
         copy  "rom_fg99.asm"             ; FinalGROM 99 support
