@@ -8,7 +8,7 @@
 *                                  for
 *              the Texas Instruments TI-99/4A Home Computer
 *
-*                      2010-2023 by Filip Van Vooren
+*                      2010-2026 by Filip Van Vooren
 *
 *              https://github.com/FilipVanVooren/spectra2.git
 *******************************************************************************
@@ -67,6 +67,7 @@
 * skip_timer_alloc          equ  1  ; Skip support for timers allocation
 * skip_mem_paging           equ  1  ; Skip support for memory paging
 * skip_fio                  equ  1  ; Skip support for file I/O, dsrlnk
+* skip_fio_memprep          equ  1  ; Skip VDP memory setup for file I/O
 * skip_fg99                 equ  1  ; Skip support for FinalGROM99 loading
 *
 * == Startup behaviour
@@ -237,6 +238,9 @@
         copy  "fio_dsrlnk.asm"           ; DSRLNK for peripheral communication
         copy  "fio_level3.asm"           ; File I/O level 3 support
     .endif
+
+    .ifndef skip_fio_memprep
+        copy  "fio_memprep.asm"          ; File I/O level 3 VDP memory setup
 
     .ifndef skip_fg99
         copy  "rom_fg99.asm"             ; FinalGROM 99 support
