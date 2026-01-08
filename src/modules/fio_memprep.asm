@@ -24,6 +24,11 @@ file.vmem:
               data 2080             ; / p2  = Number of bytes to fill
 
         bl    @cpym2v               ; \ Copy CPU memory to VDP memory
+              data >37d8            ; | p0 = VDP target address
+              data file.vmem.37d8   ; | p1 = CPU source address
+              data 6                ; / p2 = Number of bytes to copy
+
+        bl    @cpym2v               ; \ Copy CPU memory to VDP memory
               data >3ee6            ; | p0 = VDP target address
               data file.vmem.part1  ; | p1 = CPU source address
               data 6                ; / p2 = Number of bytes to copy
@@ -41,6 +46,9 @@ file.vmem.exit:
 *--------------------------------------------------------------
 * Data
 *--------------------------------------------------------------
+file.vmem.37d8:
+        data  >aa3f,>ff11,>0300,>0000
+
 file.vmem.part1:
        data  >00C6,>4014,>0B00
 file.vmem.part2:
