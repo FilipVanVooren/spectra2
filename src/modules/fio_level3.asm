@@ -115,6 +115,52 @@ xfile.close:
         jmp   _file.record.fop      ; Do file operation
 
 
+
+***************************************************************
+* file.delete - Delete file from disk
+***************************************************************
+*  bl   @file.delete
+*       data P0
+*--------------------------------------------------------------
+*  P0 = Address of PAB in VDP RAM
+*--------------------------------------------------------------
+*  bl   @xfile.delete
+*
+*  R0 = Address of PAB in VDP RAM
+*--------------------------------------------------------------
+*  Output:
+*  tmp0 LSB = Copy of VDP PAB byte 1 after operation
+*  tmp1 LSB = Copy of VDP PAB byte 5 after operation
+*  tmp2 LSB = Copy of status register after operation
+********|*****|*********************|**************************
+file.delete:
+        mov   *r11+,r0              ; Get file descriptor (P0)
+*--------------------------------------------------------------
+* Initialisation
+*--------------------------------------------------------------
+xfile.delete:
+        dect  stack
+        mov   r11,*stack            ; Save return address
+        ;------------------------------------------------------
+        ; Initialisation
+        ;------------------------------------------------------        
+        li    tmp0,dsrlnk.savcru
+        clr   *tmp0+                ; Clear @dsrlnk.savcru
+        clr   *tmp0+                ; Clear @dsrlnk.savent
+        clr   *tmp0+                ; Clear @dsrlnk.savver
+        clr   *tmp0                 ; Clear @dsrlnk.pabflg
+        ;------------------------------------------------------
+        ; Set pointer to VDP disk buffer header
+        ;------------------------------------------------------        
+        li    tmp1,>37D7            ; \ VDP Disk buffer header
+        mov   tmp1,@>8370           ; | Pointer at Fixed scratchpad
+                                    ; / location
+        mov   r1,@fh.filetype       ; Set file type/mode
+        li    tmp1,io.op.delete     ; io.op.delete
+        jmp   _file.record.fop      ; Do file operation
+
+
+
 ***************************************************************
 * file.record.read - Read record from file
 ***************************************************************
@@ -226,20 +272,18 @@ xfile.load:
         li    tmp1,io.op.load       ; io.op.load
         jmp   _file.record.fop      ; Do file operation
 
+
 file.record.seek:
-        nop                         ; Not yet supported
+        bl     @cpu.crash           ; Not implemented, crash instead
 
 file.image.save:
-        nop                         ; Not yet supported
-
-file.delete:
-        nop                         ; Not yet supported
+        bl     @cpu.crash           ; Not implemented, crash instead
 
 file.rename:
-        nop                         ; Not yet supported
+        bl     @cpu.crash           ; Not implemented, crash instead
 
 file.status:        
-        nop
+        bl     @cpu.crash           ; Not implemented, crash instead
 
 
 
