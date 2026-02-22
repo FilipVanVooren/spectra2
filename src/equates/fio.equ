@@ -11,7 +11,7 @@ io.op.write      equ >03            ; WRITE
 io.op.rewind     equ >04            ; RESTORE/REWIND
 io.op.load       equ >05            ; LOAD
 io.op.save       equ >06            ; SAVE
-io.op.delfile    equ >07            ; DELETE FILE
+io.op.delete     equ >07            ; DELETE
 io.op.scratch    equ >08            ; SCRATCH 
 io.op.status     equ >09            ; STATUS
 ***************************************************************
