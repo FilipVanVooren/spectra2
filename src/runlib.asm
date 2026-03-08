@@ -339,6 +339,7 @@ runli9  clr   r1
 *--------------------------------------------------------------
 * Setup video memory
 *--------------------------------------------------------------
+        bl    @scroff               ; Turn off screen while setting up VDP
     .ifdef startup_keep_vdpmemory
         ci    r0,>4a4a              ; Crash flag set?
         jne   runlia
@@ -363,7 +364,7 @@ runlia  bl    @filv
 
         bl    @putvr                ; Reset all F18a extended registers
               data >3201            ; F18a VR50 (>32), bit 1
-              
+
         bl    @f18lck               ; Lock the F18A again              
     .endif
 *--------------------------------------------------------------

@@ -4,14 +4,14 @@
 ***************************************************************
 * Graphics mode 1 (32 columns/24 rows)
 *--------------------------------------------------------------
-graph1  byte  >00,>e2,>00,>0e,>01,>06,>02,SPFBCK,0,32
+graph1  byte  >00,>a2,>00,>0e,>01,>06,>02,SPFBCK,0,32
 *
 * ; VDP#0 Control bits
 * ;      bit 6=0: M3 | Graphics 1 mode
 * ;      bit 7=0: Disable external VDP input
 * ; VDP#1 Control bits
 * ;      bit 0=1: 16K selection
-* ;      bit 1=1: Enable display
+* ;      bit 1=0: Disable display
 * ;      bit 2=1: Enable VDP interrupt
 * ;      bit 3=0: M1 \ Graphics 1 mode
 * ;      bit 4=0: M2 /
@@ -29,14 +29,14 @@ graph1  byte  >00,>e2,>00,>0e,>01,>06,>02,SPFBCK,0,32
 ***************************************************************
 * Textmode (40 columns/24 rows)
 *--------------------------------------------------------------
-tx4024  byte  >00,>f2,>00,>0e,>01,>06,>00,SPFCLR,0,40
+tx4024  byte  >00,>b2,>00,>0e,>01,>06,>00,SPFCLR,0,40
 *
 * ; VDP#0 Control bits
 * ;      bit 6=0: M3 | Graphics 1 mode
 * ;      bit 7=0: Disable external VDP input
 * ; VDP#1 Control bits
 * ;      bit 0=1: 16K selection
-* ;      bit 1=1: Enable display
+* ;      bit 1=0: Disable display
 * ;      bit 2=1: Enable VDP interrupt
 * ;      bit 3=1: M1 \ TEXT MODE
 * ;      bit 4=0: M2 /
@@ -55,14 +55,14 @@ tx4024  byte  >00,>f2,>00,>0e,>01,>06,>00,SPFCLR,0,40
 ***************************************************************
 * Textmode (80 columns/24 rows) - F18A
 *--------------------------------------------------------------
-tx8024  byte  >04,>f0,>00,>1e,>01,>30,>02,SPFCLR,0,80
+tx8024  byte  >04,>b0,>00,>1e,>01,>30,>02,SPFCLR,0,80
 *
 * ; VDP#0 Control bits
 * ;      bit 6=0: M3 | Graphics 1 mode
 * ;      bit 7=0: Disable external VDP input
 * ; VDP#1 Control bits
 * ;      bit 0=1: 16K selection
-* ;      bit 1=1: Enable display
+* ;      bit 1=0: Disable display
 * ;      bit 2=1: Enable VDP interrupt
 * ;      bit 3=1: M1 \ TEXT MODE
 * ;      bit 4=0: M2 /
